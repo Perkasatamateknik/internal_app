@@ -74,13 +74,19 @@ $active_group = 'default';
 $query_builder = TRUE;
 
 $db['default'] = array(
-	// 'dsn'	=> 'mysql:host=localhost;dbname=n1576493_hrm',
-	'dsn'	=> 'mysql:host=localhost;dbname=n1576493_hrm_debug',
+	// // 'dsn'	=> 'mysql:host=localhost;dbname=n1576493_hrm',
+	// 'dsn'	=> 'mysql:host=localhost;dbname=n1576493_hrm_debug',
+	// 'hostname' => "localhost",
+	// 'username' => "root",
+	// 'password' => "",
+	// // 'database' => "n1576493_hrm",
+	// 'database' => "n1576493_hrm_debug",
+
+	'dsn'	=> 'mysql:host=localhost;dbname=n1576493_hrm',
 	'hostname' => "localhost",
-	'username' => "root",
-	'password' => "",
-	// 'database' => "n1576493_hrm",
-	'database' => "n1576493_hrm_debug",
+	'username' => "n1576493_hrm",
+	'password' => "Empire8855!",
+	'database' => "n1576493_hrm",
 	'dbdriver' => 'pdo',
 	'dbprefix' => '',
 	'pconnect' => FALSE,

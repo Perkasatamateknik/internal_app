@@ -22,6 +22,7 @@ class Accounts extends MY_Controller
 		$this->load->model('Accounts_model');
 		$this->load->model('Account_categories_model');
 		$this->load->model('Account_trans_model');
+		$this->load->model('Finance_trans');
 		$this->roles = $this->Xin_model->user_role_resource();
 	}
 
@@ -234,4 +235,132 @@ class Accounts extends MY_Controller
 			redirect('admin/dashboard');
 		}
 	}
+
+
+	public function transactions()
+	{
+
+		$role_resources_ids = $this->Xin_model->user_role_resource();
+
+		$data['title'] = $this->Xin_model->site_title();
+		$session = $this->session->userdata('username');
+		$data['breadcrumbs'] = $this->lang->line('ms_title_atransactions');
+		$data['path_url'] = 'finance/transaction';
+		if (empty($session)) {
+			redirect('admin/');
+		}
+
+		if (in_array('503', $role_resources_ids)) {
+			$data['subview'] = $this->load->view("admin/finance/transactions/index", $data, TRUE);
+			$this->load->view('admin/layout/layout_main', $data); //page load
+		} else {
+			redirect('admin/dashboard');
+		}
+	}
+
+	public function get_ajax_trans()
+	{
+		$data['title'] = $this->Xin_model->site_title();
+		$session = $this->session->userdata('username');
+		if (empty($session)) {
+			redirect('admin/');
+		}
+
+		$id = $this->input->get('id');
+		$record = $this->Finance_trans->get_trans($id);
+
+
+		// Datatables Variables
+		$draw = intval($this->input->get("draw"));
+		$start = intval($this->input->get("start"));
+		$length = intval($this->input->get("length"));
+
+		$data = array();
+		$balance = 0;
+		foreach ($record->result() as $i => $r) {
+
+			$credit = 0;
+			$debit = 0;
+			if ($r->type == 'credit') {
+				$credit = $r->amount;
+				$balance -= $r->amount;
+			} else {
+				$debit = $r->amount;
+				$balance += $r->amount;
+			}
+			$data[] = array(
+				$i += 1,
+				$this->Xin_model->set_date_format($r->created_at),
+				"Transfer",
+				$r->desc,
+				$r->ref,
+				$this->Xin_model->currency_sign($debit),
+				$this->Xin_model->currency_sign($credit),
+				$this->Xin_model->currency_sign($balance),
+			);
+		}
+
+		$output = array(
+			"draw" => $draw,
+			"recordsTotal" => $record->num_rows(),
+			"recordsFiltered" => $record->num_rows(),
+			"data" => $data
+		);
+		echo json_encode($output);
+		exit();
+	}
+
+	public function create_trans()
+	{
+		$data['title'] = $this->Xin_model->site_title();
+		$session = $this->session->userdata('username');
+		$data['breadcrumbs'] = $this->lang->line('ms_title_atransactions');
+		$data['path_url'] = 'finance/transaction';
+		if (empty($session)) {
+			redirect('admin/');
+		}
+
+		$role_resources_ids = $this->Xin_model->user_role_resource();
+
+		$type = $this->input->get('type') ?? false;
+		if (in_array('503', $role_resources_ids)) {
+
+			// pilih menu
+			if ($type == "transfer") {
+				$data['subview'] = $this->load->view("admin/finance/accounts/form_transfer", $data, TRUE);
+				#
+			} elseif ($type == "spend") {
+				$data['subview'] = $this->load->view("admin/finance/accounts/form_spends", $data, TRUE);
+				#
+			} elseif ($type == "receive") {
+				$data['subview'] = $this->load->view("admin/finance/accounts/form_receive", $data, TRUE);
+				#
+			} else {
+				redirect('admin/dashboard');
+			}
+			$this->load->view('admin/layout/layout_main', $data); //page load
+		} else {
+			redirect('admin/dashboard');
+		}
+	}
 }
+
+
+// $daftar_akun = [
+// 	"Cash & Bank",
+// 	"Accounts Receivable (A/R)",
+// 	"Inventory",
+// 	"Other Current Assets",
+// 	"Fixed Assets",
+// 	"Depreciation & Amortization",
+// 	"Other Assets",
+// 	"Accounts Payable (A/P)",
+// 	"Other Current Liabilities",
+// 	"Long Term Liabilities",
+// 	"Equity",
+// 	"Income",
+// 	"Cost of Sales",
+// 	"Expenses",
+// 	"Other Income",
+// 	"Other Expenses",
+// ];

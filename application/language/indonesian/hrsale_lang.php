@@ -3230,6 +3230,32 @@ $lang['ms_title_loss_proft'] = "Loss/Profit";
 
 $lang['ms_title_paid_expenses'] = "Beban Dibayar";
 
+$lang['ms_title_atransactions'] = "Transaksi";
+$lang['ms_title_add_trans'] = "Tambah Transaksi";
+$lang['ms_title_date'] = "Tanggal";
+$lang['ms_title_type'] = "Tipe";
+$lang['ms_title_desc'] = "Deskripsi";
+$lang['ms_title_ref'] = "Ref";
+$lang['ms_title_debit'] = "Debit";
+$lang['ms_title_credit'] = "Kredit";
+$lang['ms_title_balance'] = "Balance";
+
+$lang['ms_title_transfer'] = "Transfer Uang";
+$lang['ms_title_spend'] = "Belanjakan Uang";
+$lang['ms_title_receive'] = "Terima Uang";
+
+
+$lang['ms_title_source_account'] = "Sumber Akun";
+$lang['ms_title_number_document'] = "Number Document";
+$lang['ms_title_terget_account'] = "Tujuan Akun";
+$lang['ms_title_amount'] = "Jumlah";
+$lang['ms_title_transfer_date'] = "Tanggal Transfer";
+$lang['ms_title_ref'] = "Reference";
+$lang['ms_title_attachment'] = "Lampiran";
+$lang['ms_title_note'] = "Catatan";
+
+
+
 /////////////////////////////////////////////////// akhir hrsale v2.0.1
 
 /* End of file hrsale_lang.php */

@@ -20,17 +20,33 @@ class Transactions extends MY_Controller
 		//load the models
 		$this->load->model('Xin_model');
 		$this->load->model('Finance_model');
-		$this->load->model('Expense_model');
-		$this->load->model('Invoices_model');
-		$this->load->model('Employees_model');
-		$this->load->model('Department_model');
-		$this->load->model('Project_model');
-		$this->load->model('Awards_model');
-		$this->load->model('Training_model');
+		$this->load->model('Finance_trans');
 	}
 
-	public function index()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	public function print_transfer()
 	{
-		echo "halo";
+		return $this->load->view('admin/finance/transactions/print_transfer');
+	}
+
+	public function print_trans()
+	{
+		return $this->load->view('admin/finance/transactions/print_trans');
 	}
 }
