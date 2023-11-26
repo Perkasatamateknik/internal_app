@@ -15,6 +15,12 @@ class Accounts_model extends CI_Model
 		return $this->db->get("ms_finance_accounts");
 	}
 
+	public function get($id)
+	{
+		$this->db->where('account_id', $id);
+		return $this->db->get("ms_finance_accounts");
+	}
+
 	public function insert($data)
 	{
 		return $this->db->insert("ms_finance_accounts", $data);
@@ -23,5 +29,15 @@ class Accounts_model extends CI_Model
 	public function update($data)
 	{
 		return $this->db->update("ms_finance_accounts", $data, array('account_id' => $data['account_id']));
+	}
+
+	public function gel_all_account($query = false)
+	{
+		if ($query) {
+			$this->db->like('account_name', $query);
+			$this->db->or_like('account_code', $query);
+		}
+
+		return $this->db->get("ms_finance_accounts");
 	}
 }

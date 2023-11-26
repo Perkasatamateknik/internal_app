@@ -112,6 +112,7 @@
 	<?php } ?>
 	<script src="<?php echo base_url(); ?>skin/hrsale_vendor/assets/vendor/libs/chartjs/chartjs.js"></script>
 
+	<!-- <link href="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone.css" rel="stylesheet" type="text/css" /> -->
 	<style>
 		.purporse {
 			background-color: #f1f1f2;
@@ -123,5 +124,14 @@
 			color: #333;
 			/* Set the desired text color */
 		}
+
+		.bottom-right {
+			position: absolute;
+			bottom: 0;
+			right: 2vh;
+			width: 200px;
+		}
 	</style>
+	<!-- <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
+	<link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" /> -->
 </head>

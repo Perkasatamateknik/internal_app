@@ -66,7 +66,7 @@ if (!is_null($role_user)) {
 				<div class="sidenav-divider mt-0"></div>
 
 				<!-- Links -->
-				<?php $this->load->view('admin/components/left_menu'); ?>
+				<?php $this->load->view('admin/components/left_menu2'); ?>
 			</div>
 			<!-- / Layout sidenav -->
 

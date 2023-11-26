@@ -7,7 +7,7 @@
 <?php $role_resources_ids = $this->Xin_model->user_role_resource(); ?>
 <?php $user_info = $this->Xin_model->read_user_info($session['user_id']); ?>
 <?php $system = $this->Xin_model->read_setting_info(1); ?>
-<?= $id = $this->input->get('id') ?? false; ?>
+<?php $id = $this->input->get('id') ?? false; ?>
 
 <div class="row">
 	<div class="col-md-4">
@@ -38,15 +38,29 @@
 			<input type="text" class="form-control" placeholder="Search">
 		</div>
 	</div>
-	<div class="col-md-auto">
+	<div class="col-md-auto mx-0 px-1">
 		<a href="<?= base_url('admin/finance/accounts'); ?>" target="" class="btn btn-white"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
-		&nbsp;
-		<a href="#" class="btn btn-white" data-toggle="modal" data-target="#modalAdd"><i class="fas fa-exchange-alt"></i> <?= $this->lang->line('ms_title_add_trans'); ?></a>
-		&nbsp;
-		<a href="#" target="" class="btn btn-white"><i class="fa fa-print" aria-hidden="true"></i> <?= $this->lang->line('ms_title_add_trans'); ?></a>
-		&nbsp;
+	</div>
+	<div class="col-md-auto mx-0 px-1">
+		<div class="dropdown">
+			<button class="btn btn-white dropdown-toggle" type="button" id="triggerTrans" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				<i class="fas fa-exchange-alt"></i> <?= $this->lang->line('ms_title_add_trans'); ?>
+			</button>
+			<div class="dropdown-menu" aria-labelledby="triggerTrans">
+				<a class="dropdown-item" href="<?= base_url('admin/finance/accounts/create_trans?id=' . $id . '&type=transfer') ?>"><i class="fa fa-exchange-alt fa-fw mr-3" aria-hidden="true"></i><?= $this->lang->line('ms_title_transfer'); ?></a>
+				<!-- <br> -->
+				<a class="dropdown-item" href="<?= base_url('admin/finance/accounts/create_trans?id=' . $id . '&type=spend') ?>" class="btn btn-block btn-white text-left"><i class="fa fa-paper-plane fa-fw mr-3" aria-hidden="true"></i><?= $this->lang->line('ms_title_spend'); ?></a>
+				<!-- <br> -->
+				<a class="dropdown-item" href="<?= base_url('admin/finance/accounts/create_trans?id=' . $id . '&type=receive') ?>" class="btn btn-block btn-white text-left"><i class="fas fa-hand-holding-usd fa-fw mr-3"></i><?= $this->lang->line('ms_title_receive'); ?></a>
+				<!-- <br> -->
+			</div>
+		</div>
+	</div>
+	<div class="col-md-auto mx-0 px-1">
+		<a href="<?= base_url('admin/finance/accounts/print?id=' . $id) ?>" target="" class="btn btn-white"><i class="fa fa-print" aria-hidden="true"></i> <?= $this->lang->line('ms_title_print_trans'); ?></a>
+	</div>
+	<div class="col-md-auto mx-0 px-1">
 		<a href="#" target="" class="btn btn-transparent"><i class="fa fa-cog"></i></a>
-		&nbsp;
 	</div>
 </div>
 <div class="row">
@@ -73,28 +87,6 @@
 						</tbody>
 					</table>
 				</div>
-			</div>
-		</div>
-	</div>
-</div>
-
-<!-- Modal -->
-<div class="modal fade" id="modalAdd" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
-	<div class="modal-dialog modal-sm" role="document">
-		<div class="modal-content">
-			<!-- <div class="modal-header">
-				<h5 class="modal-title">sm</h5>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-					<span aria-hidden="true">&times;</span>
-				</button>
-			</div> -->
-			<div class="modal-body">
-				<a href="<?= base_url('admin/finance/accounts/create_trans?id=' . $id . '&type=transfer') ?>" class="btn btn-block btn-white text-left"><i class="fa fa-exchange-alt fa-fw mr-3" aria-hidden="true"></i><?= $this->lang->line('ms_title_transfer'); ?></a>
-				<!-- <br> -->
-				<a href="<?= base_url('admin/finance/accounts/create_trans?id=' . $id . '&type=spend') ?>" class="btn btn-block btn-white text-left"><i class="fa fa-paper-plane fa-fw mr-3" aria-hidden="true"></i><?= $this->lang->line('ms_title_spend'); ?></a>
-				<!-- <br> -->
-				<a href="<?= base_url('admin/finance/accounts/create_trans?id=' . $id . '&type=receive') ?>" class="btn btn-block btn-white text-left"><i class="fas fa-hand-holding-usd fa-fw mr-3"></i><?= $this->lang->line('ms_title_receive'); ?></a>
-				<!-- <br> -->
 			</div>
 		</div>
 	</div>

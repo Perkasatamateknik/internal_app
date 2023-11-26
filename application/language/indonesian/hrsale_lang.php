@@ -3215,7 +3215,6 @@ $lang['ms_title_total_balance'] = "Total Balance";
 // Accounts finance bank
 $lang['ms_title_accounts'] = "Akun";
 $lang['ms_title_add_accounts'] = "Tambah Akun";
-$lang['ms_title_add_accounts'] = "Tambah Akun";
 $lang['ms_title_account_code'] = "Kode";
 $lang['ms_title_account_name'] = "Nama Akun";
 $lang['ms_title_account_origin'] = "Origin Akun";
@@ -3230,15 +3229,20 @@ $lang['ms_title_loss_proft'] = "Loss/Profit";
 
 $lang['ms_title_paid_expenses'] = "Beban Dibayar";
 
-$lang['ms_title_atransactions'] = "Transaksi";
+$lang['ms_title_transactions'] = "Transaksi";
 $lang['ms_title_add_trans'] = "Tambah Transaksi";
+$lang['ms_title_print_trans'] = "Cetak";
 $lang['ms_title_date'] = "Tanggal";
+$lang['ms_title_date_transfer'] = "Tanggal Transfer";
+$lang['ms_title_due_date'] = "Tanggal Jatuh Tempo";
 $lang['ms_title_type'] = "Tipe";
 $lang['ms_title_desc'] = "Deskripsi";
 $lang['ms_title_ref'] = "Ref";
 $lang['ms_title_debit'] = "Debit";
 $lang['ms_title_credit'] = "Kredit";
 $lang['ms_title_balance'] = "Balance";
+$lang['ms_title_tax'] = "Pajak";
+$lang['ms_title_account'] = "Akun";
 
 $lang['ms_title_transfer'] = "Transfer Uang";
 $lang['ms_title_spend'] = "Belanjakan Uang";
@@ -3253,6 +3257,8 @@ $lang['ms_title_transfer_date'] = "Tanggal Transfer";
 $lang['ms_title_ref'] = "Reference";
 $lang['ms_title_attachment'] = "Lampiran";
 $lang['ms_title_note'] = "Catatan";
+$lang['ms_title_beneficiary'] = "Penerima";
+$lang['ms_title_select_options'] = "-- Pilih Data --";
 
 
 

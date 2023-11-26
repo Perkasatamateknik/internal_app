@@ -122,6 +122,26 @@ class Ajax_request extends MY_Controller
 		echo $this->output($data);
 		exit();
 	}
+
+	public function get_accounts()
+	{
+		if ($this->input->get('query')) {
+			$query = $this->input->get('query');
+		} else {
+			$query = false;
+		}
+		$res = $this->Accounts_model->gel_all_account($query)->result();
+
+		$data = [];
+		foreach ($res as $key => $r) {
+			$data[] = array(
+				'id' => $r->account_id,
+				'value' => $r->account_code . " - " . $r->account_name
+			);
+		}
+		echo $this->output($data);
+		exit();
+	}
 	// public function get_products()
 	// {
 	// 	if ($this->input->get('query')) {
@@ -203,7 +223,7 @@ class Ajax_request extends MY_Controller
 		$data = array();
 
 		$records = $this->accounts_model->all();
-		dd($records);
+		// dd($records);
 		$output = array(
 			"draw" => $draw,
 			// "recordsTotal" => $records->num_rows(),

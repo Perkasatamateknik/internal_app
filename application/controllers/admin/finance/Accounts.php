@@ -26,6 +26,40 @@ class Accounts extends MY_Controller
 		$this->roles = $this->Xin_model->user_role_resource();
 	}
 
+	public function trans_number($type)
+	{
+		if ($type == "transfer") {
+			$query = $this->Account_trans_model->get_last_trans_number();
+			#
+		} elseif ($type == "spend") {
+			$query = $this->Account_spend_model->get_last_trans_number();
+			#
+		} elseif ($type == "receive") {
+			$query = $this->Account_receive_model->get_last_trans_number();
+		}
+
+		if (!is_null($query)) {
+			// Extract the numeric part of the invoice number
+			$numericPart = intval(substr($query->trans_number, 3));
+
+			// Increment the numeric part
+			$nextNumericPart = $numericPart + 1;
+		} else {
+			$nextNumericPart = 1;
+		}
+
+		// Create the new invoice number with the prefix and padded numeric part
+		if ($type == "transfer") {
+			return sprintf("TR-%05d", $nextNumericPart);
+			#
+		} else if ($type == "spend") {
+			return sprintf("BS-%05d", $nextNumericPart);
+			#
+		} else if ($type == "receive") {
+			return sprintf("BR-%05d", $nextNumericPart);
+		}
+	}
+
 	public function index()
 	{
 
@@ -77,6 +111,7 @@ class Accounts extends MY_Controller
 		// }
 	}
 
+	// ajax table transactions account
 	public function get_ajax_table()
 	{
 
@@ -105,6 +140,7 @@ class Accounts extends MY_Controller
 			} else {
 				$category_name = '--';
 			}
+
 			$trans = $this->Account_trans_model->get_by_account($r->account_id);
 			if (!is_null($trans)) {
 
@@ -120,12 +156,17 @@ class Accounts extends MY_Controller
 				$saldo = 0;
 			}
 
-			$href = "<a href='" . base_url('admin/finance/accounts/view/') . $r->account_id . "' class='font-weight-bold text-dark hoverable'>" . $r->account_name . "</a>";
+			if ($saldo < 0) {
+				$color = "text-danger";
+			} else {
+				$color = "";
+			}
+			$href = "<a href='" . base_url('admin/finance/accounts/transactions?id=') . $r->account_id . "' class='font-weight-bold text-dark hoverable'>" . $r->account_name . "</a>";
 			$data[] = [
 				$r->account_code,
 				$href,
 				$category_name,
-				$this->Xin_model->currency_sign($saldo),
+				"<span class='" . $color . "'>" . $this->Xin_model->currency_sign($saldo) . "</span>",
 			];
 		}
 		$output = array(
@@ -160,6 +201,7 @@ class Accounts extends MY_Controller
 	public function get_ajax_table_transaction()
 	{
 
+		$id = $this->input->get('id');
 		$data['title'] = $this->Xin_model->site_title();
 		$session = $this->session->userdata('username');
 		if (empty($session)) {
@@ -173,10 +215,11 @@ class Accounts extends MY_Controller
 
 		$data = array();
 
-		$records = $this->Accounts_tramodel->all();
+		$records = $this->Account_trans_model->get_all_trans($id);
 
+		// dd($records);
 		// dd($records->result());
-		foreach ($records->result() as $r) {
+		foreach ($records as $r) {
 
 			// get category`
 			$category = $this->Account_categories_model->get($r->category_id);
@@ -208,6 +251,7 @@ class Accounts extends MY_Controller
 				$this->Xin_model->currency_sign($saldo),
 			];
 		}
+
 		$output = array(
 			"draw" => $draw,
 			// "recordsTotal" => $records->num_rows(),
@@ -240,18 +284,22 @@ class Accounts extends MY_Controller
 	public function transactions()
 	{
 
+		$id = $this->input->get('id');
+
+		$record = $this->Accounts_model->get($id)->row();
+		// dd($record);
 		$role_resources_ids = $this->Xin_model->user_role_resource();
 
 		$data['title'] = $this->Xin_model->site_title();
 		$session = $this->session->userdata('username');
-		$data['breadcrumbs'] = $this->lang->line('ms_title_atransactions');
+		$data['breadcrumbs'] = "<strong>" . $this->lang->line('ms_title_transactions') . "</strong>" . "&nbsp;&nbsp;" . $record->account_code;
 		$data['path_url'] = 'finance/transaction';
 		if (empty($session)) {
 			redirect('admin/');
 		}
 
 		if (in_array('503', $role_resources_ids)) {
-			$data['subview'] = $this->load->view("admin/finance/transactions/index", $data, TRUE);
+			$data['subview'] = $this->load->view("admin/finance/accounts/transactions", $data, TRUE);
 			$this->load->view('admin/layout/layout_main', $data); //page load
 		} else {
 			redirect('admin/dashboard');
@@ -314,8 +362,6 @@ class Accounts extends MY_Controller
 	{
 		$data['title'] = $this->Xin_model->site_title();
 		$session = $this->session->userdata('username');
-		$data['breadcrumbs'] = $this->lang->line('ms_title_atransactions');
-		$data['path_url'] = 'finance/transaction';
 		if (empty($session)) {
 			redirect('admin/');
 		}
@@ -327,17 +373,160 @@ class Accounts extends MY_Controller
 
 			// pilih menu
 			if ($type == "transfer") {
-				$data['subview'] = $this->load->view("admin/finance/accounts/form_transfer", $data, TRUE);
+
+				$data['path_url'] = 'finance/account_transfer';
+				$trans_number = $this->trans_number("transfer");
+				$init = $this->Account_trans_model->init_trans(['trans_number' => $trans_number]);
+
+				$data['record'] = $this->Account_trans_model->get($init);
+				$data['breadcrumbs'] = $this->lang->line('ms_title_transfer');
+				$data['subview'] = $this->load->view("admin/finance/accounts/transfer_form", $data, TRUE);
 				#
 			} elseif ($type == "spend") {
-				$data['subview'] = $this->load->view("admin/finance/accounts/form_spends", $data, TRUE);
+				$data['breadcrumbs'] = $this->lang->line('ms_title_spend');
+				$data['subview'] = $this->load->view("admin/finance/accounts/spend_form", $data, TRUE);
 				#
 			} elseif ($type == "receive") {
-				$data['subview'] = $this->load->view("admin/finance/accounts/form_receive", $data, TRUE);
+				$data['breadcrumbs'] = $this->lang->line('ms_title_receive');
+				$data['subview'] = $this->load->view("admin/finance/accounts/receive_form", $data, TRUE);
 				#
 			} else {
 				redirect('admin/dashboard');
 			}
+			$this->load->view('admin/layout/layout_main', $data); //page load
+		} else {
+			redirect('admin/dashboard');
+		}
+	}
+
+
+	public function print()
+	{
+		$id = $this->input->get('id');
+
+		$record = $this->Accounts_model->get($id)->row();
+		// dd($record);
+		$role_resources_ids = $this->Xin_model->user_role_resource();
+
+		$data['title'] = $this->Xin_model->site_title();
+		$session = $this->session->userdata('username');
+		$data['breadcrumbs'] = "<strong>" . $record->account_code . "</strong>" . "&nbsp;&nbsp;" . $record->account_name;
+		$data['path_url'] = 'finance/transaction';
+		if (empty($session)) {
+			redirect('admin/');
+		}
+
+		// records
+		$record = $this->Finance_trans->get_trans($id);
+
+
+		// Datatables Variables
+		$draw = intval($this->input->get("draw"));
+		$start = intval($this->input->get("start"));
+		$length = intval($this->input->get("length"));
+
+		$records = array();
+		$balance = 0;
+		foreach ($record->result() as $i => $r) {
+
+			$credit = 0;
+			$debit = 0;
+			if ($r->type == 'credit') {
+				$credit = $r->amount;
+				$balance -= $r->amount;
+			} else {
+				$debit = $r->amount;
+				$balance += $r->amount;
+			}
+			$records[] = array(
+				$i += 1,
+				$this->Xin_model->set_date_format($r->created_at),
+				"Transfer",
+				$r->desc,
+				$r->ref,
+				$this->Xin_model->currency_sign($debit),
+				$this->Xin_model->currency_sign($credit),
+				$this->Xin_model->currency_sign($balance),
+			);
+		}
+
+		$data['records'] = $records;
+		if (in_array('503', $role_resources_ids)) {
+			return $this->load->view("admin/finance/accounts/print", $data);
+		} else {
+			redirect('admin/dashboard');
+		}
+	}
+
+	public function spend_view()
+	{
+		$id = $this->input->get('id');
+
+		$role_resources_ids = $this->Xin_model->user_role_resource();
+		$record = $this->Account_trans_model->get($id);
+		$data['title'] = $this->Xin_model->site_title();
+		$session = $this->session->userdata('username');
+		// $data['breadcrumbs'] = "<strong>" . $record->account_code . "</strong>" . "&nbsp;&nbsp;" . $record->account_name;
+		$data['breadcrumbs'] = $this->lang->line('ms_title_spend');
+		$data['path_url'] = 'finance/transaction';
+		if (empty($session)) {
+			redirect('admin/');
+		}
+
+
+		$data['record'] = $record;
+		if (in_array('503', $role_resources_ids)) {
+			$data['subview'] = $this->load->view("admin/finance/accounts/spend_view", $data, TRUE);
+			$this->load->view('admin/layout/layout_main', $data); //page load
+		} else {
+			redirect('admin/dashboard');
+		}
+	}
+
+	public function transfer_view()
+	{
+		$id = $this->input->get('id');
+
+		$role_resources_ids = $this->Xin_model->user_role_resource();
+		$record = $this->Account_trans_model->get($id);
+		$data['title'] = $this->Xin_model->site_title();
+		$session = $this->session->userdata('username');
+		// $data['breadcrumbs'] = "<strong>" . $record->account_code . "</strong>" . "&nbsp;&nbsp;" . $record->account_name;
+		$data['breadcrumbs'] = $this->lang->line('ms_title_transfer');
+		$data['path_url'] = 'finance/transaction';
+		if (empty($session)) {
+			redirect('admin/');
+		}
+
+
+		$data['record'] = $record;
+		if (in_array('503', $role_resources_ids)) {
+			$data['subview'] = $this->load->view("admin/finance/accounts/transfer_view", $data, TRUE);
+			$this->load->view('admin/layout/layout_main', $data); //page load
+		} else {
+			redirect('admin/dashboard');
+		}
+	}
+
+	public function receive_view()
+	{
+		$id = $this->input->get('id');
+
+		$role_resources_ids = $this->Xin_model->user_role_resource();
+		$record = $this->Account_trans_model->get($id);
+		$data['title'] = $this->Xin_model->site_title();
+		$session = $this->session->userdata('username');
+		// $data['breadcrumbs'] = "<strong>" . $record->account_code . "</strong>" . "&nbsp;&nbsp;" . $record->account_name;
+		$data['breadcrumbs'] = $this->lang->line('ms_title_receive');
+		$data['path_url'] = 'finance/transaction';
+		if (empty($session)) {
+			redirect('admin/');
+		}
+
+
+		$data['record'] = $record;
+		if (in_array('503', $role_resources_ids)) {
+			$data['subview'] = $this->load->view("admin/finance/accounts/receive_view", $data, TRUE);
 			$this->load->view('admin/layout/layout_main', $data); //page load
 		} else {
 			redirect('admin/dashboard');

@@ -31,7 +31,7 @@ class Main extends MY_Controller
 
 	public function index()
 	{
-		$role_resources_ids = $this->sXin_model->user_role_resource();
+		$role_resources_ids = $this->Xin_model->user_role_resource();
 
 		$data['title'] = $this->Xin_model->site_title();
 		$session = $this->session->userdata('username');
