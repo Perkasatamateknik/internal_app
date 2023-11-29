@@ -64,14 +64,6 @@
 	</div>
 </div>
 <div class="row">
-	<div class="col-md-auto mr-0 mb-2 pr-0">
-		<a href="#" target="" class="btn btn-white"><i class="fa fa-filter" aria-hidden="true"></i> <?= $this->lang->line('ms_title_filter'); ?></a>
-	</div>
-	<div class="col-md-auto mr-0 mb-2 pr-0">
-		<a href="<?= base_url('admin/finance/accounts/transactions_doc?id=') ?>" target="" class="btn btn-white"><i class="fa fa-print" aria-hidden="true"></i> <?= $this->lang->line('ms_title_doc'); ?></a>
-	</div>
-</div>
-<div class="row">
 	<div class="col-12">
 		<div class="card">
 			<div class="card-body">
@@ -82,12 +74,11 @@
 							<tr>
 								<th>#</th>
 								<th><?= $this->lang->line('ms_title_date'); ?></th>
-								<th><?= $this->lang->line('ms_title_type'); ?></th>
-								<th><?= $this->lang->line('ms_title_desc'); ?></th>
+								<th><?= $this->lang->line('ms_title_number_document'); ?></th>
+								<th><?= $this->lang->line('ms_title_transfer'); ?></th>
 								<th><?= $this->lang->line('ms_title_ref'); ?></th>
-								<th><?= $this->lang->line('ms_title_debit'); ?></th>
-								<th><?= $this->lang->line('ms_title_credit'); ?></th>
-								<th><?= $this->lang->line('ms_title_balance'); ?></th>
+								<th><?= $this->lang->line('ms_title_status'); ?></th>
+								<th style="min-width: 150px;"><?= $this->lang->line('ms_title_amount'); ?></th>
 							</tr>
 						</thead>
 						<tbody>

@@ -3261,6 +3261,15 @@ $lang['ms_title_beneficiary'] = "Penerima";
 $lang['ms_title_select_options'] = "-- Pilih Data --";
 
 
+$lang['ms_title_paid_expenses'] = "Beban Dibayar";
+$lang['ms_title_success_edited'] = "Data berhasil diperbarui!";
+$lang['ms_title_success_added'] = "Data berhasil ditambahkan";
+$lang['ms_title_error_server'] = "Server Internal Error";
+$lang['ms_title_error'] = "oops, Terjadi Kesalahan!";
+$lang['ms_title_doc'] = "Dokumen";
+$lang['ms_title_filter'] = "Filter";
+$lang['ms_title_process'] = "Proses";
+$lang['ms_title_save_draft'] = "Simpan Draft";
 
 /////////////////////////////////////////////////// akhir hrsale v2.0.1
 

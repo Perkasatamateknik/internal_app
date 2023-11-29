@@ -136,7 +136,7 @@ class Ajax_request extends MY_Controller
 		foreach ($res as $key => $r) {
 			$data[] = array(
 				'id' => $r->account_id,
-				'value' => $r->account_code . " - " . $r->account_name
+				'text' => $r->account_code . " - " . $r->account_name
 			);
 		}
 		echo $this->output($data);
@@ -406,5 +406,58 @@ class Ajax_request extends MY_Controller
 
 		$this->output($Return);
 		exit;
+	}
+
+	public function upload_file()
+	{
+		//if ajax request
+		if ($this->input->is_ajax_request()) {
+			//set preferences
+
+			$type = $this->input->post('type');
+
+			if ($type == 'transfer') {
+				$config['upload_path'] = './uploads/finance/account_transfer/';
+			} elseif ($type == 'spend') {
+				$config['upload_path'] = './uploads/finance/account_spend/';
+			} elseif ($type == 'receive') {
+				$config['upload_path'] = './uploads/finance/account_receive/';
+			}
+
+			$config['allowed_types'] = 'gif|jpg|png';
+			$config['max_size'] = '1024'; // max_size in kb
+			$config['file_name'] = $_FILES['attachment']['name'];
+
+			//load upload class library
+			$this->load->library('upload', $config);
+
+			//check if upload failed or not
+			if (!$this->upload->do_upload('attachment')) {
+				//upload failed
+				$Return['error'] = $this->lang->line('xin_error_msg');
+				// echo $this->upload->display_errors();
+			} else {
+				//upload success
+				echo "File uploaded successfully.";
+			}
+		} else {
+			//if not ajax request, return error
+			echo "No direct script access allowed!";
+		}
+	}
+
+	public function find_employe()
+	{
+		$query = $this->input->get('query');
+		$res = $this->Employees_model->get_employees($query);
+		$data = [];
+		foreach ($res as $key => $r) {
+			$data[] = array(
+				'id' => $r->employee_id,
+				'text' => $r->first_name . " " . $r->last_name,
+			);
+		}
+		echo $this->output($data);
+		exit();
 	}
 }

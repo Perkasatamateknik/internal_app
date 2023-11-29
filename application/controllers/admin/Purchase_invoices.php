@@ -141,6 +141,7 @@ class Purchase_invoices extends Purchasing
 				$this->output($Return);
 				exit();
 			}
+
 			$user_id = $this->session->userdata()['username']['user_id'] ?? 0;
 			$department_id = $this->session->userdata()['username']['department_id'] ?? 0;
 

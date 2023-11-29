@@ -3206,8 +3206,6 @@ $lang['ms_notes'] = "Notes";
 
 
 
-$lang['ms_title_paid_expenses'] = "Beban Dibayar";
-
 ///////////////////////////////////////////////// end hrsale v2.0.1
 /* End of file hrsale_lang.php */
 /* Location: ./system/language/english/hrsale_lang.php */

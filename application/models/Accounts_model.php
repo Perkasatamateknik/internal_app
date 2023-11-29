@@ -38,6 +38,10 @@ class Accounts_model extends CI_Model
 			$this->db->or_like('account_code', $query);
 		}
 
+		// limit record to 10
+		$this->db->limit(10);
+		// order by account_name
+		$this->db->order_by('account_name', 'ASC');
 		return $this->db->get("ms_finance_accounts");
 	}
 }

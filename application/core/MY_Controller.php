@@ -68,6 +68,7 @@ class MY_Controller extends CI_Controller
 			}
 		}
 
+		// dd($session);
 
 		// set language
 		$siteLang = $ci->session->userdata('site_lang');
