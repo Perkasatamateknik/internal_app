@@ -23,7 +23,11 @@ class Accounts extends MY_Controller
 		$this->load->model('Account_categories_model');
 		$this->load->model('Account_transfer_model');
 		$this->load->model('Account_spend_model');
+		$this->load->model('Account_spend_items_model');
 		$this->load->model('Account_trans_model');
+		$this->load->model('Files_ms_model');
+		$this->load->model('Tax_model');
+		$this->load->model('Employees_model');
 		$this->load->model('Finance_trans');
 		$this->roles = $this->Xin_model->user_role_resource();
 	}
@@ -303,6 +307,30 @@ class Accounts extends MY_Controller
 		// }
 	}
 
+	public function spends()
+	{
+		$title = "<strong>" . $this->lang->line('ms_title_spend') . "</strong>";
+
+		$role_resources_ids = $this->Xin_model->user_role_resource();
+
+		$data['title'] = $this->Xin_model->site_title();
+		$session = $this->session->userdata('username');
+		$data['breadcrumbs'] = $title;
+		$data['path_url'] = 'finance/account_spend';
+
+		if (empty($session)) {
+			redirect('admin/');
+		}
+
+		// $data['records']
+		if (in_array('503', $role_resources_ids)) {
+			$data['subview'] = $this->load->view("admin/finance/accounts/spends", $data, TRUE);
+			$this->load->view('admin/layout/layout_main', $data); //page load
+		} else {
+			redirect('admin/dashboard');
+		}
+	}
+
 
 
 	public function create_trans()
@@ -323,19 +351,17 @@ class Accounts extends MY_Controller
 			if ($type == "transfer") {
 
 				$data['path_url'] = 'finance/account_transfer';
-				$trans_number = $this->trans_number("transfer");
-				$init = $this->Account_transfer_model->init_trans(['trans_number' => $trans_number]);
+				$init = $this->Account_transfer_model->init_trans();
 
-				$data['record'] = $this->Account_transfer_model->get($init);
+				$data['record'] = $init;
 				$data['breadcrumbs'] = $this->lang->line('ms_title_transfer');
 				$data['subview'] = $this->load->view("admin/finance/accounts/transfer_form", $data, TRUE);
 				#
 			} elseif ($type == "spend") {
 				$data['path_url'] = 'finance/account_spend';
-				$trans_number = $this->trans_number("spend");
-				$init = $this->Account_spend_model->init_trans(['trans_number' => $trans_number]);
+				$init = $this->Account_spend_model->init_trans();
 
-				$data['record'] = $this->Account_spend_model->get($init);
+				$data['record'] = $init;
 				$data['breadcrumbs'] = $this->lang->line('ms_title_spend');
 				$data['subview'] = $this->load->view("admin/finance/accounts/spend_form", $data, TRUE);
 				#
@@ -353,7 +379,7 @@ class Accounts extends MY_Controller
 	}
 
 
-	public function update_trans($status = 'draft')
+	public function update_trans()
 	{
 		/* Define return | here result is used to return user data and error for error message */
 		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
@@ -363,7 +389,14 @@ class Accounts extends MY_Controller
 		$id = $this->input->post('_token');
 		$type = $this->input->post('type');
 
+		$action = $this->input->post('act_type');
 		if ($type == 'transfer') {
+
+			$from = $this->Accounts_model->get($this->input->post('account_id'));
+			$to = $this->Accounts_model->get($this->input->post('target_account'));
+
+			$desc = "Transfer from " . $from . " to " . $to;
+
 			$data = [
 				'account_id' => $this->input->post('account_id'),
 				'terget_account_id' => $this->input->post('target_account'),
@@ -372,8 +405,17 @@ class Accounts extends MY_Controller
 				'amount' => $this->input->post('amount'),
 				'ref' => $this->input->post('ref'),
 				'note' => $this->input->post('note'),
-				'status' => $status,
+				'status' => $action == 'save' ? 'draft' : 'unpaid',
+				'description' => $desc,
 			];
+
+			// upload file
+			$config['allowed_types'] = 'gif|jpg|png';
+			$config['max_size'] = '1024'; // max_size in kb
+			$config['file_name'] = $_FILES['attachment']['name'];
+
+			//load upload class library
+			$up = $this->load->library('upload', $config);
 
 			$query = $this->Account_transfer_model->update($id, $data);
 
@@ -389,7 +431,174 @@ class Accounts extends MY_Controller
 
 	public function store_trans()
 	{
-		return $this->update_trans('unpaid');
+		// return $this->update_trans();
+		/* Define return | here result is used to return user data and error for error message */
+		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
+		$Return['csrf_hash'] = $this->security->get_csrf_hash();
+
+		// $id = $this->security->xss_clean($this->input->post('_token'));
+		$id = $this->input->post('_token');
+		$type = $this->input->post('type');
+
+		$action = $this->input->post('act_type');
+		if ($type == 'transfer') {
+
+			$from = $this->Accounts_model->get($this->input->post('account_id'))->row();
+			$to = $this->Accounts_model->get($this->input->post('target_account'))->row();
+
+			$desc = "Transfer from " . $from->account_name . " to " . $to->account_name;
+
+			$data = [
+				'account_id' => $this->input->post('account_id'),
+				'terget_account_id' => $this->input->post('target_account'),
+				'trans_number' => $this->input->post('trans_number'),
+				'date' => $this->input->post('date'),
+				'amount' => $this->input->post('amount'),
+				'ref' => $this->input->post('ref'),
+				'note' => $this->input->post('note'),
+				'status' => $action == 'save' ? 'draft' : 'unpaid',
+				'description' => $desc,
+			];
+
+			// upload file
+			$config['allowed_types'] = 'gif|jpg|png|pdf';
+			$config['max_size'] = '1024'; // max_size in kb
+
+			$config['upload_path'] = './uploads/finance/account_transfer/';
+
+			//load upload class library
+			$this->load->library('upload', $config);
+
+			$files = $_FILES['attachments'];
+			$file_data = array();
+
+			foreach ($files['name'] as $key => $filename) {
+
+				// Get the file extension
+				$extension = pathinfo($filename, PATHINFO_EXTENSION);
+				$newName = $this->input->post('trans_number') . "_" . time() . "_" . $key . "." . $extension;
+
+				$_FILES['attachments'] = array(
+					'name'     => $newName,
+					'type'     => $files['type'][$key],
+					'tmp_name' => $files['tmp_name'][$key],
+					'error'    => $files['error'][$key],
+					'size'     => $files['size'][$key]
+				);
+
+				if ($this->upload->do_upload('attachments')) {
+					$this->upload->data();
+
+					$file_data[] = array(
+						'file_name' => $newName,
+						'file_size' => $files['size'][$key],
+						'file_type' => $files['type'][$key],
+						'file_ext' => $extension,
+						'file_access' => 1, // transfer
+						'access_id' => $id
+					);
+				} else {
+					$Return['error'] = $this->upload->display_errors();
+					$this->output($Return);
+				}
+			}
+
+			$query = $this->Account_transfer_model->update_with_files($id, $data, $file_data);
+
+			if ($query) {
+				$Return['result'] = $this->lang->line('ms_title_success_added');
+				$this->output($Return);
+			} else {
+				$Return['error'] = $this->lang->line('ms_title_error');
+				$this->output($Return);
+			}
+			#
+			#
+			#
+		} else if ($type == 'spend') {
+			#
+			#
+			$data = [
+				'account_id' => $this->input->post('account_id'),
+				'trans_number' => $this->input->post('trans_number'),
+				'beneficiary' => $this->input->post('beneficiary'),
+				'date' => $this->input->post('date'),
+				'reference' => $this->input->post('reference'),
+				'due_date' => $this->input->post('date'),
+				'status' => $action == 'save' ? 'draft' : 'unpaid',
+			];
+
+			$items = [];
+			for ($i = 0; $i < count($this->input->post('row_amount')); $i++) {
+
+				$items[] = [
+					'spend_id' => $id,
+					'account_id' => $this->input->post('row_target_id')[$i],
+					'tax_id' => $this->input->post('row_tax_id')[$i],
+					'tax_rate' => $this->input->post('row_tax_rate')[$i],
+					'amount' => $this->input->post('row_amount')[$i],
+					'note' => $this->input->post('row_note')[$i],
+				];
+			}
+
+			if (isset($_FILES["attachments"])) {
+				// upload file
+				$config['allowed_types'] = 'gif|jpg|png|pdf';
+				$config['max_size'] = '10240'; // max_size in kb
+
+				$config['upload_path'] = './uploads/finance/account_spend/';
+
+				//load upload class library
+				$this->load->library('upload', $config);
+
+				$files = $_FILES['attachments'];
+				$file_attachments = array();
+
+				foreach ($files['name'] as $key => $filename) {
+
+					// Get the file extension
+					$extension = pathinfo($filename, PATHINFO_EXTENSION);
+					$newName = $this->input->post('trans_number') . "_" . time() . "_" . $key . "." . $extension;
+
+					$_FILES['attachments'] = array(
+						'name'     => $newName,
+						'type'     => $files['type'][$key],
+						'tmp_name' => $files['tmp_name'][$key],
+						'error'    => $files['error'][$key],
+						'size'     => $files['size'][$key]
+					);
+
+					if ($this->upload->do_upload('attachments')) {
+						$this->upload->data();
+
+						$file_attachments[] = array(
+							'file_name' => $newName,
+							'file_size' => $files['size'][$key],
+							'file_type' => $files['type'][$key],
+							'file_ext' => $extension,
+							'file_access' => 2, // spend
+							'access_id' => $id
+						);
+					} else {
+						$Return['error'] = $this->upload->display_errors();
+						$this->output($Return);
+					}
+				}
+			} else {
+				$file_attachments = null;
+			}
+
+
+			$query = $this->Account_spend_model->update_with_items_and_files($id, $data, $items, $file_attachments);
+
+			if ($query) {
+				$Return['result'] = $this->lang->line('ms_title_success_added');
+				$this->output($Return);
+			} else {
+				$Return['error'] = $this->lang->line('ms_title_error');
+				$this->output($Return);
+			}
+		}
 	}
 
 	public function print()
@@ -455,12 +664,44 @@ class Accounts extends MY_Controller
 		$id = $this->input->get('id');
 
 		$role_resources_ids = $this->Xin_model->user_role_resource();
-		$record = $this->Account_transfer_model->get($id);
+		$record = $this->Account_spend_model->get_by_number_doc($id);
+
+		if (!is_null($record)) {
+			$from = $this->Accounts_model->get($record->account_id)->row();
+			$to = $this->Employees_model->read_employee_information($record->beneficiary);
+			$record->source_account = $from->account_name;
+			$record->beneficiary = $to[0]->first_name . " " . $to[0]->last_name;
+
+			//
+			$attachments = $this->Files_ms_model->get_by_access_id(2, $record->spend_id)->result();
+			$data['attachments'] = $attachments;
+
+			//
+			$items = $this->Account_spend_items_model->get($record->spend_id);
+			if (!is_null($items)) {
+				foreach ($items as $item) {
+					$item->account_name = $this->Accounts_model->get($item->account_id)->row()->account_name;
+					$tax = $this->Tax_model->read_tax_information($item->tax_id); // return bool
+
+					if ($tax) {
+						$item->tax_name = $tax[0]->name;
+						$item->tax_rate = $tax[0]->rate;
+					} else {
+						$item->tax_name = "--";
+						$item->tax_rate = 0;
+					}
+				}
+			}
+
+			$data['items'] = $items;
+		} else {
+			redirect('admin/finance/accounts');
+		}
+
 		$data['title'] = $this->Xin_model->site_title();
 		$session = $this->session->userdata('username');
-		// $data['breadcrumbs'] = "<strong>" . $record->account_code . "</strong>" . "&nbsp;&nbsp;" . $record->account_name;
 		$data['breadcrumbs'] = $this->lang->line('ms_title_spend');
-		$data['path_url'] = 'finance/transaction';
+		$data['path_url'] = 'finance/account_spend';
 		if (empty($session)) {
 			redirect('admin/');
 		}
@@ -484,9 +725,13 @@ class Accounts extends MY_Controller
 		$record = $this->Account_transfer_model->get_by_number_doc($id);
 		if (!is_null($record)) {
 			$from = $this->Accounts_model->get($record->account_id)->row();
-			$to = $this->Accounts_model->get($record->terget_account_id)->row();
+			$to = $this->Accounts_model->get($record->beneficiary)->row();
 			$record->source_account = $from->account_name;
 			$record->target_account = $to->account_name;
+
+			//
+			$attachments = $this->Files_ms_model->get_by_access_id(1, $record->transfer_id)->result();
+			$data['attachments'] = $attachments;
 		} else {
 			redirect('admin/finance/accounts');
 		}
@@ -499,7 +744,7 @@ class Accounts extends MY_Controller
 		}
 		// $data['breadcrumbs'] = "<strong>" . $record->account_code . "</strong>" . "&nbsp;&nbsp;" . $record->account_name;
 		$data['breadcrumbs'] = $this->lang->line('ms_title_transfer');
-		$data['path_url'] = 'finance/transaction';
+		$data['path_url'] = 'finance/account_transfer';
 
 
 		$data['record'] = $record;
@@ -647,6 +892,74 @@ class Accounts extends MY_Controller
 		exit();
 	}
 
+	public function get_ajax_account_spends()
+	{
+		$data['title'] = $this->Xin_model->site_title();
+		$session = $this->session->userdata('username');
+		if (empty($session)) {
+			redirect('admin/');
+		}
+		$record = $this->Account_spend_model->all();
+
+
+		// Datatables Variables
+		$draw = intval($this->input->get("draw"));
+		$start = intval($this->input->get("start"));
+		$length = intval($this->input->get("length"));
+
+		$data = array();
+		$balance = 0;
+		foreach ($record->result() as $i => $r) {
+
+			if (!in_array(null, [$r->account_id, $r->beneficiary], true)) {
+
+				$from_account = $this->Accounts_model->get($r->account_id)->row();
+				if (!is_null($from_account)) {
+					$from = "<b>$from_account->account_name</b>" . "  " . $from_account->account_code;
+				} else {
+					$from = "--";
+				}
+
+				$to_beneficiary = $this->Employees_model->read_employee_information($r->beneficiary);
+				if (!is_null($to_beneficiary)) {
+					$to = $to_beneficiary[0]->first_name . "  " . $to_beneficiary[0]->last_name;
+				} else {
+					$to = "--";
+				}
+			} else {
+				$from = "--";
+				$to = "--";
+			}
+
+
+			$amount = $this->Account_spend_items_model->get_total_amount($r->spend_id);
+			if (!is_null($amount)) {
+				$amount = $amount;
+			} else {
+				$amount = 0;
+			}
+
+			$data[] = array(
+				"<a href='" . base_url('admin/finance/accounts/spend_view?id=' . $r->trans_number) . "' class='text-secondary'><i class='fa fa-eye fa-fw' aria-hidden='true'></i></a>",
+				$this->Xin_model->set_date_format($r->created_at),
+				$r->trans_number,
+				"<small>" . $from . "<br>To<br>" . $to . "</small>",
+				$r->reference,
+				$r->status == "paid" ? "<span class='badge badge-success'>" . $r->status . "</span>" : "<span class='badge badge-warning'>" . $r->status . "</span>",
+				$this->Xin_model->currency_sign($amount),
+			);
+		}
+
+		$output = array(
+			"draw" => $draw,
+			"recordsTotal" => $record->num_rows(),
+			"recordsFiltered" => $record->num_rows(),
+			"data" => $data
+		);
+		echo json_encode($output);
+		exit();
+	}
+
 	public function getetet()
 	{
 		$id = $this->input->get('id');
@@ -709,23 +1022,3 @@ class Accounts extends MY_Controller
 		exit();
 	}
 }
-
-
-// $daftar_akun = [
-// 	"Cash & Bank",
-// 	"Accounts Receivable (A/R)",
-// 	"Inventory",
-// 	"Other Current Assets",
-// 	"Fixed Assets",
-// 	"Depreciation & Amortization",
-// 	"Other Assets",
-// 	"Accounts Payable (A/P)",
-// 	"Other Current Liabilities",
-// 	"Long Term Liabilities",
-// 	"Equity",
-// 	"Income",
-// 	"Cost of Sales",
-// 	"Expenses",
-// 	"Other Income",
-// 	"Other Expenses",
-// ];

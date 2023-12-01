@@ -1925,4 +1925,20 @@ class Employees_model extends CI_Model
 			return null;
 		}
 	}
+
+
+	// new row
+	public function find_employe($query = false)
+	{
+		if ($query) {
+			$this->db->like('first_name', $query);
+			$this->db->or_like('last_name', $query);
+		}
+
+		// limit record to 10
+		$this->db->limit(10);
+		// order by account_name
+		$this->db->order_by('user_id', 'ASC');
+		return $this->db->get("xin_employees")->result();
+	}
 }

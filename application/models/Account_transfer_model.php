@@ -10,6 +10,24 @@ class Account_transfer_model extends CI_Model
 		$this->load->database();
 	}
 
+	public function trans_number()
+	{
+		$query = $this->get_last_trans_number();
+
+		if (!is_null($query)) {
+			// Extract the numeric part of the invoice number
+			$numericPart = intval(substr($query->trans_number, 3));
+
+			// Increment the numeric part
+			$nextNumericPart = $numericPart + 1;
+		} else {
+			$nextNumericPart = 1;
+		}
+
+		// Create the new invoice number with the prefix and padded numeric part
+		return sprintf("TR-%05d", $nextNumericPart);
+	}
+
 	public function all()
 	{
 		return $this->db->get("ms_finance_account_transfers");
@@ -69,14 +87,27 @@ class Account_transfer_model extends CI_Model
 			->limit(1)->get()->row();
 	}
 
-	public function init_trans($data)
+	public function get_last_transfer()
 	{
-		// $this->db->trans_start();
-		$this->db->insert('ms_finance_account_transfers', $data);
-		return $this->db->insert_id();
-		// $this->db->insert_batch('ms_items_purchase_requisition', $items);
-		// $this->db->trans_complete();
-		// return $this->db->trans_status();
+		return $this->db->select('*')
+			->from('ms_finance_account_transfers')
+			->order_by('trans_number', 'desc')
+			->limit(1)->get()->row();
+	}
+
+	public function init_trans()
+	{
+		$last = $this->get_last_transfer();
+
+		if (is_null($last) or !in_array(null, [$last->account_id, $last->terget_account_id], true)) {
+			$trans_number = $this->trans_number();
+			$this->db->insert('ms_finance_account_transfers', ['trans_number' => $trans_number]);
+			$last_id = $this->db->insert_id();
+
+			return $this->get($last_id);
+		} else {
+			return $last;
+		}
 	}
 
 	// public function get_all_trans_by_trans_number($id)
@@ -116,5 +147,20 @@ class Account_transfer_model extends CI_Model
 	{
 		$this->db->where('transfer_id', $id);
 		return $this->db->update('ms_finance_account_transfers', $data);
+	}
+
+	public function update_with_files($id, $data, array $file_data = null)
+	{
+		$this->db->trans_start();
+		$this->db->update('ms_finance_account_transfers', $data, ['transfer_id' => $id]);
+
+		if (!is_null($file_data)) {
+			if (count($file_data) > 0) {
+				$this->db->insert_batch('ms_files', $file_data);
+			}
+		}
+
+		$this->db->trans_complete();
+		return $this->db->trans_status();
 	}
 }

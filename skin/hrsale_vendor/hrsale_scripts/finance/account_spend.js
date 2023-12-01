@@ -2,7 +2,7 @@ $(function () {
 	$('[data-plugin="select_account"]').select2({
 		ajax: {
 			delay: 250,
-			url: site_url + "ajax_request/get_accounts",
+			url: site_url + "ajax_request/get_bank_account",
 			data: function (params) {
 				var queryParameters = {
 					query: params.term,
@@ -26,20 +26,12 @@ $(function () {
 			},
 		},
 		width: "100%",
-		// language: {
-		// 	noResults: function () {
-		// 		return `<li><button style="width: 100%" type="button"
-		//     class="btn btn-tranparent btn-sm"
-		//     onClick='addVendor()'><span class="ion ion-md-add"></span> Add Vendor</button>
-		//     </li>`;
-		// 	},
-		// },
 	});
 
 	$('[data-plugin="terget_account"]').select2({
 		ajax: {
 			delay: 250,
-			url: site_url + "ajax_request/get_accounts",
+			url: site_url + "ajax_request/find_employe",
 			data: function (params) {
 				var queryParameters = {
 					query: params.term,
@@ -67,7 +59,7 @@ $(function () {
 	});
 
 	// submit insert or edit
-	$("#transfers_form").submit(function (e) {
+	$("#spend_form").submit(function (e) {
 		/*Form Submit*/
 		e.preventDefault();
 		var obj = $(this),
@@ -97,11 +89,10 @@ $(function () {
 						onHidden: function () {
 							window.location.href =
 								site_url +
-								"finance/accounts/transactions?id=" +
+								"finance/accounts/transfer_view?id=" +
 								$("input[name='trans_number']").val();
 						},
 					};
-					console.log(JSON.result);
 					toastr.success(JSON.result);
 					$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
 					$(".icon-spinner3").hide();
@@ -133,7 +124,7 @@ $(document).ready(function () {
 	var id = getUrlParameter("id");
 	$("#ms_table").DataTable({
 		ajax: {
-			url: site_url + "finance/accounts/get_ajax_account_transfer/",
+			url: site_url + "finance/accounts/get_ajax_account_spends/",
 			data: {
 				id: id,
 			},
@@ -172,7 +163,7 @@ function addRow() {
 	// Create a new row element with a unique id attribute
 	var newRow = `<tr class="item-row" id="item-row-${rowCount}" data-id="${rowCount}">
 		<td>
-			<select class="form-control row_target_id" data-plugin="select_target_account" name="row_target_id[]" id="row_target_id_${rowCount}" onchange="select_product(this)" value="0" data-placeholder="Select Account" required>
+			<select class="form-control row_target_id" data-plugin="select_target_account" name="row_target_id[]" id="row_target_id_${rowCount}"value="0" data-placeholder="Select Account" required>
 			</select>
 		</td>
 		<td>
@@ -192,7 +183,6 @@ function addRow() {
 			<input type="number" min="0" class="row_amount form-control" name="row_amount[]" id="row_amount_${rowCount}" value="0">
 		</td>
 		<td style="text-align:center">
-			<input type="hidden" class="row_item_pi_id" name="row_item_pi_id[]" value="0">
 			<input type="hidden" class="row_type" name="row_type[]" value="INSERT">
 			<button type="button" class="btn icon-btn btn-danger waves-effect waves-light remove-item"> <span class="fa fa-minus"></span></button>
 		</td>
@@ -204,7 +194,7 @@ function addRow() {
 	$('[data-plugin="select_target_account"]').select2({
 		ajax: {
 			delay: 250,
-			url: site_url + "ajax_request/get_accounts",
+			url: site_url + "ajax_request/get_bank_account",
 			data: function (params) {
 				var queryParameters = {
 					query: params.term,
@@ -318,6 +308,75 @@ $(document).on("click", ".remove-item", function () {
 });
 
 // Fungsi edit otomatic kaluasi saat load
+addRow();
+
+function select_tax(x) {
+	var selectedRow = $("#" + x.id).closest("tr");
+	var query = x.value;
+	var rowId = selectedRow.attr("data-id");
+	$.get({
+		url: site_url + "ajax_request/find_tax_by_id",
+		data: { query: query },
+		success: function (result) {
+			data_tax_rate = result.rate;
+			data_tax_type = result.type;
+			var amount = parseFloat(selectedRow.find(".row_amount").val());
+
+			if (data_tax_type == "fixed") {
+				var tax = parseFloat(data_tax_rate);
+			} else {
+				var tax = (data_tax_rate / 100) * amount; // get nilai tax
+			}
+
+			selectedRow.find(".data_tax_rate").val(data_tax_rate);
+			selectedRow.find(".data_tax_type").val(data_tax_type);
+
+			selectedRow.find(".row_tax_rate").val(tax);
+			selectedRow.find(".row_tax_rate_show").text(formatCurrency(tax));
+
+			//update
+			update_row_amount(rowId);
+		},
+	});
+}
+
+// Fungsi edit otomatic kaluasi saat load
 $(document).on("load", function () {
-	addRow();
+	// update_total();
 });
+
+// Calculate subtotal whenever row_qty or row_item_price is changed
+$(document).on(
+	"change click keyup load",
+	".row_tax_id, .row_amount",
+	function () {
+		var row = $(this).closest("tr");
+		var id = row.attr("data-id");
+		update_row_amount(id);
+		// update_total();
+	}
+);
+
+function update_row_amount(id) {
+	var row = $("#item-row-" + id).closest("tr");
+
+	var data_tax_rate = parseFloat(row.find(".data_tax_rate").val());
+	var data_tax_type = row.find(".data_tax_type").val();
+
+	// inisialize the data
+	var row_tax_rate = parseFloat(row.find(".row_tax_rate").val());
+
+	var amount = parseFloat(row.find(".row_amount").val());
+
+	// hitung tax
+	if (data_tax_type == "fixed") {
+		row_tax_rate = data_tax_rate;
+	} else {
+		row_tax_rate = (data_tax_rate / 100) * amount; // get nilai tax
+	}
+
+	// var subtotal_1 = parseFloat(row_tax_rate) + parseFloat(am
+
+	row.find(".row_tax_rate").val(row_tax_rate);
+	row.find(".row_tax_rate_show").text(formatCurrency(row_tax_rate));
+}

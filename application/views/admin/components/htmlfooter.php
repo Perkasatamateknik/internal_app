@@ -598,3 +598,11 @@
 	</script>
 <?php }; ?>
 <!-- <script src="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone-min.js"></script> -->
+
+
+<script src="<?= base_url("skin/vendor/fileUpload/fileUpload.js"); ?>"></script>
+<script>
+	$(function() {
+		$("#fileUpload").fileUpload();
+	});
+</script>

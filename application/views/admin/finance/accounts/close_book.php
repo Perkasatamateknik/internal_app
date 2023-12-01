@@ -38,7 +38,6 @@
 								<td>Office Supplies</td>
 								<td>00</td>
 							</tr>
-
 						</tbody>
 					</table>
 				</div>

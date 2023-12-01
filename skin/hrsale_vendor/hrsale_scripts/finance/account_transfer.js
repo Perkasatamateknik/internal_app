@@ -2,7 +2,7 @@ $(function () {
 	$('[data-plugin="select_account"]').select2({
 		ajax: {
 			delay: 250,
-			url: site_url + "ajax_request/get_accounts",
+			url: site_url + "ajax_request/get_bank_account",
 			data: function (params) {
 				var queryParameters = {
 					query: params.term,
@@ -26,20 +26,12 @@ $(function () {
 			},
 		},
 		width: "100%",
-		// language: {
-		// 	noResults: function () {
-		// 		return `<li><button style="width: 100%" type="button"
-		//     class="btn btn-tranparent btn-sm"
-		//     onClick='addVendor()'><span class="ion ion-md-add"></span> Add Vendor</button>
-		//     </li>`;
-		// 	},
-		// },
 	});
 
 	$('[data-plugin="terget_account"]').select2({
 		ajax: {
 			delay: 250,
-			url: site_url + "ajax_request/get_accounts",
+			url: site_url + "ajax_request/get_bank_account",
 			data: function (params) {
 				var queryParameters = {
 					query: params.term,
@@ -97,11 +89,10 @@ $(function () {
 						onHidden: function () {
 							window.location.href =
 								site_url +
-								"finance/accounts/transactions?id=" +
+								"finance/accounts/transfer_view?id=" +
 								$("input[name='trans_number']").val();
 						},
 					};
-					console.log(JSON.result);
 					toastr.success(JSON.result);
 					$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
 					$(".icon-spinner3").hide();

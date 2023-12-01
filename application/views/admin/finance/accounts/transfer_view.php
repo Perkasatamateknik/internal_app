@@ -81,7 +81,7 @@ if ($id == '') {
 							</thead>
 							<tbody>
 								<tr>
-									<td><?= $record->note; ?></td>
+									<td><?= $record->description; ?></td>
 									<td><?= $record->note; ?></td>
 									<td><?= $this->Xin_model->currency_sign($record->amount); ?></td>
 								</tr>
@@ -95,7 +95,7 @@ if ($id == '') {
 							<tfoot>
 								<tr style="border-top: 1px solid black;">
 									<td colspan="2" align="center"><strong><?= $this->lang->line('xin_amount'); ?></strong></td>
-									<td><strong>000:000:000</strong></td>
+									<td><strong><?= $this->Xin_model->currency_sign($record->amount); ?></strong></td>
 								</tr>
 							</tfoot>
 						</table>
@@ -105,68 +105,70 @@ if ($id == '') {
 		</div>
 	</div>
 
-	<div class="col-md-12 mb-3">
-		<div class="card">
-			<div class="card-body">
-				<div class="row">
-					<div class="col-12">
-						<label for=""><?php echo $this->lang->line('xin_attachment'); ?></label><br>
-					</div>
-					<div class="col-md-3 col-sm-12 mb-sm-3">
-						<div class="card">
-							<img class="card-img-top" src="<?= base_url('/uploads/purchase/invoices/') ?>" alt="">
-							<div class="card-body p-3">
-								<span class="clearfix mt-1">
-									<span><?php
-											$fileSize = filesize('./uploads/purchase/invoices/');
-											$formattedSize = size($fileSize);
-											echo $formattedSize; ?></span>
-									<a href="#" class="btn btn-default btn-sm float-right"><i class="fas fa-cloud-download-alt"></i></a>
-								</span>
+	<?php if (count($attachments) > 0) { ?>
+		<div class="col-md-12 mb-3">
+			<div class="card">
+				<div class="card-header">
+					<strong><?php echo $this->lang->line('xin_attachment'); ?></strong><br>
+
+				</div>
+				<div class="card-body">
+					<div class="row">
+						<?php foreach ($attachments as $attachment) {
+
+							$image = ['png', 'jpg', 'jpeg', 'gif'];
+							if (!in_array($attachment->file_ext, $image)) {
+								$attachment->file_view = 'pdf.png';
+							} else {
+								$attachment->file_view = $attachment->file_name;
+							}
+						?>
+							<div class="col-md-2 col-sm-6 mb-sm-3">
+								<div class="card border-secondary">
+									<img class="card-img-top" src="<?= base_url('/uploads/finance/account_transfer/' . $attachment->file_view) ?>" alt="" height="150px">
+									<div class="card-body p-3">
+										<span class="clearfix mt-1">
+											<small><?php
+													$fileSize = filesize('./uploads/finance/account_transfer/' . $attachment->file_name);
+													$formattedSize = size($attachment->file_size);
+													echo $formattedSize; ?></small>
+											<a href="<?= base_url('/uploads/finance/account_transfer/' . $attachment->file_name) ?>" target="_blank" class="btn btn-default btn-sm float-right"><i class="fas fa-cloud-download-alt"></i></a>
+										</span>
+									</div>
+								</div>
 							</div>
-						</div>
-					</div>
-					<div class="col-md-3 col-sm-12 mb-sm-3">
-						<div class="card">
-							<img class="card-img-top" src="<?= base_url('/uploads/purchase/invoices/') ?>" alt="">
-							<div class="card-body p-3">
-								<span class="clearfix mt-1">
-									<span><?php
-											$fileSize = filesize('./uploads/purchase/invoices/');
-											$formattedSize = size($fileSize);
-											echo $formattedSize; ?></span>
-									<a href="#" class="btn btn-default btn-sm float-right"><i class="fas fa-cloud-download-alt"></i></a>
-								</span>
-							</div>
-						</div>
+						<?php }; ?>
 					</div>
 				</div>
 			</div>
 		</div>
-	</div>
+	<?php }; ?>
 	<div class="col-md-12">
 		<div class="card">
 			<div class="card-header">
 				<strong><?php echo $this->lang->line('ms_title_purchase_payment'); ?></strong>
 			</div>
 			<div class="card-body">
+				<?php $attributes = array('name' => 'payment_form', 'id' => 'payment_form', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
+				<?php $hidden = array('type' => 'transfer', '_token' => $record->transfer_id); ?>
+				<?php echo form_open('admin/finance/accounts/store_payment', $attributes, $hidden); ?>
 				<div class="row">
 					<div class="col-md-4">
 						<div class="form-group">
 							<label for="date"><?php echo $this->lang->line('ms_payment_date'); ?></label>
-							<input type="date" name="date" id="date" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_date'); ?>">
+							<input type="date" name="date" id="date" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_date'); ?>" required>
 						</div>
 					</div>
 					<div class="col-md-4">
 						<div class="form-group">
 							<label for="payment_ref"><?php echo $this->lang->line('ms_payment_ref'); ?></label>
-							<input type="text" name="payment_ref" id="payment_ref" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_ref'); ?>">
+							<input type="text" name="payment_ref" id="payment_ref" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_ref'); ?>" required>
 						</div>
 					</div>
 					<div class="col-md-4">
 						<div class="form-group">
-							<label for="attachment"><?php echo $this->lang->line('xin_attachment'); ?>s</label>
-							<input type="file" class="form-control" name="attachment" id="attachment" multiple>
+							<label for="attachment"><?php echo $this->lang->line('xin_attachment'); ?></label>
+							<input type="file" class="form-control" name="attachment" id="attachment" required>
 						</div>
 					</div>
 					<div class="col-md-4">
@@ -179,7 +181,7 @@ if ($id == '') {
 					<div class="col-md-4">
 						<div class="form-group">
 							<label for="amount_paid"><?php echo $this->lang->line('ms_payment_amount_paid'); ?></label>
-							<input type="number" min="0" name="amount_paid" id="amount_paid" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_amount_paid'); ?>">
+							<input type="number" min="0" max="<?= $record->amount; ?>" value="0" name="amount_paid" id="amount_paid" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_amount_paid'); ?>" required>
 						</div>
 					</div>
 					<div class="col-md-4">
@@ -189,6 +191,7 @@ if ($id == '') {
 						</div>
 					</div>
 				</div>
+				<?php echo form_close(); ?>
 			</div>
 		</div>
 	</div>

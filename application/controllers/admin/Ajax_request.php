@@ -142,6 +142,26 @@ class Ajax_request extends MY_Controller
 		echo $this->output($data);
 		exit();
 	}
+
+	public function get_bank_account()
+	{
+		if ($this->input->get('query')) {
+			$query = $this->input->get('query');
+		} else {
+			$query = false;
+		}
+		$res = $this->Accounts_model->get_bank_account($query)->result();
+
+		$data = [];
+		foreach ($res as $key => $r) {
+			$data[] = array(
+				'id' => $r->account_id,
+				'text' => $r->account_code . " - " . $r->account_name
+			);
+		}
+		echo $this->output($data);
+		exit();
+	}
 	// public function get_products()
 	// {
 	// 	if ($this->input->get('query')) {
@@ -429,7 +449,7 @@ class Ajax_request extends MY_Controller
 			$config['file_name'] = $_FILES['attachment']['name'];
 
 			//load upload class library
-			$this->load->library('upload', $config);
+			$up = $this->load->library('upload', $config);
 
 			//check if upload failed or not
 			if (!$this->upload->do_upload('attachment')) {
@@ -449,7 +469,7 @@ class Ajax_request extends MY_Controller
 	public function find_employe()
 	{
 		$query = $this->input->get('query');
-		$res = $this->Employees_model->get_employees($query);
+		$res = $this->Employees_model->find_employe($query);
 		$data = [];
 		foreach ($res as $key => $r) {
 			$data[] = array(
