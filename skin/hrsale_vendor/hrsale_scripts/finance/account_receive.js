@@ -2,7 +2,7 @@ $(function () {
 	$('[data-plugin="select_account"]').select2({
 		ajax: {
 			delay: 250,
-			url: site_url + "ajax_request/get_bank_account",
+			url: site_url + "ajax_request/find_vendor",
 			data: function (params) {
 				var queryParameters = {
 					query: params.term,
@@ -11,36 +11,6 @@ $(function () {
 			},
 
 			processResults: function (data) {
-				return {
-					results: data,
-				};
-			},
-			cache: true,
-			transport: function (params, success, failure) {
-				var $request = $.ajax(params);
-
-				$request.then(success);
-				$request.fail(failure);
-
-				return $request;
-			},
-		},
-		width: "100%",
-	});
-
-	$('[data-plugin="terget_account"]').select2({
-		ajax: {
-			delay: 250,
-			url: site_url + "ajax_request/find_employe",
-			data: function (params) {
-				var queryParameters = {
-					query: params.term,
-				};
-				return queryParameters;
-			},
-
-			processResults: function (data) {
-				console.log(data);
 				return {
 					results: data,
 				};
@@ -59,7 +29,7 @@ $(function () {
 	});
 
 	// submit insert or edit
-	$("#spend_form").submit(function (e) {
+	$("#receive_form").submit(function (e) {
 		/*Form Submit*/
 		e.preventDefault();
 		var obj = $(this),

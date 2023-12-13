@@ -3270,7 +3270,15 @@ $lang['ms_title_doc'] = "Dokumen";
 $lang['ms_title_filter'] = "Filter";
 $lang['ms_title_process'] = "Proses";
 $lang['ms_title_save_draft'] = "Simpan Draft";
+$lang['ms_title_fund_source'] = "Sumber Dana";
+$lang['ms_title_balance_due'] = "Pembayaran Jatuh Tempo";
 
+$lang['ms_title_expense'] = "Beban Pengeluaran";
+$lang['ms_title_add_expense'] = "Tambah Beban";
+$lang['ms_title_transfer_due_date'] = "Jatuh Tempo";
+$lang['ms_title_term'] = "Term";
+$lang['ms_title_status'] = "Status";
+$lang['ms_title_tarns_status'] = "Status Transaksi";
 /////////////////////////////////////////////////// akhir hrsale v2.0.1
 
 /* End of file hrsale_lang.php */

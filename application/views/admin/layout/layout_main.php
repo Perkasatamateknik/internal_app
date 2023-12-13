@@ -90,7 +90,7 @@ if (!is_null($role_user)) {
 					<div class="<?php echo $val_container; ?>">
 						<div class="d-flex justify-content-between align-items-center mb-3">
 							<?php
-							if (!in_array($this->router->fetch_class(), ['dashboard', 'chat', 'view_all', 'cash_bank', 'accounts', 'transactions'])) { ?>
+							if (!in_array($this->router->fetch_class(), ['dashboard', 'chat', 'view_all', 'cash_bank', 'accounts', 'transactions', 'expense'])) { ?>
 								<!-- if ($this->router->fetch_class() != 'dashboard' && $this->router->fetch_class() != 'chat' && $this->router->fetch_method() != 'view_all') { ?> -->
 								<div>
 									<h4 class="font-weight-bold mt-3"><?php echo $breadcrumbs; ?></h4>

@@ -2284,3 +2284,47 @@ if (!function_exists('size')) {
 		return round($bytes / (pow(1024, $pow)), $precision) . ' ' . $units[$pow];
 	}
 }
+
+
+if (!function_exists('status_trans')) {
+	function status_trans($status)
+	{
+		$CI = &get_instance();
+		if ($status == 'draft') {
+			$type = "badge-warning";
+		} elseif ($status == 'unpaid') {
+			$type = "badge-danger";
+		} elseif ($status == 'partially_paid') {
+			$type = "badge-info";
+		} elseif ($status == 'paid') {
+			$type = "badge-success";
+		} else {
+			$type = "badge-secondary";
+		}
+
+		return "<span class='badge " . $type . "'>" . $status . "</span>";
+	}
+}
+
+if (!function_exists('text_status_trans')) {
+	function text_status_trans($status, $ucfirst = false)
+	{
+		$CI = &get_instance();
+		if ($status == 'draft') {
+			$type = "text-warning";
+		} elseif ($status == 'unpaid') {
+			$type = "text-danger";
+		} elseif ($status == 'partially_paid') {
+			$type = "text-info";
+		} elseif ($status == 'paid') {
+			$type = "text-success";
+		} else {
+			$type = "text-secondary";
+		}
+		if ($ucfirst) {
+			return "<span class='" . $type . "'>" . ucfirst($status) . "</span>";
+		} else {
+			return "<span class='" . $type . "'>" . $status . "</span>";
+		}
+	}
+}

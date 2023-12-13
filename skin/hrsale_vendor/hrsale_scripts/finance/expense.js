@@ -57,9 +57,12 @@ $(function () {
 		},
 		width: "100%",
 	});
+	$('[data-plugin="select_hrm"]').select2({
+		width: "100%",
+	});
 
 	// submit insert or edit
-	$("#spend_form").submit(function (e) {
+	$("#expense_form").submit(function (e) {
 		/*Form Submit*/
 		e.preventDefault();
 		var obj = $(this),
@@ -89,7 +92,7 @@ $(function () {
 						onHidden: function () {
 							window.location.href =
 								site_url +
-								"finance/accounts/spend_view?id=" +
+								"finance/expense/view?id=" +
 								$("input[name='trans_number']").val();
 						},
 					};
@@ -112,6 +115,38 @@ $(function () {
 	});
 });
 
+$(function () {
+	$("#select_due_date").on("change", function () {
+		var duration = parseInt($("#select_due_date").val());
+		var startDate = new Date($("#date").val());
+		var durationType = $("#select_due_date").find(":selected").data("type");
+
+		if (isNaN(duration) || isNaN(startDate.getTime())) {
+			alert("Please enter valid input");
+			return;
+		}
+
+		var dueDate = calculateDueDate(startDate, duration, durationType);
+		$("#due_date").val(dueDate.toISOString().split("T")[0]);
+	});
+	$("#due_date").on("change", function () {
+		$("#select_due_date").val(0).trigger();
+	});
+});
+
+function calculateDueDate(startDate, duration, durationType) {
+	var dueDate = new Date(startDate);
+
+	if (durationType === "days") {
+		dueDate.setDate(dueDate.getDate() + duration);
+	} else if (durationType === "months") {
+		dueDate.setMonth(dueDate.getMonth() + duration);
+	} else if (durationType === "years") {
+		dueDate.setFullYear(dueDate.getFullYear() + duration);
+	}
+
+	return dueDate;
+}
 //required fields
 
 $(document).ready(function () {
@@ -124,7 +159,7 @@ $(document).ready(function () {
 	var id = getUrlParameter("id");
 	$("#ms_table").DataTable({
 		ajax: {
-			url: site_url + "finance/accounts/get_ajax_account_spends/",
+			url: site_url + "finance/expense/get_ajax_expenses/",
 			data: {
 				id: id,
 			},
@@ -271,34 +306,6 @@ function addRow() {
 
 // remove item
 $(document).on("click", ".remove-item", function () {
-	// if ($(this).data("ajax")) {
-	// 	var conf = confirm("Are you sure you want to delete this item?");
-	// 	if (conf == true) {
-	// 		var id = $(this).data("id");
-	// 		var row = $(this).closest("tr");
-	// 		$.ajax({
-	// 			url: site_url + "ajax_request/delete_item_pi",
-	// 			type: "POST",
-	// 			data: {
-	// 				csrf_hrsale: $('input[name="csrf_hrsale"]').val(),
-	// 				id: id,
-	// 			},
-	// 			success: function (JSON) {
-	// 				row.fadeOut(300, function () {
-	// 					$(this).remove();
-	// 					update_total();
-	// 				});
-	// 				toastr.success(JSON.result);
-	// 				$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
-	// 			},
-	// 			error: function (jqXHR, textStatus, errorThrown) {
-	// 				toastr.error("Error: " + textStatus + " | " + error);
-	// 				$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
-	// 			},
-	// 		});
-	// 	}
-	// } else {
-	// }
 	$(this)
 		.closest(".item-row")
 		.fadeOut(300, function () {

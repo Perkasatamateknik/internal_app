@@ -473,8 +473,8 @@ class Ajax_request extends MY_Controller
 		$data = [];
 		foreach ($res as $key => $r) {
 			$data[] = array(
-				'id' => $r->employee_id,
-				'text' => $r->first_name . " " . $r->last_name,
+				'id' => $r->user_id,
+				'text' => $r->first_name ?? "" . " " . $r->last_name ?? "",
 			);
 		}
 		echo $this->output($data);

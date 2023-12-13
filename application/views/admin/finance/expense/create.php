@@ -1,23 +1,17 @@
-<?php $id = $this->input->get('id');
-
-if ($id == '') {
-	redirect('admin/finance/accounts');
-}
-?>
 <div class="row">
 	<div class="col-12">
 		<h4 class="font-weight-bold mt-3"><?php echo $breadcrumbs; ?></h4>
 	</div>
 </div>
 
-<?php $attributes = array('name' => 'spend_form', 'id' => 'spend_form', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
-<?php $hidden = array('type' => 'spend', '_token' => $record->spend_id); ?>
-<?php echo form_open('admin/finance/accounts/store_trans', $attributes, $hidden); ?>
+<?php $attributes = array('name' => 'expense_form', 'id' => 'expense_form', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
+<?php $hidden = array('type' => 'expense', '_token' => $record->expense_id); ?>
+<?php echo form_open('admin/finance/expense/store', $attributes, $hidden); ?>
 <div class="row">
 	<div class="col-md-12">
 		<div class="card mb-3">
 			<div class="card-header">
-				<a href="<?= base_url('admin/finance/accounts/transactions?id=' . $id) ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
+				<a href="<?= base_url('admin/finance/expense') ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
 			</div>
 			<div class="card-body">
 				<div class="row">
@@ -47,10 +41,36 @@ if ($id == '') {
 							<input type="text" name="reference" id="reference" class="form-control">
 						</div>
 					</div>
-					<div class="col-md-6">
+					<div class="col-md-4">
 						<div class="form-group">
 							<label for="date"><?= $this->lang->line('ms_title_transfer_date'); ?></label>
-							<input type="datetime-local" name="date" id="date" class="form-control">
+							<input type="date" name="date" id="date" class="form-control">
+						</div>
+					</div>
+					<div class="col-md-4">
+						<div class="form-group">
+							<label for="due_date"><?= $this->lang->line('ms_title_transfer_due_date'); ?></label>
+							<input type="date" name="due_date" id="due_date" class="form-control">
+						</div>
+					</div>
+					<div class=" col-md-4">
+						<div class="form-group">
+							<label for="select_due_date" class="control-label"><?php echo $this->lang->line('xin_select'); ?> <?php echo $this->lang->line('xin_invoice_due_date'); ?></label>
+							<select class="form-control" name="select_due_date" id="select_due_date" data-plugin="select_hrm" data-placeholder="<?php echo $this->lang->line('xin_invoice_due_date'); ?>">
+								<option value="0" selected><?= $this->lang->line('ms_custom'); ?></option>
+								<option value="1" data-type="days">1 <?= $this->lang->line('xin_day'); ?></option>
+								<option value="3" data-type="days">3 <?= $this->lang->line('xin_day'); ?></option>
+								<option value="7" data-type="days">7 <?= $this->lang->line('xin_day'); ?></option>
+								<option value="10" data-type="days">10 <?= $this->lang->line('xin_day'); ?></option>
+								<option value="15" data-type="days">15 <?= $this->lang->line('xin_day'); ?></option>
+								<option value="20" data-type="days">20 <?= $this->lang->line('xin_day'); ?></option>
+								<option value="1" data-type="months">1 <?= $this->lang->line('xin_month'); ?></option>
+								<option value="3" data-type="months">3 <?= $this->lang->line('xin_month'); ?></option>
+								<option value="6" data-type="months">6 <?= $this->lang->line('xin_month'); ?></option>
+								<option value="9" data-type="months">9 <?= $this->lang->line('xin_month'); ?></option>
+								<option value="1" data-type="years">1 <?= $this->lang->line('xin_year'); ?></option>
+								<option value="2" data-type="years">2 <?= $this->lang->line('xin_year'); ?></option>
+							</select>
 						</div>
 					</div>
 				</div>

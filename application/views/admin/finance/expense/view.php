@@ -1,7 +1,7 @@
 <?php $id = $this->input->get('id');
 
 if ($id == '') {
-	redirect('admin/finance/accounts');
+	redirect('admin/expense');
 }
 ?>
 
@@ -14,27 +14,29 @@ if ($id == '') {
 	<div class="col-md-12 mb-3">
 		<div class="card">
 			<div class="card-body">
+				<div class="row">
+					<div class="col-12">
+						<table class="table table-small">
+							<tr>
+								<td>
+									<strong class="p-auto"><?= text_status_trans($record->status, true); ?></strong>
+								</td>
+								<td>
+									<div class="d-flex float-right">
+										<button class="btn btn-primary btn-sm"><i class="fa fa-print fa-fw" aria-hidden="true"></i><?= $this->lang->line('xin_print'); ?> </button>
+										<a href="<?= base_url('/admin/finance/expense') ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
+										<button class="btn btn-transparent btn-sm"><i class="fa fa-ellipsis-v" aria-hidden="true"></i></button>
+
+									</div>
+								</td>
+							</tr>
+						</table>
+					</div>
+				</div>
 				<div class="row justify-content-between">
 					<div class="col-md-auto">
-						<a href="<?= base_url('/admin/finance/accounts') ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
 					</div>
 					<div class="col-md-auto">
-						<div class="row">
-							<div class="col-md-auto  px-0">
-								<button class="btn btn-primary btn-sm"><i class="fa fa-print fa-fw" aria-hidden="true"></i><?= $this->lang->line('xin_print'); ?> </button>
-							</div>
-							<div class="col-md-auto">
-								<div class="dropdown d-flex">
-									<button class="btn btn-transparent btn-sm" type="button" id="triggerId" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-										<i class="fa fa-ellipsis-v" aria-hidden="true"></i>
-									</button>
-									<div class="dropdown-menu" aria-labelledby="triggerId">
-										<a class="dropdown-item" href="#">Export PDF</a>
-										<a class="dropdown-item" href="#">Export Excell</a>
-									</div>
-								</div>
-							</div>
-						</div>
 					</div>
 				</div>
 				<hr>
@@ -58,7 +60,7 @@ if ($id == '') {
 								</td>
 								<td>
 									<span><?= $this->lang->line('ms_title_ref'); ?></span><br>
-									<strong><?= $record->reference; ?></strong>
+									<strong><?= $record->reference ?? "--"; ?></strong>
 								</td>
 							</tr>
 							<tr>
@@ -134,7 +136,6 @@ if ($id == '') {
 			<div class="card">
 				<div class="card-header">
 					<strong><?php echo $this->lang->line('xin_attachment'); ?></strong><br>
-
 				</div>
 				<div class="card-body">
 					<div class="row">
@@ -149,7 +150,7 @@ if ($id == '') {
 						?>
 							<div class="col-md-2 col-sm-6 mb-sm-3">
 								<div class="card border-secondary">
-									<img class="card-img-top" src="<?= base_url('/uploads/finance/account_spend/' . $attachment->file_view) ?>" alt="" height="150px">
+									<img class="card-img-top" src="<?= base_url('/uploads/finance/expense/' . $attachment->file_view) ?>" alt="" height="150px">
 									<div class="card-body p-3">
 										<span class="clearfix mt-1">
 											<b><?= $this->lang->line('ms_title_attachment'); ?> <?= $i += 1; ?></b>
@@ -157,10 +158,10 @@ if ($id == '') {
 											<small>
 
 												<?php
-												$fileSize = filesize('./uploads/finance/account_spend/' . $attachment->file_name);
+												$fileSize = filesize('./uploads/finance/expense/' . $attachment->file_name);
 												$formattedSize = size($attachment->file_size);
 												echo $formattedSize; ?></small>
-											<a href="<?= base_url('/uploads/finance/account_spend/' . $attachment->file_name) ?>" target="_blank" class="btn btn-default btn-sm float-right"><i class="fas fa-cloud-download-alt"></i></a>
+											<a href="<?= base_url('/uploads/finance/expense/' . $attachment->file_name) ?>" target="_blank" class="btn btn-default btn-sm float-right"><i class="fas fa-cloud-download-alt"></i></a>
 										</span>
 									</div>
 								</div>
@@ -178,8 +179,8 @@ if ($id == '') {
 			</div>
 			<div class="card-body">
 				<?php $attributes = array('name' => 'payment_form', 'id' => 'payment_form', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
-				<?php $hidden = array('type' => 'transfer', '_token' => $record->spend_id); ?>
-				<?php echo form_open('admin/finance/accounts/store_payment', $attributes, $hidden); ?>
+				<?php $hidden = array('type' => 'transfer', '_token' => $record->expense_id); ?>
+				<?php echo form_open('admin/finance/expense/store_payment', $attributes, $hidden); ?>
 				<div class="row">
 					<div class="col-md-4">
 						<div class="form-group">

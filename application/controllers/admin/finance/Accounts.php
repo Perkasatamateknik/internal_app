@@ -24,6 +24,8 @@ class Accounts extends MY_Controller
 		$this->load->model('Account_transfer_model');
 		$this->load->model('Account_spend_model');
 		$this->load->model('Account_spend_items_model');
+		$this->load->model('Account_receive_model');
+		$this->load->model('Account_receive_items_model');
 		$this->load->model('Account_trans_model');
 		$this->load->model('Files_ms_model');
 		$this->load->model('Tax_model');
@@ -344,7 +346,12 @@ class Accounts extends MY_Controller
 		$role_resources_ids = $this->Xin_model->user_role_resource();
 
 		$type = $this->input->get('type') ?? false;
-		// dd($type);
+		$id = $this->input->get('id');
+		// dd($id);
+
+		// regex only integer
+		$id = preg_match('/^[0-9]+$/', $id) ? $id : false;
+		// dd($id);
 		if (in_array('503', $role_resources_ids)) {
 
 			// pilih menu
@@ -359,13 +366,17 @@ class Accounts extends MY_Controller
 				#
 			} elseif ($type == "spend") {
 				$data['path_url'] = 'finance/account_spend';
-				$init = $this->Account_spend_model->init_trans();
+				$init = $this->Account_spend_model->init_trans($id);
 
 				$data['record'] = $init;
 				$data['breadcrumbs'] = $this->lang->line('ms_title_spend');
 				$data['subview'] = $this->load->view("admin/finance/accounts/spend_form", $data, TRUE);
 				#
 			} elseif ($type == "receive") {
+				$data['path_url'] = 'finance/account_receive';
+				$init = $this->Account_receive_model->init_trans();
+
+				$data['record'] = $init;
 				$data['breadcrumbs'] = $this->lang->line('ms_title_receive');
 				$data['subview'] = $this->load->view("admin/finance/accounts/receive_form", $data, TRUE);
 				#
@@ -528,6 +539,7 @@ class Accounts extends MY_Controller
 				'status' => $action == 'save' ? 'draft' : 'unpaid',
 			];
 
+			// dd($data);
 			$items = [];
 			for ($i = 0; $i < count($this->input->post('row_amount')); $i++) {
 
@@ -537,7 +549,88 @@ class Accounts extends MY_Controller
 					'tax_id' => $this->input->post('row_tax_id')[$i],
 					'tax_rate' => $this->input->post('row_tax_rate')[$i],
 					'amount' => $this->input->post('row_amount')[$i],
-					'note' => $this->input->post('row_note')[$i],
+					'note' => $this->input->post('row_note')[$i] ?? null,
+				];
+			}
+
+			if (isset($_FILES["attachments"])) {
+				// upload file
+				$config['allowed_types'] = 'gif|jpg|png|pdf';
+				$config['max_size'] = '10240'; // max_size in kb
+
+				$config['upload_path'] = './uploads/finance/account_spend/';
+
+				//load upload class library
+				$this->load->library('upload', $config);
+
+				$files = $_FILES['attachments'];
+				$file_attachments = array();
+
+				foreach ($files['name'] as $key => $filename) {
+
+					// Get the file extension
+					$extension = pathinfo($filename, PATHINFO_EXTENSION);
+					$newName = $this->input->post('trans_number') . "_" . time() . "_" . $key . "." . $extension;
+
+					$_FILES['attachments'] = array(
+						'name'     => $newName,
+						'type'     => $files['type'][$key],
+						'tmp_name' => $files['tmp_name'][$key],
+						'error'    => $files['error'][$key],
+						'size'     => $files['size'][$key]
+					);
+
+					if ($this->upload->do_upload('attachments')) {
+						$this->upload->data();
+
+						$file_attachments[] = array(
+							'file_name' => $newName,
+							'file_size' => $files['size'][$key],
+							'file_type' => $files['type'][$key],
+							'file_ext' => $extension,
+							'file_access' => 2, // spend
+							'access_id' => $id
+						);
+					} else {
+						$Return['error'] = $this->upload->display_errors();
+						$this->output($Return);
+					}
+				}
+			} else {
+				$file_attachments = null;
+			}
+
+			$query = $this->Account_spend_model->update_with_items_and_files($id, $data, $items, $file_attachments);
+
+			if ($query) {
+				$Return['result'] = $this->lang->line('ms_title_success_added');
+				$this->output($Return);
+			} else {
+				$Return['error'] = $this->lang->line('ms_title_error');
+				$this->output($Return);
+			}
+		} else if ($type == 'receive') {
+			#
+			#
+			#
+			$data = [
+				'vendor_id' => $this->input->post('vendor_id'),
+				'trans_number' => $this->input->post('trans_number'),
+				'date' => $this->input->post('date'),
+				'reference' => $this->input->post('reference'),
+				'status' => $action == 'save' ? 'draft' : 'unpaid',
+			];
+
+			$items = [];
+			for ($i = 0; $i < count($this->input->post('row_amount')); $i++) {
+
+				$items[] = [
+					'receive_id' => $id,
+					'account_id' => $this->input->post('row_target_id')[$i],
+					'tax_id' => $this->input->post('row_tax_id')[$i],
+					'tax_rate' => $this->input->post('row_tax_rate')[$i],
+					'amount' => $this->input->post('row_amount')[$i],
+					'note' => $this->input->post('row_note')[$i] ?? null,
 				];
 			}
 
@@ -589,7 +682,7 @@ class Accounts extends MY_Controller
 			}
 
 
-			$query = $this->Account_spend_model->update_with_items_and_files($id, $data, $items, $file_attachments);
+			$query = $this->Account_receive_model->update_with_items_and_files($id, $data, $items, $file_attachments);
 
 			if ($query) {
 				$Return['result'] = $this->lang->line('ms_title_success_added');
@@ -670,7 +763,7 @@ class Accounts extends MY_Controller
 			$from = $this->Accounts_model->get($record->account_id)->row();
 			$to = $this->Employees_model->read_employee_information($record->beneficiary);
 			$record->source_account = $from->account_name;
-			$record->beneficiary = $to[0]->first_name . " " . $to[0]->last_name;
+			$record->beneficiary = $to[0]->first_name ?? "" . " " . $to[0]->last_name ?? "";
 
 			//
 			$attachments = $this->Files_ms_model->get_by_access_id(2, $record->spend_id)->result();
@@ -758,15 +851,53 @@ class Accounts extends MY_Controller
 
 	public function receive_view()
 	{
+
 		$id = $this->input->get('id');
 
+		// dd($id);
 		$role_resources_ids = $this->Xin_model->user_role_resource();
-		$record = $this->Account_transfer_model->get($id);
+		$record = $this->Account_receive_model->get_by_number_doc($id);
+		// dd($record);
+		if (!is_null($record)) {
+			/// get vendor
+			$vendor = $this->Vendor_model->read_vendor_information($record->vendor_id);
+			if (!is_null($vendor)) {
+				$vendor = $vendor[0]->vendor_name . '<br><small>' . $vendor[0]->vendor_address . '</small>';
+			} else {
+				$vendor = "--";
+			}
+
+			$record->vendor = $vendor;
+
+			$attachments = $this->Files_ms_model->get_by_access_id(3, $record->receive_id)->result();
+			$data['attachments'] = $attachments;
+
+			//
+			$items = $this->Account_receive_items_model->get($record->receive_id);
+			if (!is_null($items)) {
+				foreach ($items as $item) {
+					$item->account_name = $this->Accounts_model->get($item->account_id)->row()->account_name;
+					$tax = $this->Tax_model->read_tax_information($item->tax_id); // return bool
+
+					if ($tax) {
+						$item->tax_name = $tax[0]->name;
+						$item->tax_rate = $tax[0]->rate;
+					} else {
+						$item->tax_name = "--";
+						$item->tax_rate = 0;
+					}
+				}
+			}
+
+			$data['items'] = $items;
+		} else {
+			redirect('admin/finance/accounts');
+		}
+
 		$data['title'] = $this->Xin_model->site_title();
 		$session = $this->session->userdata('username');
-		// $data['breadcrumbs'] = "<strong>" . $record->account_code . "</strong>" . "&nbsp;&nbsp;" . $record->account_name;
-		$data['breadcrumbs'] = $this->lang->line('ms_title_receive');
-		$data['path_url'] = 'finance/transaction';
+		$data['breadcrumbs'] = $this->lang->line('ms_title_spend');
+		$data['path_url'] = 'finance/account_receive';
 		if (empty($session)) {
 			redirect('admin/');
 		}
@@ -780,7 +911,6 @@ class Accounts extends MY_Controller
 			redirect('admin/dashboard');
 		}
 	}
-
 
 	// Ajax Request
 
@@ -1020,5 +1150,11 @@ class Accounts extends MY_Controller
 		);
 		echo json_encode($output);
 		exit();
+	}
+
+	public function export_trans()
+	{
+		$type = $this->input->get('type') ?? false;
+		$id = $this->input->get('id');
 	}
 }
