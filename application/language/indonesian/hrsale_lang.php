@@ -3279,6 +3279,7 @@ $lang['ms_title_transfer_due_date'] = "Jatuh Tempo";
 $lang['ms_title_term'] = "Term";
 $lang['ms_title_status'] = "Status";
 $lang['ms_title_tarns_status'] = "Status Transaksi";
+$lang['ms_title_proof_transfer'] = "Proof of Transfer";
 /////////////////////////////////////////////////// akhir hrsale v2.0.1
 
 /* End of file hrsale_lang.php */

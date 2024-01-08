@@ -19,13 +19,20 @@ if ($id == '') {
 						<a href="<?= base_url('/admin/finance/accounts') ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
 					</div>
 					<div class="col-md-auto">
-						<button class="btn btn-primary btn-sm"><i class="fa fa-print fa-fw" aria-hidden="true"></i><?= $this->lang->line('xin_print'); ?> </button>
-						<div class="dropdown">
-							<button class="btn btn-transparent btn-sm" type="button" id="triggerId" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-								<i class="fa fa-ellipsis-v" aria-hidden="true"></i>
-							</button>
-							<div class="dropdown-menu" aria-labelledby="triggerId">
-								<a class="dropdown-item" href="#">Export PDF</a>
+						<div class="row">
+							<div class="col-md-auto px-0">
+								<a href="<?= base_url('/admin/finance/accounts/spend_print?id=' . $record->trans_number) ?>" target="_blank" class=" btn btn-primary btn-sm"><i class="fa fa-print fa-fw" aria-hidden="true"></i><?= $this->lang->line('xin_print'); ?> </a>
+							</div>
+							<div class="col-md-auto">
+								<div class="dropdown d-flex">
+									<button class="btn btn-transparent btn-sm" type="button" id="triggerId" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										<i class="fa fa-ellipsis-v" aria-hidden="true"></i>
+									</button>
+									<div class="dropdown-menu" aria-labelledby="triggerId">
+										<a class="dropdown-item" href="#">Export PDF</a>
+										<a class="dropdown-item" href="#">Export Excell</a>
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>

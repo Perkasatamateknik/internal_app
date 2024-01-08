@@ -48,7 +48,8 @@
 		hr {
 			border: none;
 			height: 1px !important;
-			background-color: rgba(24, 28, 33, 0.000001);
+			/* background-color: rgba(24, 28, 33, 0.000001); */
+			background-color: solid rgba(24, 28, 33, 0.006);
 		}
 
 		table {
@@ -57,6 +58,14 @@
 
 		th {
 			text-align: inherit
+		}
+
+		.td-border-bottom {
+			border-bottom: 1px solid rgba(24, 28, 33, 0.006) !important;
+		}
+
+		.td-border-top {
+			border-top: 1px solid rgba(24, 28, 33, 0.006) !important;
 		}
 
 		.container {
@@ -102,20 +111,10 @@
 			margin-left: 0
 		}
 
-		.card>.list-group:first-child .list-group-item:first-child {
-			border-top-left-radius: .25rem;
-			border-top-right-radius: .25rem
-		}
-
-		.card>.list-group:last-child .list-group-item:last-child {
-			border-bottom-right-radius: .25rem;
-			border-bottom-left-radius: .25rem
-		}
-
 		.card-body {
 			-ms-flex: 1 1 auto;
 			flex: 1 1 auto;
-			padding: 1.5rem
+			padding: 5mm
 		}
 	</style>
 	<style>
@@ -231,7 +230,11 @@
 		}
 
 		.px-3 {
-			padding: 0 1mm;
+			padding: 0 3mm;
+		}
+
+		.p-3 {
+			padding: 5mm;
 		}
 	</style>
 </head>
@@ -251,7 +254,7 @@
 		<br>
 		<hr>
 		<br>
-		<table class="table px-3">
+		<table class="table">
 			<tr>
 				<td class="td-60">
 					<strong class="text-title"><?= $this->lang->line('ms_title_proof_transfer'); ?></strong>
@@ -290,52 +293,61 @@
 							<?= $record->source_account; ?>
 						</td>
 						<td>
-							<?= $record->target_account; ?>
+							<?= $record->beneficiary; ?>
 						</td>
 					</tr>
 				</table>
 			</div>
 		</div>
-		<br>
-		<br>
-		<table class="table px-3">
+		<br><br>
+		<table class="table">
 			<tr>
-				<td class="td-60">
-					<strong>Amount</strong>
-				</td>
 				<td class="td-40">
-					<?= $this->Xin_model->currency_sign($record->amount); ?>
+					<strong><?= $this->lang->line('ms_title_account'); ?></strong>
+				</td>
+				<td class="td-20">
+					<strong><?= $this->lang->line('ms_title_note'); ?></strong>
+				</td>
+				<td class="td-20">
+					<strong><?= $this->lang->line('ms_title_tax'); ?></strong>
+				</td>
+				<td class="td-20">
+					<strong><?= $this->lang->line('ms_title_amount'); ?></strong>
 				</td>
 			</tr>
+			<?php
+
+			$amount = 0;
+			foreach ($items as $r) {
+				$amount = ($r->amount + $r->tax_rate) + $amount;
+			?>
+				<tr>
+					<td><?= $r->account_name; ?></td>
+					<td><?= $r->note; ?></td>
+					<td><?= $r->tax_name; ?> <br>
+						<small><?= $this->Xin_model->currency_sign($r->tax_rate); ?></small>
+					</td>
+					<td><?= $this->Xin_model->currency_sign($r->amount); ?></td>
+				</tr>
+			<?php } ?>
 			<tr>
-				<td class="td-60">
-					<strong>Nilai Terbilang</strong>
-				</td>
-				<td class="td-34">
-					<?= formatRupiah($record->amount); ?>
-				</td>
+				<td class="td-border-top"></td>
+				<td class="td-border-top" colspan="2" align="center"><strong><?= $this->lang->line('xin_amount'); ?></strong></td>
+				<td class="td-border-top"><strong><?= $this->Xin_model->currency_sign($amount); ?></strong></td>
 			</tr>
+		</table>
+		<br><br>
+		<table class="table">
 			<tr>
-				<td class="td-60">
+				<td>
 					<strong>Reference</strong>
-				</td>
-				<td class="td-40">
-					<?= $record->ref; ?>
-				</td>
-			</tr>
-			<tr>
-				<td class="td-60">
-					<strong>Note</strong>
-				</td>
-				<td class="td-40">
-					<?= $record->note; ?>
+					<br>
+					<?= $record->reference; ?>
 				</td>
 			</tr>
 		</table>
-		<br>
-		<hr>
-		<br>
-		<br>
+		<br><br>
+		<br><br>
 		<table class="table">
 			<tr>
 				<td align="center" class="td-40">

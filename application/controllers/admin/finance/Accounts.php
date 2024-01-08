@@ -816,9 +816,11 @@ class Accounts extends MY_Controller
 
 		$role_resources_ids = $this->Xin_model->user_role_resource();
 		$record = $this->Account_transfer_model->get_by_number_doc($id);
+
 		if (!is_null($record)) {
 			$from = $this->Accounts_model->get($record->account_id)->row();
-			$to = $this->Accounts_model->get($record->beneficiary)->row();
+			$to = $this->Accounts_model->get($record->terget_account_id)->row();
+			// dd($record);
 			$record->source_account = $from->account_name;
 			$record->target_account = $to->account_name;
 
@@ -1156,5 +1158,134 @@ class Accounts extends MY_Controller
 	{
 		$type = $this->input->get('type') ?? false;
 		$id = $this->input->get('id');
+	}
+
+
+	public function transfer_print()
+	{
+		$session = $this->session->userdata('username');
+		if (empty($session)) {
+			redirect('admin/');
+		}
+
+		$id = $this->input->get('id');
+
+		$role_resources_ids = $this->Xin_model->user_role_resource();
+		$record = $this->Account_transfer_model->get_by_number_doc($id);
+
+		if (!is_null($record)) {
+			$from = $this->Accounts_model->get($record->account_id)->row();
+			$to = $this->Accounts_model->get($record->terget_account_id)->row();
+			$record->source_account = $from->account_code . " / " . $from->account_name;
+			$record->target_account = $to->account_code . " / " . $to->account_name;
+		} else {
+			redirect('admin/finance/accounts');
+		}
+
+
+		$data['title'] = $this->Xin_model->site_title();
+
+		// $data['breadcrumbs'] = "<strong>" . $record->account_code . "</strong>" . "&nbsp;&nbsp;" . $record->account_name;
+		$data['breadcrumbs'] = $this->lang->line('ms_title_transfer');
+		$data['path_url'] = 'finance/account_transfer';
+
+
+		$data['record'] = $record;
+		if (in_array('503', $role_resources_ids)) {
+			$html = $this->load->view("admin/finance/accounts/transfer_print", $data, true); //page load
+			$mpdf = new \Mpdf\Mpdf([
+				'orientation' => 'P',
+				'margin_top' => 10,
+				'margin_left' => 10,
+				'margin_right' => 10,
+				'format' => 'A4-P',
+				'default_font' => 'plusjakartasans'
+			]);
+
+			$mpdf->WriteHTML($html);
+			$mpdf->Output($record->trans_number . "_" . $record->date . '.pdf', 'I');
+		} else {
+			redirect('admin/dashboard');
+		}
+	}
+
+	public function spend_print()
+	{
+		$session = $this->session->userdata('username');
+		if (empty($session)) {
+			redirect('admin/');
+		}
+
+		$id = $this->input->get('id');
+
+		$role_resources_ids = $this->Xin_model->user_role_resource();
+		$record = $this->Account_spend_model->get_by_number_doc($id);
+
+		if (!is_null($record)) {
+			$from = $this->Accounts_model->get($record->account_id)->row();
+			$to = $this->Employees_model->read_employee_information($record->beneficiary);
+			$record->source_account = $from->account_code . " / " . $from->account_name;
+			$record->beneficiary = $to[0]->first_name . " " . $to[0]->last_name;
+
+
+			//
+			$items = $this->Account_spend_items_model->get($record->spend_id);
+			if (!is_null($items)) {
+				foreach ($items as $item) {
+					$item->account_name = $this->Accounts_model->get($item->account_id)->row()->account_name;
+					$tax = $this->Tax_model->read_tax_information($item->tax_id); // return bool
+
+					if ($tax) {
+						$item->tax_name = $tax[0]->name;
+						$item->tax_rate = $tax[0]->rate;
+					} else {
+						$item->tax_name = "--";
+						$item->tax_rate = 0;
+					}
+				}
+			}
+
+			$data['items'] = $items;
+		} else {
+			redirect('admin/finance/accounts');
+		}
+
+		$data['title'] = $this->Xin_model->site_title();
+		$data['breadcrumbs'] = $this->lang->line('ms_title_spend');
+		$data['path_url'] = 'finance/account_spend';
+		$session = $this->session->userdata('username');
+		if (empty($session)) {
+			redirect('admin/');
+		}
+
+
+		$data['record'] = $record;
+		if (in_array('503', $role_resources_ids)) {
+
+
+
+			$html = $this->load->view("admin/finance/accounts/spend_print", $data, true); //page load
+			$mpdf = new \Mpdf\Mpdf([
+				'orientation' => 'P',
+				'margin_top' => 10,
+				'margin_left' => 10,
+				'margin_right' => 10,
+				'format' => 'A4-P',
+				'default_font' => 'plusjakartasans'
+			]);
+
+			$type = $this->input->get('type');
+			// dd($type);
+			if ($type == "export") {
+				// download 
+				$mpdf->WriteHTML($html);
+				$mpdf->Output($record->trans_number . "_" . $record->date . '.pdf', \Mpdf\Output\Destination::DOWNLOAD);
+			} else {
+				$mpdf->WriteHTML($html);
+				$mpdf->Output($record->trans_number . "_" . $record->date . '.pdf', 'I');
+			}
+		} else {
+			redirect('admin/dashboard');
+		}
 	}
 }

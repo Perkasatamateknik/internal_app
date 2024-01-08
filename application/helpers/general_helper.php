@@ -2328,3 +2328,68 @@ if (!function_exists('text_status_trans')) {
 		}
 	}
 }
+
+if (!function_exists('formatRupiah')) {
+	function formatRupiah($x)
+	{
+
+		function terbilang($x)
+		{
+			$angka = ["", "satu", "dua", "tiga", "empat", "lima", "enam", "tujuh", "delapan", "sembilan", "sepuluh", "sebelas"];
+
+			if ($x < 12)
+				return " " . $angka[$x];
+			elseif ($x < 20)
+				return terbilang($x - 10) . " belas";
+			elseif ($x < 100)
+				return terbilang($x / 10) . " puluh" . terbilang($x % 10);
+			elseif ($x < 200)
+				return "seratus" . terbilang($x - 100);
+			elseif ($x < 1000)
+				return terbilang($x / 100) . " ratus" . terbilang($x % 100);
+			elseif ($x < 2000)
+				return "seribu" . terbilang($x - 1000);
+			elseif ($x < 1000000)
+				return terbilang($x / 1000) . " ribu" . terbilang($x % 1000);
+			elseif ($x < 1000000000)
+				return terbilang($x / 1000000) . " juta" . terbilang($x % 1000000);
+			elseif ($x < 1000000000000)
+				return terbilang($x / 1000000000) . " milyar" . terbilang(fmod($x, 1000000000));
+			elseif ($x < 1000000000000000)
+				return terbilang($x / 1000000000000) . " trilyun" . terbilang(fmod($x, 1000000000000));
+		}
+
+		return ucwords(terbilang($x) . " rupiah");
+	}
+}
+
+if (!function_exists('convertThreeDigitsToWords')) {
+
+	function convertThreeDigitsToWords($number, $ones, $teens, $tens)
+	{
+		$result = '';
+
+		$hundreds = floor($number / 100);
+		$number %= 100;
+
+		if ($hundreds > 0) {
+			$result .= $ones[$hundreds] . ' ratus ';
+		}
+
+		if ($number >= 20) {
+			$tensDigit = floor($number / 10);
+			$number %= 10;
+
+			$result .= $tens[$tensDigit] . ' ';
+		} elseif ($number >= 10) {
+			$result .= $teens[$number - 10] . ' ';
+			$number = 0; // Skip the next part for teens
+		}
+
+		if ($number > 0) {
+			$result .= $ones[$number] . ' ';
+		}
+
+		return $result;
+	}
+}
