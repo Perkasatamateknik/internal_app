@@ -30,7 +30,7 @@ class Account_transfer_model extends CI_Model
 
 	public function all()
 	{
-		return $this->db->get("ms_finance_account_transfers");
+		return $this->db->where('status !=', 'draft')->get("ms_finance_account_transfers");
 	}
 
 	public function get($id = false)
@@ -55,7 +55,7 @@ class Account_transfer_model extends CI_Model
 			$this->db->where("trans_number", $id);
 		}
 
-		$res = $this->db->get("ms_finance_account_transfers");
+		$res = $this->db->where('status !=', 'draft')->get("ms_finance_account_transfers");
 
 		if ($res->num_rows() > 0) {
 			return $res->row();

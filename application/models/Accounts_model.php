@@ -21,6 +21,12 @@ class Accounts_model extends CI_Model
 		return $this->db->get("ms_finance_accounts");
 	}
 
+	public function get_all_bank()
+	{
+		$this->db->where('category_id', 1); // 1 = bank
+		return $this->db->get("ms_finance_accounts");
+	}
+
 	public function insert($data)
 	{
 		return $this->db->insert("ms_finance_accounts", $data);

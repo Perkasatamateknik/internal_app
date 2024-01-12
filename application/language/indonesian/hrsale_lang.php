@@ -3280,6 +3280,9 @@ $lang['ms_title_term'] = "Term";
 $lang['ms_title_status'] = "Status";
 $lang['ms_title_tarns_status'] = "Status Transaksi";
 $lang['ms_title_proof_transfer'] = "Proof of Transfer";
+$lang['ms_title_draft_document'] = "Dokumen Draff";
+$lang['ms_title_transaction_document'] = "Dokumen Transaksi";
+$lang['ms_title_all'] = "ٍAll";
 /////////////////////////////////////////////////// akhir hrsale v2.0.1
 
 /* End of file hrsale_lang.php */

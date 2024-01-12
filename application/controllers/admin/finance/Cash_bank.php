@@ -19,14 +19,7 @@ class Cash_bank extends MY_Controller
 		parent::__construct();
 		//load the models
 		$this->load->model('Xin_model');
-		$this->load->model('Finance_model');
-		$this->load->model('Expense_model');
-		$this->load->model('Invoices_model');
-		$this->load->model('Employees_model');
-		$this->load->model('Department_model');
-		$this->load->model('Project_model');
-		$this->load->model('Awards_model');
-		$this->load->model('Training_model');
+		$this->load->model('Accounts_model');
 	}
 
 
@@ -42,6 +35,7 @@ class Cash_bank extends MY_Controller
 			redirect('admin/');
 		}
 
+		$data['records'] = $this->Accounts_model->get_all_bank()->result();
 		if (in_array('503', $role_resources_ids)) {
 			$data['subview'] = $this->load->view("admin/finance/cash_bank/index", $data, TRUE);
 			$this->load->view('admin/layout/layout_main', $data); //page load

@@ -264,22 +264,17 @@ class Accounts extends MY_Controller
 	{
 		$id = $this->input->get('id');
 
-		// if (!$this->checkPattern($id, "TR")) {
-		// 	return redirect('admin/finance/accounts');
-		// }
-
 		$record = $this->Account_transfer_model->get_by_number_doc($id);
-		// dd($record);
-		$title = "<strong>" . $this->lang->line('ms_title_transfer') . "</strong>";
 
 
 		$role_resources_ids = $this->Xin_model->user_role_resource();
 
+		$title = "<strong>" . $this->lang->line('ms_title_transfer') . "</strong>";
 		$data['title'] = $this->Xin_model->site_title();
-		$session = $this->session->userdata('username');
 		$data['breadcrumbs'] = $title;
 		$data['path_url'] = 'finance/account_transfer';
 
+		$session = $this->session->userdata('username');
 		if (empty($session)) {
 			redirect('admin/');
 		}
@@ -290,23 +285,6 @@ class Accounts extends MY_Controller
 		} else {
 			redirect('admin/dashboard');
 		}
-
-		// $record = $this->Accounts_model->get($id)->row();
-		// $role_resources_ids = $this->Xin_model->user_role_resource();
-
-		// $data['title'] = $this->Xin_model->site_title();
-		// $session = $this->session->userdata('username');
-		// $data['breadcrumbs'] = "<strong>" . $this->lang->line('ms_title_doc') . " " . $this->lang->line('ms_title_transactions') . "</strong>" . "&nbsp;&nbsp;" . $record->account_code;
-		// $data['path_url'] = 'finance/transaction';
-		// if (empty($session)) {
-		// 	redirect('admin/');
-		// }
-		// if (in_array('503', $role_resources_ids)) {
-		// 	$data['subview'] = $this->load->view("admin/finance/accounts/transactions", $data, TRUE);
-		// 	$this->load->view('admin/layout/layout_main', $data); //page load
-		// } else {
-		// 	redirect('admin/dashboard');
-		// }
 	}
 
 	public function spends()
@@ -319,11 +297,6 @@ class Accounts extends MY_Controller
 		$session = $this->session->userdata('username');
 		$data['breadcrumbs'] = $title;
 		$data['path_url'] = 'finance/account_spend';
-
-		if (empty($session)) {
-			redirect('admin/');
-		}
-
 		// $data['records']
 		if (in_array('503', $role_resources_ids)) {
 			$data['subview'] = $this->load->view("admin/finance/accounts/spends", $data, TRUE);
@@ -1286,6 +1259,70 @@ class Accounts extends MY_Controller
 			}
 		} else {
 			redirect('admin/dashboard');
+		}
+	}
+
+
+	// draft_doc
+	public function draft_doc()
+	{
+		$session = $this->session->userdata('username');
+		if (empty($session)) {
+			redirect('admin/');
+		}
+
+		$role_resources_ids = $this->Xin_model->user_role_resource();
+	}
+
+
+	public function trans_doc()
+	{
+
+		$type = $this->input->get('type');
+
+		$role_resources_ids = $this->Xin_model->user_role_resource();
+		$session = $this->session->userdata('username');
+		if (empty($session)) {
+			redirect('admin/');
+		}
+		$data['title'] = $this->Xin_model->site_title();
+
+		if ($type == 'transfer') {
+			#
+			#
+			$title = "<strong>" . $this->lang->line('ms_title_transfer') . "</strong>";
+			$data['breadcrumbs'] = $title;
+			$data['path_url'] = 'finance/account_transfer';
+
+			$data['subview'] = $this->load->view("admin/finance/accounts/transfers", $data, TRUE);
+			$this->load->view('admin/layout/layout_main', $data); //page load
+		} else if ($type == 'spend') {
+			#
+			#
+			$title = "<strong>" . $this->lang->line('ms_title_spend') . "</strong>";
+			$data['breadcrumbs'] = $title;
+			$data['path_url'] = 'finance/account_spend';
+
+			$data['subview'] = $this->load->view("admin/finance/accounts/spends", $data, TRUE);
+			$this->load->view('admin/layout/layout_main', $data); //page load
+		} else if ($type == 'receive') {
+			#
+			#
+			$title = "<strong>" . $this->lang->line('ms_title_spend') . "</strong>";
+			$data['breadcrumbs'] = $title;
+			$data['path_url'] = 'finance/account_spend';
+
+			$data['subview'] = $this->load->view("admin/finance/accounts/spends", $data, TRUE);
+			$this->load->view('admin/layout/layout_main', $data); //page load
+		} else {
+			#
+			#
+			$title = "<strong>" . $this->lang->line('ms_title_transfer') . "</strong>";
+			$data['breadcrumbs'] = $title;
+			$data['path_url'] = 'finance/trans_doc';
+
+			$data['subview'] = $this->load->view("admin/finance/accounts/trans_doc", $data, TRUE);
+			$this->load->view('admin/layout/layout_main', $data); //page load
 		}
 	}
 }
