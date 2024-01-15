@@ -98,6 +98,10 @@
 					<input type="text" name="account_code" id="account_code" class="form-control" required>
 				</div>
 				<div class="form-group">
+					<label for="account_number">Account Number</label>
+					<input type="text" name="account_number" id="account_number" class="form-control" required>
+				</div>
+				<div class="form-group">
 					<label for="category_id">Select Category</label>
 					<select class="form-control" name="category_id" id="category_id" data-plugin="select_hrm" data-placeholder="Pilih">
 						<?php foreach ($categories as $r) {; ?>

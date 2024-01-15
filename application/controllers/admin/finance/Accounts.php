@@ -112,6 +112,7 @@ class Accounts extends MY_Controller
 			'category_id' => $this->input->post('category_id'),
 			'account_name' => $this->input->post('account_name'),
 			'account_code' => $this->input->post('account_code'),
+			'account_number' => $this->input->post('account_number'),
 			'account_origin' => $this->input->post('account_origin'),
 		);
 
@@ -121,7 +122,7 @@ class Accounts extends MY_Controller
 
 		$result = $this->Accounts_model->insert($data);
 		if ($result) {
-			$Return['result'] = $this->lang->line('xin_success_add');
+			$Return['result'] = $this->lang->line('ms_title_success_added');
 		} else {
 			$Return['error'] = $this->lang->line('xin_error_msg');
 		}
@@ -160,7 +161,9 @@ class Accounts extends MY_Controller
 				$category_name = '--';
 			}
 
-			// $trans = $this->Account_transfer_model->get_by_account($r->account_id);
+			$saldo = $this->Account_trans_model->get_saldo($r->account_id);
+			// var_dump($saldo);
+			// $trans = $this->Account_trans_model->get_by_account($r->account_id);
 			// if (!is_null($trans)) {
 
 			// 	$saldo = 0;
@@ -175,7 +178,7 @@ class Accounts extends MY_Controller
 			// 	$saldo = 0;
 			// }
 
-			$saldo = 0;
+			// $saldo = 0;
 			if ($saldo < 0) {
 				$color = "text-danger";
 			} else {
@@ -798,6 +801,10 @@ class Accounts extends MY_Controller
 			$record->target_account = $to->account_name;
 
 			//
+			$make_payment = $this->Account_trans_model->open_payment($id, $record->account_id);
+
+			// dd($make_payment);
+			// if ($tagihan)
 			$attachments = $this->Files_ms_model->get_by_access_id(1, $record->transfer_id)->result();
 			$data['attachments'] = $attachments;
 		} else {
@@ -805,6 +812,7 @@ class Accounts extends MY_Controller
 		}
 
 
+		$data['make_payment'] = $make_payment ?? true;
 		$data['title'] = $this->Xin_model->site_title();
 		$session = $this->session->userdata('username');
 		if (empty($session)) {
@@ -1046,6 +1054,70 @@ class Accounts extends MY_Controller
 
 			$data[] = array(
 				"<a href='" . base_url('admin/finance/accounts/spend_view?id=' . $r->trans_number) . "' class='text-secondary'><i class='fa fa-eye fa-fw' aria-hidden='true'></i></a>",
+				$this->Xin_model->set_date_format($r->created_at),
+				$r->trans_number,
+				"<small>" . $from . "<br>To<br>" . $to . "</small>",
+				$r->reference,
+				$r->status == "paid" ? "<span class='badge badge-success'>" . $r->status . "</span>" : "<span class='badge badge-warning'>" . $r->status . "</span>",
+				$this->Xin_model->currency_sign($amount),
+			);
+		}
+
+		$output = array(
+			"draw" => $draw,
+			"recordsTotal" => $record->num_rows(),
+			"recordsFiltered" => $record->num_rows(),
+			"data" => $data
+		);
+		echo json_encode($output);
+		exit();
+	}
+
+	public function get_ajax_account_receives()
+	{
+		$data['title'] = $this->Xin_model->site_title();
+		$session = $this->session->userdata('username');
+		if (empty($session)) {
+			redirect('admin/');
+		}
+		$record = $this->Account_receive_model->all();
+
+
+		// Datatables Variables
+		$draw = intval($this->input->get("draw"));
+		$start = intval($this->input->get("start"));
+		$length = intval($this->input->get("length"));
+
+		$data = array();
+		$balance = 0;
+		foreach ($record->result() as $i => $r) {
+
+			$from_account = $this->Accounts_model->get($r->receive_id)->row();
+			if (!is_null($from_account)) {
+				$from = "<b>$from_account->account_name</b>" . "  " . $from_account->account_code;
+			} else {
+				$from = "--";
+			}
+
+			$vendor = $this->Vendor_model->read_vendor_information(7);
+			// var_dump($vendor);
+
+			if (!is_null($vendor)) {
+				$to = $vendor[0]->vendor_name;
+			} else {
+				$to = "--";
+			}
+
+
+			$amount = $this->Account_spend_items_model->get_total_amount($r->spend_id);
+			if (!is_null($amount)) {
+				$amount = $amount;
+			} else {
+				$amount = 0;
+			}
+
+			$data[] = array(
+				"<a href='" . base_url('admin/finance/accounts/receive_view?id=' . $r->trans_number) . "' class='text-secondary'><i class='fa fa-eye fa-fw' aria-hidden='true'></i></a>",
 				$this->Xin_model->set_date_format($r->created_at),
 				$r->trans_number,
 				"<small>" . $from . "<br>To<br>" . $to . "</small>",
@@ -1310,9 +1382,9 @@ class Accounts extends MY_Controller
 			#
 			$title = "<strong>" . $this->lang->line('ms_title_spend') . "</strong>";
 			$data['breadcrumbs'] = $title;
-			$data['path_url'] = 'finance/account_spend';
+			$data['path_url'] = 'finance/account_receive';
 
-			$data['subview'] = $this->load->view("admin/finance/accounts/spends", $data, TRUE);
+			$data['subview'] = $this->load->view("admin/finance/accounts/receives", $data, TRUE);
 			$this->load->view('admin/layout/layout_main', $data); //page load
 		} else {
 			#
@@ -1323,6 +1395,91 @@ class Accounts extends MY_Controller
 
 			$data['subview'] = $this->load->view("admin/finance/accounts/trans_doc", $data, TRUE);
 			$this->load->view('admin/layout/layout_main', $data); //page load
+		}
+	}
+
+	public function store_payment()
+	{
+		$id = $this->input->post('_token');
+		$date = $this->input->post('date');
+		$payment_ref = $this->input->post('payment_ref');
+		$attachment = $_FILES['attachment'];
+		$source_payment_account = $this->input->post('source_payment_account');
+		$amount_paid = $this->input->post('amount_paid');
+
+		// penerima debit
+		$target_account_id = $this->input->post('target_account_id');
+
+		// doing attachment
+		$config['allowed_types'] = 'gif|jpg|png|pdf';
+		$config['max_size'] = '10240'; // max_size in kb
+		$config['upload_path'] = './uploads/finance/account_trans/';
+
+		//load upload class library
+		$this->load->library('upload', $config);
+
+		$filename = $_FILES['attachment']['name'];
+
+		// get extention
+		$extension = pathinfo($filename, PATHINFO_EXTENSION);
+
+		$newName = date('YmdHis') . '_TRANS.' . $extension;
+
+		// $upload
+		$upload = $this->upload->do_upload('attachment');
+
+		$data = [
+			[
+				'account_id' => $source_payment_account,
+				'account_trans_cat_id' => 1,
+				'amount' => $amount_paid,
+				'date' => $date,
+				'type' => 'credit',
+				'join_id' => $id, // transfer_id
+				'ref' => $payment_ref,
+				'note' => "--",
+				'attachment' => $newName,
+			],
+			[
+				'account_id' => $target_account_id,
+				'account_trans_cat_id' => 1,
+				'amount' => $amount_paid,
+				'date' => $date,
+				'type' => 'debit',
+				'join_id' => $id, // transfer_id
+				'ref' => $payment_ref,
+				'note' => "--",
+				'attachment' => $newName,
+			]
+		];
+
+
+		// $debit = [];
+		// if (is_array($target_account_id)) {
+		// 	foreach ($target_account_id as $key => $val) {
+		// 		$debit[] = [
+		// 			'account_id' => $source_payment_account,
+		// 			'account_trans_cat_id' => 1,
+		// 			'amount' => $amount_paid,
+		// 			'date' => $date,
+		// 			'type' => 'debit',
+		// 			'join_id' => $id, // transfer_id
+		// 			'ref' => $payment_ref,
+		// 			'note' => "--",
+		// 			'attachment' => $attachment,
+		// 		];
+		// 	}
+		// }
+
+
+
+		$insert = $this->Account_trans_model->insert_payment($data);
+		if ($insert) {
+			$Return['result'] = $this->lang->line('ms_title_payment_success');
+			$this->output($Return);
+		} else {
+			$Return['error'] = $this->lang->line('ms_title_peyment_error');
+			$this->output($Return);
 		}
 	}
 }

@@ -158,56 +158,60 @@ if ($id == '') {
 			</div>
 		</div>
 	<?php }; ?>
-	<div class="col-md-12">
-		<div class="card">
-			<div class="card-header">
-				<strong><?php echo $this->lang->line('ms_title_purchase_payment'); ?></strong>
-			</div>
-			<div class="card-body">
-				<?php $attributes = array('name' => 'payment_form', 'id' => 'payment_form', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
-				<?php $hidden = array('type' => 'transfer', '_token' => $record->transfer_id); ?>
-				<?php echo form_open('admin/finance/accounts/store_payment', $attributes, $hidden); ?>
-				<div class="row">
-					<div class="col-md-4">
-						<div class="form-group">
-							<label for="date"><?php echo $this->lang->line('ms_payment_date'); ?></label>
-							<input type="date" name="date" id="date" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_date'); ?>" required>
-						</div>
-					</div>
-					<div class="col-md-4">
-						<div class="form-group">
-							<label for="payment_ref"><?php echo $this->lang->line('ms_payment_ref'); ?></label>
-							<input type="text" name="payment_ref" id="payment_ref" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_ref'); ?>" required>
-						</div>
-					</div>
-					<div class="col-md-4">
-						<div class="form-group">
-							<label for="attachment"><?php echo $this->lang->line('xin_attachment'); ?></label>
-							<input type="file" class="form-control" name="attachment" id="attachment" required>
-						</div>
-					</div>
-					<div class="col-md-4">
-						<div class="form-group">
-							<label for="account_source"><?php echo $this->lang->line('ms_payment_account_source'); ?></label>
-							<input type="text" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_account_source'); ?>" readonly value="<?= $record->source_account; ?>">
-							<input type="hidden" name="account_source" value="<?= $record->account_id; ?>">
-						</div>
-					</div>
-					<div class="col-md-4">
-						<div class="form-group">
-							<label for="amount_paid"><?php echo $this->lang->line('ms_payment_amount_paid'); ?></label>
-							<input type="number" min="0" max="<?= $record->amount; ?>" value="0" name="amount_paid" id="amount_paid" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_amount_paid'); ?>" required>
-						</div>
-					</div>
-					<div class="col-md-4">
-						<div class="form-group">
-							<label for="amount_paid">&nbsp;</label>
-							<button type="submit" class="btn btn-primary btn-block"> <i class="far fa-check-square"></i> <?php echo $this->lang->line('xin_save'); ?> </button>
-						</div>
-					</div>
+
+	<?php if ($make_payment) {; ?>
+		<div class="col-md-12">
+			<div class="card">
+				<div class="card-header">
+					<strong><?php echo $this->lang->line('ms_title_purchase_payment'); ?></strong>
 				</div>
-				<?php echo form_close(); ?>
+				<div class="card-body">
+					<?php $attributes = array('name' => 'payment_form', 'id' => 'payment_form', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
+					<?php $hidden = array('type' => 'transfer', '_token' => $record->transfer_id, 'target_account_id' => $record->terget_account_id); ?>
+					<?php echo form_open('admin/finance/accounts/store_payment', $attributes, $hidden); ?>
+					<div class="row">
+						<div class="col-md-4">
+							<div class="form-group">
+								<label for="date"><?php echo $this->lang->line('ms_payment_date'); ?></label>
+								<input type="date" name="date" id="date" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_date'); ?>" required>
+							</div>
+						</div>
+						<div class="col-md-4">
+							<div class="form-group">
+								<label for="payment_ref"><?php echo $this->lang->line('ms_payment_ref'); ?></label>
+								<input type="text" name="payment_ref" id="payment_ref" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_ref'); ?>" required>
+							</div>
+						</div>
+						<div class="col-md-4">
+							<div class="form-group">
+								<label for="attachment"><?php echo $this->lang->line('xin_attachment'); ?></label>
+								<input type="file" class="form-control" name="attachment" id="attachment" required>
+							</div>
+						</div>
+						<div class="col-md-4">
+							<div class="form-group">
+								<label for="account_source"><?php echo $this->lang->line('ms_payment_account_source'); ?></label>
+								<input type="text" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_account_source'); ?>" readonly value="<?= $record->source_account; ?>">
+								<input type="hidden" name="source_payment_account" value="<?= $record->account_id; ?>">
+							</div>
+						</div>
+						<div class="col-md-4">
+							<div class="form-group">
+								<label for="amount_paid"><?php echo $this->lang->line('ms_payment_amount_paid'); ?></label>
+								<input type="number" min="0" max="<?= $record->amount; ?>" value="0" name="amount_paid" id="amount_paid" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_amount_paid'); ?>" required>
+							</div>
+						</div>
+						<div class="col-md-4">
+							<div class="form-group">
+								<label for="">&nbsp;</label>
+								<button type="submit" class="btn btn-primary btn-block"> <i class="far fa-check-square"></i> <?php echo $this->lang->line('xin_save'); ?> </button>
+							</div>
+						</div>
+					</div>
+					<?php echo form_close(); ?>
+				</div>
 			</div>
 		</div>
-	</div>
+
+	<?php }; ?>
 </div>

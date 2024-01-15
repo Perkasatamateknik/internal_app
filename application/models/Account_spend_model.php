@@ -31,7 +31,7 @@ class Account_spend_model extends CI_Model
 
 	public function all()
 	{
-		return $this->db->get("ms_finance_account_spends");
+		return $this->db->where('status !=', 'draft')->get("ms_finance_account_spends");
 	}
 
 	public function get($id = false)

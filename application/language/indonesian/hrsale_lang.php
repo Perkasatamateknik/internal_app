@@ -3205,6 +3205,8 @@ $lang['ms_title_expense'] = "Expense";
 $lang['ms_title_transaction'] = "Transaksi";
 $lang['ms_title_income'] = "Income";
 $lang['ms_title_payment'] = "Payment";
+$lang['ms_title_payment_success'] = "Transaksi Berhasil";
+$lang['ms_title_payment_error'] = "Transaksi Gagal";
 $lang['ms_title_budgeting'] = "Budgeting";
 
 $lang['ms_title_total_balance'] = "Total Balance";

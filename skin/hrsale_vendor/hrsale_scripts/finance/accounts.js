@@ -58,6 +58,7 @@ $(document).ready(function () {
 					});
 					xin_table.api().ajax.reload(function () {
 						toastr.success(JSON.result);
+						$("#addAccount").modal("hide");
 					}, true);
 					$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
 					$(".icon-spinner3").hide();

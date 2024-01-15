@@ -1,8 +1,6 @@
 $(document).ready(function () {
 	$(".btn-ajax-trans").on("click", function () {
 		var type = $(this).attr("id");
-
-		alert(type);
 	});
 
 	var id = getUrlParameter("id");
