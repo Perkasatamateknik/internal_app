@@ -6,7 +6,7 @@ $(document).ready(function () {
 	var id = getUrlParameter("id");
 	$("#ms_table").DataTable({
 		ajax: {
-			url: site_url + "finance/accounts/get_ajax_account_transfer/",
+			url: site_url + "finance/accounts/get_ajax_account_trans_doc/",
 			data: {
 				id: id,
 			},

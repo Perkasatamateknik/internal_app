@@ -112,6 +112,16 @@ if ($id == '') {
 									<td colspan="2" align="center"><strong><?= $this->lang->line('xin_amount'); ?></strong></td>
 									<td><strong><?= $this->Xin_model->currency_sign($record->amount); ?></strong></td>
 								</tr>
+								<?php if ($record->sisa_tagihan != $record->amount) {; ?>
+									<tr>
+										<td colspan="2" align="center"><strong><?= $this->lang->line('ms_title_amount_paid'); ?></strong></td>
+										<td><strong><?= $this->Xin_model->currency_sign($record->jumlah_dibayar); ?></strong></td>
+									</tr>
+									<tr>
+										<td colspan="2" align="center"><strong><?= $this->lang->line('ms_title_remaining_bill'); ?></strong></td>
+										<td><strong class="text-danger"><?= $this->Xin_model->currency_sign($record->sisa_tagihan); ?></strong></td>
+									</tr>
+								<?php }; ?>
 							</tfoot>
 						</table>
 					</div>
@@ -159,9 +169,9 @@ if ($id == '') {
 		</div>
 	<?php }; ?>
 
-	<?php if ($make_payment) {; ?>
+	<?php if ($record->sisa_tagihan != 0) {; ?>
 		<div class="col-md-12">
-			<div class="card">
+			<div class="card mb-3">
 				<div class="card-header">
 					<strong><?php echo $this->lang->line('ms_title_purchase_payment'); ?></strong>
 				</div>
@@ -198,7 +208,7 @@ if ($id == '') {
 						<div class="col-md-4">
 							<div class="form-group">
 								<label for="amount_paid"><?php echo $this->lang->line('ms_payment_amount_paid'); ?></label>
-								<input type="number" min="0" max="<?= $record->amount; ?>" value="0" name="amount_paid" id="amount_paid" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_amount_paid'); ?>" required>
+								<input type="number" min="0" max="<?= $record->sisa_tagihan; ?>" value="<?= $record->sisa_tagihan; ?>" name="amount_paid" id="amount_paid" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_amount_paid'); ?>" required>
 							</div>
 						</div>
 						<div class="col-md-4">
@@ -213,5 +223,45 @@ if ($id == '') {
 			</div>
 		</div>
 
+	<?php }; ?>
+
+	<?php if ($record->jumlah_dibayar != 0) {; ?>
+		<div class="col-12">
+			<div class="card">
+				<div class="card-header">
+					<strong><?php echo $this->lang->line('ms_purchase_log'); ?></strong>
+				</div>
+				<div class="card-body">
+					<div class="row">
+						<div class="col-md-12">
+							<div class="table-responsive">
+								<table class="table table-striped table" id="ms_table_items">
+									<thead>
+										<tr>
+											<th><?php echo $this->lang->line('ms_purchase_date'); ?></th>
+											<th><?php echo $this->lang->line('ms_purchase_pic'); ?></th>
+											<th><?php echo $this->lang->line('ms_title_desc'); ?></th>
+											<th><?php echo $this->lang->line('ms_title_accounts'); ?></th>
+											<th><?php echo $this->lang->line('xin_amount'); ?></th>
+										</tr>
+									</thead>
+									<tbody>
+										<?php foreach ($record->log_payments as $key => $value) { ?>
+											<tr>
+												<td><?= $this->Xin_model->set_date_format($value->date); ?></td>
+												<td>--</td>
+												<td><?= $value->note; ?></td>
+												<td><?= "<b>$value->account_name</b>" . "  " . $value->account_code; ?></td>
+												<td><?= $this->Xin_model->currency_sign($value->amount); ?></td>
+											</tr>
+										<?php } ?>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 	<?php }; ?>
 </div>

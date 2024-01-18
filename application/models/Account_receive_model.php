@@ -34,6 +34,11 @@ class Account_receive_model extends CI_Model
 		return $this->db->where('status !=', 'draft')->get("ms_finance_account_receives");
 	}
 
+	public function draft()
+	{
+		return $this->db->where('status =', 'draft')->get("ms_finance_account_receives");
+	}
+
 	public function get($id = false)
 	{
 		if ($id) {

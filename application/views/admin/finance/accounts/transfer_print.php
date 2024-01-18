@@ -203,6 +203,18 @@
 			display: -ms-flexbox !important;
 			display: flex !important;
 		}
+
+		.text-danger {
+			color: #d9534f !important
+		}
+
+		.text-warning {
+			color: #FFD950 !important
+		}
+
+		.text-success {
+			color: #02BC77 !important
+		}
 	</style>
 
 	<style>
@@ -255,6 +267,8 @@
 			<tr>
 				<td class="td-60">
 					<strong class="text-title"><?= $this->lang->line('ms_title_proof_transfer'); ?></strong>
+					<br>
+					<?= $record->status == "paid" ? "<span class='text-success'>" . strtoupper($record->status) . "</span>" : "<span class='text-warning'>" . strtoupper($record->status)  . "</span>"; ?>
 				</td>
 				<td style="align-items: center;" class="td-40">
 					<table>
@@ -339,15 +353,15 @@
 		<table class="table">
 			<tr>
 				<td align="center" class="td-40">
-					<strong>Transaction made By</strong>
+					<strong><?= $this->lang->line('ms_title_trans_made_by'); ?></strong>
 					<br><br><br><br>
-					<span>Lorem</span>
+					<span><?= $record->user_created; ?></span>
 				</td>
 				<td class="td-20"></td>
 				<td align="center" class="td-40">
-					<strong>Approved By</strong>
+					<strong><?= $this->lang->line('ms_title_trans_approved_by'); ?></strong>
 					<br><br><br><br>
-					<span>Lorem</span>
+					<span><?= $record->user_approved; ?></span>
 				</td>
 			</tr>
 		</table>

@@ -3282,9 +3282,17 @@ $lang['ms_title_term'] = "Term";
 $lang['ms_title_status'] = "Status";
 $lang['ms_title_tarns_status'] = "Status Transaksi";
 $lang['ms_title_proof_transfer'] = "Proof of Transfer";
-$lang['ms_title_draft_document'] = "Dokumen Draff";
+$lang['ms_title_draft_document'] = "Dokumen Draft";
 $lang['ms_title_transaction_document'] = "Dokumen Transaksi";
 $lang['ms_title_all'] = "ٍAll";
+$lang['ms_title_trans_made_by'] = "Transaction made By";
+$lang['ms_title_trans_approved_by'] = "Approved By";
+$lang['ms_title_trans_approved_by'] = "Approved By";
+$lang['ms_title_amount_paid'] = "Jumlah Dibayar";
+$lang['ms_title_remaining_bill'] = "Sisa Tagihan";
+
+$lang['ms_title_desc'] = "Deskripsi";
+$lang['ms_title_trans_doc_draft'] = "Draft Dokumen";
 /////////////////////////////////////////////////// akhir hrsale v2.0.1
 
 /* End of file hrsale_lang.php */

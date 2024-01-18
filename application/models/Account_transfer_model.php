@@ -33,6 +33,11 @@ class Account_transfer_model extends CI_Model
 		return $this->db->where('status !=', 'draft')->get("ms_finance_account_transfers");
 	}
 
+	public function draft()
+	{
+		return $this->db->where('status =', 'draft')->get("ms_finance_account_transfers");
+	}
+
 	public function get($id = false)
 	{
 		if ($id) {
@@ -162,5 +167,37 @@ class Account_transfer_model extends CI_Model
 
 		$this->db->trans_complete();
 		return $this->db->trans_status();
+	}
+
+	public function get_tagihan($id)
+	{
+		$record = $this->db->where('transfer_id', $id)->get('ms_finance_account_transfers')->row();
+		// dd($record);
+		$tagihan_dibayar = $this->db->select('SUM(amount) as total_amount')->where('type', 'debit')->where('join_id', $id)->get('ms_finance_account_transactions')->row();
+
+		// var_dump($tagihan_dibayar);
+		return $record->amount - $tagihan_dibayar->total_amount;
+	}
+
+	public function get_trans_payment($id)
+	{
+		$record = $this->db->where('transfer_id', $id)->get('ms_finance_account_transfers')->row();
+		$get_tagihan_dibayar = $this->db->select(['ms_finance_account_transactions.*', 'COALESCE(ms_finance_accounts.account_code, "--") as account_code', 'COALESCE(ms_finance_accounts.account_name, "--") as account_name'])
+			->from('ms_finance_account_transactions')->join('ms_finance_accounts', 'ms_finance_account_transactions.account_id=ms_finance_accounts.account_id', 'LEFT')
+			->where('ms_finance_account_transactions.type', 'credit')->where('ms_finance_account_transactions.join_id', $id)->get()->result();
+
+		$tagihan_dibayar = 0;
+		foreach ($get_tagihan_dibayar as $val) {
+			$tagihan_dibayar += $val->amount;
+		}
+
+		// dd($tagihan_dibayar);
+		$data = new stdClass;
+		$data->sisa_tagihan = $record->amount - $tagihan_dibayar;
+		$data->jumlah_tagihan = $record->amount;
+		$data->jumlah_dibayar = $tagihan_dibayar;
+		$data->log_payments = $get_tagihan_dibayar;
+
+		return $data;
 	}
 }

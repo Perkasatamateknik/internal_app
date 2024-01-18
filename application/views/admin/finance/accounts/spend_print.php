@@ -351,15 +351,15 @@
 		<table class="table">
 			<tr>
 				<td align="center" class="td-40">
-					<strong>Transaction made By</strong>
+					<strong><?= $this->lang->line('ms_title_trans_made_by'); ?></strong>
 					<br><br><br><br>
-					<span>Lorem</span>
+					<span><?= $record->user_created; ?></span>
 				</td>
 				<td class="td-20"></td>
 				<td align="center" class="td-40">
-					<strong>Approved By</strong>
+					<strong><?= $this->lang->line('ms_title_trans_approved_by'); ?></strong>
 					<br><br><br><br>
-					<span>Lorem</span>
+					<span><?= $record->user_approved; ?></span>
 				</td>
 			</tr>
 		</table>
