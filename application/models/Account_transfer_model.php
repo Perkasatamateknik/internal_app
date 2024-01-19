@@ -182,9 +182,12 @@ class Account_transfer_model extends CI_Model
 	public function get_trans_payment($id)
 	{
 		$record = $this->db->where('transfer_id', $id)->get('ms_finance_account_transfers')->row();
+
 		$get_tagihan_dibayar = $this->db->select(['ms_finance_account_transactions.*', 'COALESCE(ms_finance_accounts.account_code, "--") as account_code', 'COALESCE(ms_finance_accounts.account_name, "--") as account_name'])
 			->from('ms_finance_account_transactions')->join('ms_finance_accounts', 'ms_finance_account_transactions.account_id=ms_finance_accounts.account_id', 'LEFT')
-			->where('ms_finance_account_transactions.type', 'credit')->where('ms_finance_account_transactions.join_id', $id)->get()->result();
+			->where('ms_finance_account_transactions.account_trans_cat_id', 1) // 1 = transfer
+			->where('ms_finance_account_transactions.type', 'credit')
+			->where('ms_finance_account_transactions.join_id', $id)->get()->result();
 
 		$tagihan_dibayar = 0;
 		foreach ($get_tagihan_dibayar as $val) {

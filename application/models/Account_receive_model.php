@@ -157,4 +157,29 @@ class Account_receive_model extends CI_Model
 		$this->db->trans_complete();
 		return $this->db->trans_status();
 	}
+
+	public function get_trans_payment($id)
+	{
+		$record = $this->db->select('sum(amount) as total_amount')->where('receive_id', $id)->get('ms_finance_account_receive_trans')->row();
+
+		$get_tagihan_dibayar = $this->db->select(['ms_finance_account_transactions.*', 'COALESCE(ms_finance_accounts.account_code, "--") as account_code', 'COALESCE(ms_finance_accounts.account_name, "--") as account_name'])
+			->from('ms_finance_account_transactions')->join('ms_finance_accounts', 'ms_finance_account_transactions.account_id=ms_finance_accounts.account_id', 'LEFT')
+			->where('ms_finance_account_transactions.account_trans_cat_id', 2) // 2 = receive
+			->where('ms_finance_account_transactions.type', 'credit')
+			->where('ms_finance_account_transactions.join_id', $id)->get()->result();
+
+
+		$tagihan_dibayar = 0;
+		foreach ($get_tagihan_dibayar as $val) {
+			$tagihan_dibayar += $val->amount;
+		}
+
+		$data = new stdClass;
+		$data->sisa_tagihan = $record->total_amount - $tagihan_dibayar;
+		$data->jumlah_tagihan = $record->total_amount;
+		$data->jumlah_dibayar = $tagihan_dibayar;
+		$data->log_payments = $get_tagihan_dibayar;
+
+		return $data;
+	}
 }

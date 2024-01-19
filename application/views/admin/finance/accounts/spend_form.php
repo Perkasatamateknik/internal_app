@@ -1,9 +1,3 @@
-<?php $id = $this->input->get('id');
-
-if ($id == '') {
-	redirect('admin/finance/accounts');
-}
-?>
 <div class="row">
 	<div class="col-12">
 		<h4 class="font-weight-bold mt-3"><?php echo $breadcrumbs; ?></h4>
@@ -17,7 +11,7 @@ if ($id == '') {
 	<div class="col-md-12">
 		<div class="card mb-3">
 			<div class="card-header">
-				<a href="<?= base_url('admin/finance/accounts/transactions?id=' . $id) ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
+				<a href="<?= base_url('admin/finance/accounts/trans_doc') ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
 			</div>
 			<div class="card-body">
 				<div class="row">

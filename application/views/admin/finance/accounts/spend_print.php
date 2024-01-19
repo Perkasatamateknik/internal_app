@@ -236,6 +236,18 @@
 		.p-3 {
 			padding: 5mm;
 		}
+
+		.text-danger {
+			color: #d9534f !important
+		}
+
+		.text-warning {
+			color: #FFD950 !important
+		}
+
+		.text-success {
+			color: #02BC77 !important
+		}
 	</style>
 </head>
 
@@ -257,7 +269,9 @@
 		<table class="table">
 			<tr>
 				<td class="td-60">
-					<strong class="text-title"><?= $this->lang->line('ms_title_proof_transfer'); ?></strong>
+					<strong class="text-danger"><?= $this->lang->line('ms_title_remittance_advice'); ?></strong>
+					<br>
+					<?= $record->status == "paid" ? "<span class='text-success'>" . strtoupper($record->status) . "</span>" : "<span class='text-warning'>" . strtoupper($record->status)  . "</span>"; ?>
 				</td>
 				<td style="align-items: center;" class="td-40">
 					<table>
@@ -331,10 +345,39 @@
 				</tr>
 			<?php } ?>
 			<tr>
-				<td class="td-border-top"></td>
-				<td class="td-border-top" colspan="2" align="center"><strong><?= $this->lang->line('xin_amount'); ?></strong></td>
-				<td class="td-border-top"><strong><?= $this->Xin_model->currency_sign($amount); ?></strong></td>
+				<td colspan="4">
+					<hr style="margin: 0;">
+				</td>
 			</tr>
+			<tr>
+				<td class="td-40"></td>
+				<td class="td-20"><strong><?= $this->lang->line('xin_amount'); ?></strong></td>
+				<td class="td-20"></td>
+				<td class="td-20"><strong><?= $this->Xin_model->currency_sign($amount); ?></strong></td>
+			</tr>
+			<tr>
+				<td colspan="4">
+					<hr style="margin: 0;">
+				</td>
+			</tr>
+			<tr>
+				<td class="td-40"></td>
+				<td class="td-20"><strong><?= $this->lang->line('ms_title_amount_paid'); ?></strong></td>
+				<td class="td-20"></td>
+				<td class="td-20"><strong><?= $this->Xin_model->currency_sign($record->jumlah_dibayar); ?></strong></td>
+			</tr>
+			<tr>
+				<td colspan="4">
+					<hr style="margin: 0;">
+				</td>
+			</tr>
+			<tr>
+				<td class="td-40"></td>
+				<td class="td-20"><strong><?= $this->lang->line('ms_title_remaining_bill'); ?></strong></td>
+				<td class="td-20"></td>
+				<td class="td-20"><strong><?= $this->Xin_model->currency_sign($record->sisa_tagihan); ?></strong></td>
+			</tr>
+
 		</table>
 		<br><br>
 		<table class="table">

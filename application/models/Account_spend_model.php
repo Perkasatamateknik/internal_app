@@ -108,14 +108,14 @@ class Account_spend_model extends CI_Model
 			->limit(1)->get()->row();
 	}
 
-	public function init_trans($id)
+	public function init_trans()
 	{
 		$last = $this->get_last_spend();
 
 		if (is_null($last) or !in_array(null, [$last->beneficiary], true)) {
 			$trans_number = $this->trans_number();
 			$this->db->insert('ms_finance_account_spends', [
-				'account_id' => $id,
+				// 'account_id' => $id,
 				'trans_number' => $trans_number
 			]);
 			$last_id = $this->db->insert_id();
@@ -161,22 +161,37 @@ class Account_spend_model extends CI_Model
 
 	public function get_trans_payment($id)
 	{
-		$record = $this->db->where('spend_id', $id)->get('ms_finance_account_spends')->row();
+		// $record = $this->db->where('spend_id', $id)->get('ms_finance_account_spends')->row();
+		$record = $this->db->select('sum(amount) as total_amount')->where('spend_id', $id)->get('ms_finance_account_spend_trans')->row();
+		// dd($items);
 		$get_tagihan_dibayar = $this->db->select(['ms_finance_account_transactions.*', 'COALESCE(ms_finance_accounts.account_code, "--") as account_code', 'COALESCE(ms_finance_accounts.account_name, "--") as account_name'])
 			->from('ms_finance_account_transactions')->join('ms_finance_accounts', 'ms_finance_account_transactions.account_id=ms_finance_accounts.account_id', 'LEFT')
-			->where('ms_finance_account_transactions.type', 'credit')->where('ms_finance_account_transactions.join_id', $id)->get()->result();
+			->where('ms_finance_account_transactions.account_trans_cat_id', 2) // 2 = spend
+			->where('ms_finance_account_transactions.type', 'credit')
+			->where('ms_finance_account_transactions.join_id', $id)->get()->result();
+
 
 		$tagihan_dibayar = 0;
 		foreach ($get_tagihan_dibayar as $val) {
 			$tagihan_dibayar += $val->amount;
 		}
 
-		// dd($tagihan_dibayar);
 		$data = new stdClass;
-		$data->sisa_tagihan = $record->amount - $tagihan_dibayar;
-		$data->jumlah_tagihan = $record->amount;
+		$data->sisa_tagihan = $record->total_amount - $tagihan_dibayar;
+		$data->jumlah_tagihan = $record->total_amount;
 		$data->jumlah_dibayar = $tagihan_dibayar;
 		$data->log_payments = $get_tagihan_dibayar;
+
+		return $data;
+	}
+
+	public function get_list_tagihan($id)
+	{
+		$records = $this->db->select('amount')->where('spend_id', $id)->get('ms_finance_account_spend_trans')->result();
+		$data = [];
+		foreach ($records as $val) {
+			$data[] = $val->amount;
+		}
 
 		return $data;
 	}

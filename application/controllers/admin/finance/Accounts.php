@@ -323,11 +323,11 @@ class Accounts extends MY_Controller
 		$role_resources_ids = $this->Xin_model->user_role_resource();
 
 		$type = $this->input->get('type') ?? false;
-		$id = $this->input->get('id');
+		// $id = $this->input->get('id');
 		// dd($id);
 
 		// regex only integer
-		$id = preg_match('/^[0-9]+$/', $id) ? $id : false;
+		// $id = preg_match('/^[0-9]+$/', $id) ? $id : false;
 		// dd($id);
 		if (in_array('503', $role_resources_ids)) {
 
@@ -343,7 +343,7 @@ class Accounts extends MY_Controller
 				#
 			} elseif ($type == "spend") {
 				$data['path_url'] = 'finance/account_spend';
-				$init = $this->Account_spend_model->init_trans($id);
+				$init = $this->Account_spend_model->init_trans();
 
 				$data['record'] = $init;
 				$data['breadcrumbs'] = $this->lang->line('ms_title_spend');
@@ -755,7 +755,7 @@ class Accounts extends MY_Controller
 			$items = $this->Account_spend_items_model->get($record->spend_id);
 
 			//
-			$get_trans_payment = $this->Account_transfer_model->get_trans_payment($record->spend_id);
+			$get_trans_payment = $this->Account_spend_model->get_trans_payment($record->spend_id);
 			$record->jumlah_dibayar = $get_trans_payment->jumlah_dibayar;
 			$record->sisa_tagihan = $get_trans_payment->sisa_tagihan;
 			$record->log_payments = $get_trans_payment->log_payments;
@@ -975,6 +975,138 @@ class Accounts extends MY_Controller
 		$record = $this->Account_transfer_model->draft();
 		$record_2 = $this->Account_spend_model->draft();
 		$record_3 = $this->Account_receive_model->draft();
+
+		// Datatables Variables
+		$draw = intval($this->input->get("draw"));
+		$start = intval($this->input->get("start"));
+		$length = intval($this->input->get("length"));
+
+		$data = array();
+		$balance = 0;
+		foreach ($record->result() as $i => $r) {
+
+			$from_account = $this->Accounts_model->get($r->account_id)->row();
+			if (!is_null($from_account)) {
+				$from = "<b>$from_account->account_name</b>" . "  " . $from_account->account_code;
+			} else {
+				$from = "--";
+			}
+
+			// dd($r);
+			$to_account = $this->Accounts_model->get($r->terget_account_id)->row();
+			if (!is_null($to_account)) {
+				$to = "<b>$to_account->account_name</b>" . "  " . $to_account->account_code;
+			} else {
+				$to = "--";
+			}
+
+			$data[] = array(
+				"<a href='" . base_url('admin/finance/accounts/transfer_view?id=' . $r->trans_number) . "' class='text-secondary'><i class='fa fa-eye fa-fw' aria-hidden='true'></i></a>",
+				$this->Xin_model->set_date_format($r->created_at),
+				$r->trans_number,
+				"<small>" . $from . "<br>To<br>" . $to . "</small>",
+				$r->ref,
+				$r->status == "paid" ? "<span class='badge badge-success'>" . $r->status . "</span>" : "<span class='badge badge-warning'>" . $r->status . "</span>",
+				$this->Xin_model->currency_sign($r->amount),
+			);
+		}
+
+		foreach ($record_2->result() as $i => $r) {
+
+			if (!in_array(null, [$r->account_id, $r->beneficiary], true)) {
+
+				$from_account = $this->Accounts_model->get($r->account_id)->row();
+				if (!is_null($from_account)) {
+					$from = "<b>$from_account->account_name</b>" . "  " . $from_account->account_code;
+				} else {
+					$from = "--";
+				}
+
+				$to_beneficiary = $this->Employees_model->read_employee_information($r->beneficiary);
+				if (!is_null($to_beneficiary)) {
+					$to = $to_beneficiary[0]->first_name . "  " . $to_beneficiary[0]->last_name;
+				} else {
+					$to = "--";
+				}
+			} else {
+				$from = "--";
+				$to = "--";
+			}
+
+
+			$amount = $this->Account_spend_items_model->get_total_amount($r->spend_id);
+			if (!is_null($amount)) {
+				$amount = $amount;
+			} else {
+				$amount = 0;
+			}
+
+			$data[] = array(
+				"<a href='" . base_url('admin/finance/accounts/spend_view?id=' . $r->trans_number) . "' class='text-secondary'><i class='fa fa-eye fa-fw' aria-hidden='true'></i></a>",
+				$this->Xin_model->set_date_format($r->created_at),
+				$r->trans_number,
+				"<small>" . $from . "<br>To<br>" . $to . "</small>",
+				$r->reference,
+				$r->status == "paid" ? "<span class='badge badge-success'>" . $r->status . "</span>" : "<span class='badge badge-warning'>" . $r->status . "</span>",
+				$this->Xin_model->currency_sign($amount),
+			);
+		}
+
+		foreach ($record_3->result() as $i => $r) {
+			$receives = $this->Account_receive_items_model->get_account_from_receive($r->receive_id);
+			$result_receives = "";
+			foreach ($receives as $key => $rev) {
+				$titik_kome = $key == array_key_last($receives) ? ". " : ", ";
+				$result_receives .= "<b>$rev->account_name</b>" . "  " . $rev->account_code . $titik_kome;
+			}
+
+			$vendor = $this->Vendor_model->read_vendor_information($r->vendor_id);
+			if (!is_null($vendor)) {
+				$from = $vendor[0]->vendor_name;
+			} else {
+				$from = "--";
+			}
+
+
+			$amount = $this->Account_receive_items_model->get_total_amount($r->receive_id);
+			if (!is_null($amount)) {
+				$amount = $amount;
+			} else {
+				$amount = 0;
+			}
+
+			$data[] = array(
+				"<a href='" . base_url('admin/finance/accounts/receive_view?id=' . $r->trans_number) . "' class='text-secondary'><i class='fa fa-eye fa-fw' aria-hidden='true'></i></a>",
+				$this->Xin_model->set_date_format($r->created_at),
+				$r->trans_number,
+				"<small>" . $from . "<br>To<br>" . $result_receives . "</small>",
+				$r->reference,
+				$r->status == "paid" ? "<span class='badge badge-success'>" . $r->status . "</span>" : "<span class='badge badge-warning'>" . $r->status . "</span>",
+				$this->Xin_model->currency_sign($amount),
+			);
+		}
+
+		$output = array(
+			"draw" => $draw,
+			"recordsTotal" => $record->num_rows(),
+			"recordsFiltered" => $record->num_rows(),
+			"data" => $data
+		);
+		echo json_encode($output);
+		exit();
+	}
+
+	public function get_ajax_account_trans()
+	{
+		$data['title'] = $this->Xin_model->site_title();
+		$session = $this->session->userdata('username');
+		if (empty($session)) {
+			redirect('admin/');
+		}
+
+		$record = $this->Account_transfer_model->all();
+		$record_2 = $this->Account_spend_model->all();
+		$record_3 = $this->Account_receive_model->all();
 
 		// Datatables Variables
 		$draw = intval($this->input->get("draw"));
@@ -1373,6 +1505,10 @@ class Accounts extends MY_Controller
 
 			$user_data_2 = $this->Employees_model->read_employee_information($user_data[0]->reports_to);
 			$record->user_approved = $user_data_2[0]->first_name . "  " . $user_data_2[0]->last_name;
+
+			$get_trans_payment = $this->Account_transfer_model->get_trans_payment($record->transfer_id);
+			$record->jumlah_dibayar = $get_trans_payment->jumlah_dibayar;
+			$record->sisa_tagihan = $get_trans_payment->sisa_tagihan;
 		} else {
 			redirect('admin/finance/accounts');
 		}
@@ -1431,6 +1567,13 @@ class Accounts extends MY_Controller
 			$record->user_approved = $user_data_2[0]->first_name . "  " . $user_data_2[0]->last_name;
 			//
 			$items = $this->Account_spend_items_model->get($record->spend_id);
+
+			//
+			$get_trans_payment = $this->Account_spend_model->get_trans_payment($record->spend_id);
+			$record->jumlah_dibayar = $get_trans_payment->jumlah_dibayar;
+			$record->amount = $get_trans_payment->jumlah_tagihan;
+			$record->sisa_tagihan = $get_trans_payment->sisa_tagihan;
+
 			if (!is_null($items)) {
 				foreach ($items as $item) {
 					$item->account_name = $this->Accounts_model->get($item->account_id)->row()->account_name;
@@ -1466,6 +1609,111 @@ class Accounts extends MY_Controller
 
 
 			$html = $this->load->view("admin/finance/accounts/spend_print", $data, true); //page load
+			$mpdf = new \Mpdf\Mpdf([
+				'orientation' => 'P',
+				'margin_top' => 10,
+				'margin_left' => 10,
+				'margin_right' => 10,
+				'format' => 'A4-P',
+				'default_font' => 'plusjakartasans'
+			]);
+
+			$type = $this->input->get('type');
+			// dd($type);
+			if ($type == "export") {
+				// download 
+				$mpdf->WriteHTML($html);
+				$mpdf->Output($record->trans_number . "_" . $record->date . '.pdf', \Mpdf\Output\Destination::DOWNLOAD);
+			} else {
+				$mpdf->WriteHTML($html);
+				$mpdf->Output($record->trans_number . "_" . $record->date . '.pdf', 'I');
+			}
+		} else {
+			redirect('admin/dashboard');
+		}
+	}
+	public function receive_print()
+	{
+		$session = $this->session->userdata('username');
+		if (empty($session)) {
+			redirect('admin/');
+		}
+
+		$id = $this->input->get('id');
+
+		$role_resources_ids = $this->Xin_model->user_role_resource();
+		$record = $this->Account_receive_model->get_by_number_doc($id);
+
+		if (!is_null($record)) {
+
+			$receives = $this->Account_receive_items_model->get_account_from_receive($record->receive_id);
+			$result_receives = "";
+			foreach ($receives as $key => $rev) {
+				$titik_kome = $key == array_key_last($receives) ? ". " : ", ";
+				$result_receives .= "<b>$rev->account_name</b>" . "  " . $rev->account_code . $titik_kome;
+			}
+
+			$record->to_account = $result_receives;
+
+			/// get vendor
+			$vendor = $this->Vendor_model->read_vendor_information($record->vendor_id);
+			if (!is_null($vendor)) {
+				$record->source_account = $vendor[0]->vendor_name . '<br><small>' . $vendor[0]->vendor_address . '</small>';
+			} else {
+				$record->source_account = "--";
+			}
+
+			$record->vendor = $vendor;
+
+			$user_data = $this->Employees_model->read_employee_information($record->user_id);
+			$record->user_created = $user_data[0]->first_name . "  " . $user_data[0]->last_name;
+
+			$user_data_2 = $this->Employees_model->read_employee_information($user_data[0]->reports_to);
+			$record->user_approved = $user_data_2[0]->first_name . "  " . $user_data_2[0]->last_name;
+			//
+			$items = $this->Account_receive_items_model->get($record->receive_id);
+
+			//
+			$get_trans_payment = $this->Account_receive_model->get_trans_payment($record->receive_id);
+			$record->jumlah_dibayar = $get_trans_payment->jumlah_dibayar;
+			$record->amount = $get_trans_payment->jumlah_tagihan;
+			$record->sisa_tagihan = $get_trans_payment->sisa_tagihan;
+
+			if (!is_null($items)) {
+				foreach ($items as $item) {
+					$item->account_name = $this->Accounts_model->get($item->account_id)->row()->account_name;
+					$tax = $this->Tax_model->read_tax_information($item->tax_id); // return bool
+
+					if ($tax) {
+						$item->tax_name = $tax[0]->name;
+						$item->tax_rate = $tax[0]->rate;
+					} else {
+						$item->tax_name = "--";
+						$item->tax_rate = 0;
+					}
+				}
+			}
+
+			$data['items'] = $items;
+		} else {
+			redirect('admin/finance/accounts');
+		}
+
+		$data['title'] = $this->Xin_model->site_title();
+		$data['breadcrumbs'] = $this->lang->line('ms_title_receive');
+		$data['path_url'] = 'finance/account_receive';
+		$session = $this->session->userdata('username');
+		if (empty($session)) {
+			redirect('admin/');
+		}
+
+
+		$data['record'] = $record;
+		if (in_array('503', $role_resources_ids)) {
+
+
+
+			$html = $this->load->view("admin/finance/accounts/receive_print", $data, true); //page load
 			$mpdf = new \Mpdf\Mpdf([
 				'orientation' => 'P',
 				'margin_top' => 10,
@@ -1557,7 +1805,7 @@ class Accounts extends MY_Controller
 		} else {
 			#
 			#
-			$title = "<strong>" . $this->lang->line('ms_title_transfer') . "</strong>";
+			$title = "<strong>" . $this->lang->line('ms_title_all_trans_doc') . "</strong>";
 			$data['breadcrumbs'] = $title;
 			$data['path_url'] = 'finance/trans_doc';
 
@@ -1652,7 +1900,7 @@ class Accounts extends MY_Controller
 		}
 	}
 
-	public function store_payments()
+	public function spend_payment()
 	{
 		$id = $this->input->post('_token');
 		$date = $this->input->post('date');
@@ -1660,10 +1908,6 @@ class Accounts extends MY_Controller
 		$source_payment_account = $this->input->post('source_payment_account');
 		$amount_paid = $this->input->post('amount_paid');
 
-		// penerima debit
-		$target_account_id = $this->input->post('target_account_id');
-
-		// doing attachment
 		$config['allowed_types'] = 'gif|jpg|png|pdf';
 		$config['max_size'] = '10240'; // max_size in kb
 		$config['upload_path'] = './uploads/finance/account_trans/';
@@ -1682,6 +1926,14 @@ class Accounts extends MY_Controller
 		$this->upload->do_upload('attachment');
 
 
+		// ambil data dokumen 
+		$doc = $this->Account_spend_model->get($id);
+
+		// get list tagihan
+		$list_tagihan = $this->Account_spend_model->get_list_tagihan($doc->spend_id);
+
+		while ($amount_paid == 0) {
+		}
 		$data = [
 			[
 				'account_id' => $source_payment_account,

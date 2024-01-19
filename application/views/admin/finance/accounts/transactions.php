@@ -7,7 +7,7 @@
 <?php $role_resources_ids = $this->Xin_model->user_role_resource(); ?>
 <?php $user_info = $this->Xin_model->read_user_info($session['user_id']); ?>
 <?php $system = $this->Xin_model->read_setting_info(1); ?>
-<?php $id = $this->input->get('id') ?? false; ?>
+<?php $id = $this->input->get('id'); ?>
 
 <div class="row">
 	<div class="col-md-4">
@@ -47,11 +47,11 @@
 				<i class="fas fa-exchange-alt"></i> <?= $this->lang->line('ms_title_add_trans'); ?>
 			</button>
 			<div class="dropdown-menu" aria-labelledby="triggerTrans">
-				<a class="dropdown-item" href="<?= base_url('admin/finance/accounts/create_trans?id=' . $id . '&type=transfer') ?>"><i class="fa fa-exchange-alt fa-fw mr-3" aria-hidden="true"></i><?= $this->lang->line('ms_title_transfer'); ?></a>
+				<a class="dropdown-item" href="<?= base_url('admin/finance/accounts/create_trans?id=type=transfer') ?>"><i class="fa fa-exchange-alt fa-fw mr-3" aria-hidden="true"></i><?= $this->lang->line('ms_title_transfer'); ?></a>
 				<!-- <br> -->
-				<a class="dropdown-item" href="<?= base_url('admin/finance/accounts/create_trans?id=' . $id . '&type=spend') ?>" class="btn btn-block btn-white text-left"><i class="fa fa-paper-plane fa-fw mr-3" aria-hidden="true"></i><?= $this->lang->line('ms_title_spend'); ?></a>
+				<a class="dropdown-item" href="<?= base_url('admin/finance/accounts/create_trans?id=type=spend') ?>" class="btn btn-block btn-white text-left"><i class="fa fa-paper-plane fa-fw mr-3" aria-hidden="true"></i><?= $this->lang->line('ms_title_spend'); ?></a>
 				<!-- <br> -->
-				<a class="dropdown-item" href="<?= base_url('admin/finance/accounts/create_trans?id=' . $id . '&type=receive') ?>" class="btn btn-block btn-white text-left"><i class="fas fa-hand-holding-usd fa-fw mr-3"></i><?= $this->lang->line('ms_title_receive'); ?></a>
+				<a class="dropdown-item" href="<?= base_url('admin/finance/accounts/create_trans?id=type=receive') ?>" class="btn btn-block btn-white text-left"><i class="fas fa-hand-holding-usd fa-fw mr-3"></i><?= $this->lang->line('ms_title_receive'); ?></a>
 				<!-- <br> -->
 			</div>
 		</div>

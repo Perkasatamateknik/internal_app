@@ -22,7 +22,7 @@
 			<div class="card-body">
 
 				<div class="table-responsive">
-					<table class="table table-hover table-striped" id="ms_table">
+					<table class="table table-hover table-striped" id="ms_table_doc">
 						<thead>
 							<tr>
 								<th>#</th>

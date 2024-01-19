@@ -21,7 +21,7 @@ if ($id == '') {
 					<div class="col-md-auto">
 						<div class="row">
 							<div class="col-md-auto px-0">
-								<a href="<?= base_url('/admin/finance/accounts/spend_print?id=' . $record->trans_number) ?>" target="_blank" class=" btn btn-primary btn-sm"><i class="fa fa-print fa-fw" aria-hidden="true"></i><?= $this->lang->line('xin_print'); ?> </a>
+								<a href="<?= base_url('/admin/finance/accounts/receive_print?id=' . $record->trans_number) ?>" target="_blank" class=" btn btn-primary btn-sm"><i class="fa fa-print fa-fw" aria-hidden="true"></i><?= $this->lang->line('xin_print'); ?> </a>
 							</div>
 							<div class="col-md-auto">
 								<div class="dropdown d-flex">

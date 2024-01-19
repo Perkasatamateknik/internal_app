@@ -266,7 +266,7 @@
 		<table class="table px-3">
 			<tr>
 				<td class="td-60">
-					<strong class="text-title"><?= $this->lang->line('ms_title_proof_transfer'); ?></strong>
+					<strong class="text-title"><?= $this->lang->line('ms_title_transfer_doc'); ?></strong>
 					<br>
 					<?= $record->status == "paid" ? "<span class='text-success'>" . strtoupper($record->status) . "</span>" : "<span class='text-warning'>" . strtoupper($record->status)  . "</span>"; ?>
 				</td>
@@ -346,7 +346,15 @@
 				</td>
 			</tr>
 		</table>
-		<br>
+		<?php if ($record->sisa_tagihan != $record->amount) {; ?>
+			<hr>
+			<table class="table">
+				<tr>
+					<td class="td-60"><strong><?= $this->lang->line('ms_title_amount_paid'); ?></strong></td>
+					<td class="td-40"><strong><?= $this->Xin_model->currency_sign($record->jumlah_dibayar); ?></strong></td>
+				</tr>
+			</table>
+		<?php }; ?>
 		<hr>
 		<br>
 		<br>
