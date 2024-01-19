@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/n1576493/public_html/app2.perkasatamateknik.com
+    - /bin/cp -R * $DEPLOYPATH
