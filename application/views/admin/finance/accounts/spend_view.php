@@ -16,7 +16,7 @@ if ($id == '') {
 			<div class="card-body">
 				<div class="row justify-content-between">
 					<div class="col-md-auto">
-						<a href="<?= base_url('/admin/finance/accounts') ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
+						<a href="<?= base_url('/admin/finance/trans_doc') ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
 					</div>
 					<div class="col-md-auto">
 						<div class="row">
@@ -118,8 +118,22 @@ if ($id == '') {
 							</tbody>
 							<tfoot>
 								<tr style="border-top: 1px solid black;">
-									<td colspan="3" align="center"><strong><?= $this->lang->line('xin_amount'); ?></strong></td>
+									<td></td>
+									<td><strong><?= $this->lang->line('xin_amount'); ?></strong></td>
+									<td></td>
 									<td><strong><?= $this->Xin_model->currency_sign($amount); ?></strong></td>
+								</tr>
+								<tr>
+									<td></td>
+									<td><strong><?= $this->lang->line('ms_title_amount_paid'); ?></strong></td>
+									<td></td>
+									<td><strong><?= $this->Xin_model->currency_sign($record->jumlah_dibayar); ?></strong></td>
+								</tr>
+								<tr>
+									<td></td>
+									<td><strong><?= $this->lang->line('ms_title_remaining_bill'); ?></strong></td>
+									<td></td>
+									<td><strong class="text-danger"><?= $this->Xin_model->currency_sign($record->sisa_tagihan); ?></strong></td>
 								</tr>
 							</tfoot>
 						</table>
@@ -174,14 +188,14 @@ if ($id == '') {
 
 	<?php if ($record->sisa_tagihan != 0) {; ?>
 		<div class="col-md-12">
-			<div class="card">
+			<div class="card mb-3">
 				<div class="card-header">
 					<strong><?php echo $this->lang->line('ms_title_purchase_payment'); ?></strong>
 				</div>
 				<div class="card-body">
 					<?php $attributes = array('name' => 'payment_form', 'id' => 'payment_form', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
 					<?php $hidden = array('type' => 'transfer', '_token' => $record->spend_id); ?>
-					<?php echo form_open('admin/finance/accounts/spend_payment', $attributes, $hidden); ?>
+					<?php echo form_open('admin/finance/accounts/store_spend_payment', $attributes, $hidden); ?>
 					<div class="row">
 						<div class="col-md-4">
 							<div class="form-group">
@@ -205,7 +219,7 @@ if ($id == '') {
 							<div class="form-group">
 								<label for="account_source"><?php echo $this->lang->line('ms_payment_account_source'); ?></label>
 								<input type="text" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_account_source'); ?>" readonly value="<?= $record->source_account; ?>">
-								<input type="hidden" name="account_source" value="<?= $record->account_id; ?>">
+								<input type="hidden" name="source_payment_account" value="<?= $record->account_id; ?>">
 							</div>
 						</div>
 						<div class="col-md-4">
@@ -248,10 +262,18 @@ if ($id == '') {
 										</tr>
 									</thead>
 									<tbody>
-										<?php foreach ($record->log_payments as $key => $value) { ?>
+										<?php
+										// dd($record->log_payments);
+										foreach ($record->log_payments as $key => $value) {
+											if (empty($value->first_name) or empty($value->last_name)) {
+												$pic = "--";
+											} else {
+												$pic = $value->first_name . "  " . $value->last_name;
+											}
+										?>
 											<tr>
 												<td><?= $this->Xin_model->set_date_format($value->date); ?></td>
-												<td>--</td>
+												<td><?= $pic; ?></td>
 												<td><?= $value->note; ?></td>
 												<td><?= "<b>$value->account_name</b>" . "  " . $value->account_code; ?></td>
 												<td><?= $this->Xin_model->currency_sign($value->amount); ?></td>

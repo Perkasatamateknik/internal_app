@@ -16,7 +16,7 @@ if ($id == '') {
 			<div class="card-body">
 				<div class="row justify-content-between">
 					<div class="col-md-auto">
-						<a href="<?= base_url('/admin/finance/accounts') ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
+						<a href="<?= base_url('/admin/finance/trans_doc') ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
 					</div>
 					<div class="col-md-auto">
 						<div class="row">
@@ -83,7 +83,7 @@ if ($id == '') {
 						<table class="table table-borderless">
 							<thead>
 								<tr>
-									<th>
+									<th style="width: 30%;">
 										<strong><?= $this->lang->line('ms_title_desc'); ?></strong>
 									</th>
 									<th>
@@ -103,22 +103,22 @@ if ($id == '') {
 								<tr>
 									<td colspan="3"></td>
 								</tr>
-								<tr>
-									<td colspan="3"></td>
-								</tr>
 							</tbody>
 							<tfoot>
 								<tr style="border-top: 1px solid black;">
-									<td colspan="2" align="center"><strong><?= $this->lang->line('xin_amount'); ?></strong></td>
+									<td></td>
+									<td><strong><?= $this->lang->line('xin_amount'); ?></strong></td>
 									<td><strong><?= $this->Xin_model->currency_sign($record->amount); ?></strong></td>
 								</tr>
 								<?php if ($record->sisa_tagihan != $record->amount) {; ?>
 									<tr>
-										<td colspan="2" align="center"><strong><?= $this->lang->line('ms_title_amount_paid'); ?></strong></td>
+										<td></td>
+										<td><strong><?= $this->lang->line('ms_title_amount_paid'); ?></strong></td>
 										<td><strong><?= $this->Xin_model->currency_sign($record->jumlah_dibayar); ?></strong></td>
 									</tr>
 									<tr>
-										<td colspan="2" align="center"><strong><?= $this->lang->line('ms_title_remaining_bill'); ?></strong></td>
+										<td></td>
+										<td><strong><?= $this->lang->line('ms_title_remaining_bill'); ?></strong></td>
 										<td><strong class="text-danger"><?= $this->Xin_model->currency_sign($record->sisa_tagihan); ?></strong></td>
 									</tr>
 								<?php }; ?>
@@ -249,7 +249,7 @@ if ($id == '') {
 										<?php foreach ($record->log_payments as $key => $value) { ?>
 											<tr>
 												<td><?= $this->Xin_model->set_date_format($value->date); ?></td>
-												<td>--</td>
+												<td><?= $value->first_name . "  " . $value->last_name; ?></td>
 												<td><?= $value->note; ?></td>
 												<td><?= "<b>$value->account_name</b>" . "  " . $value->account_code; ?></td>
 												<td><?= $this->Xin_model->currency_sign($value->amount); ?></td>

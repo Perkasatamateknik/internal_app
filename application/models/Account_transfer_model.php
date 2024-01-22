@@ -183,18 +183,19 @@ class Account_transfer_model extends CI_Model
 	{
 		$record = $this->db->where('transfer_id', $id)->get('ms_finance_account_transfers')->row();
 
-		$get_tagihan_dibayar = $this->db->select(['ms_finance_account_transactions.*', 'COALESCE(ms_finance_accounts.account_code, "--") as account_code', 'COALESCE(ms_finance_accounts.account_name, "--") as account_name'])
+		$get_tagihan_dibayar = $this->db->select(['ms_finance_account_transactions.*', 'COALESCE(ms_finance_accounts.account_code, "--") as account_code', 'COALESCE(ms_finance_accounts.account_name, "--") as account_name', 'xin_employees.first_name', 'xin_employees.last_name'])
 			->from('ms_finance_account_transactions')->join('ms_finance_accounts', 'ms_finance_account_transactions.account_id=ms_finance_accounts.account_id', 'LEFT')
+			->join('xin_employees', 'ms_finance_account_transactions.user_id=xin_employees.user_id', 'inner')
 			->where('ms_finance_account_transactions.account_trans_cat_id', 1) // 1 = transfer
 			->where('ms_finance_account_transactions.type', 'credit')
 			->where('ms_finance_account_transactions.join_id', $id)->get()->result();
 
 		$tagihan_dibayar = 0;
 		foreach ($get_tagihan_dibayar as $val) {
+
 			$tagihan_dibayar += $val->amount;
 		}
 
-		// dd($tagihan_dibayar);
 		$data = new stdClass;
 		$data->sisa_tagihan = $record->amount - $tagihan_dibayar;
 		$data->jumlah_tagihan = $record->amount;

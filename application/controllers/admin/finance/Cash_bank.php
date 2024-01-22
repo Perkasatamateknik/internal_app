@@ -35,7 +35,9 @@ class Cash_bank extends MY_Controller
 			redirect('admin/');
 		}
 
-		$data['records'] = $this->Accounts_model->get_all_bank()->result();
+		$data['records'] = $this->Accounts_model->get_all_bank();
+
+		// dd($data);
 		if (in_array('503', $role_resources_ids)) {
 			$data['subview'] = $this->load->view("admin/finance/cash_bank/index", $data, TRUE);
 			$this->load->view('admin/layout/layout_main', $data); //page load

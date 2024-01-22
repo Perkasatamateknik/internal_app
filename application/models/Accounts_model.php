@@ -24,12 +24,60 @@ class Accounts_model extends CI_Model
 	public function get_all_bank()
 	{
 		$this->db->where('category_id', 1); // 1 = bank
-		return $this->db->get("ms_finance_accounts");
+		$result = $this->db->get("ms_finance_accounts")->result();
+
+		// dd($result);
+		foreach ($result as $key => $row) {
+			$result[$key]->saldo = $this->get_saldo($row->account_id);
+		}
+
+		return $result;
 	}
 
-	public function insert($data)
+	public function get_saldo($id)
 	{
-		return $this->db->insert("ms_finance_accounts", $data);
+		$this->db->select_sum('amount');
+		$this->db->select('type');
+		$this->db->group_by('type');
+		$this->db->where('account_id', $id);
+		$result =  $this->db->get("ms_finance_account_transactions")->result();
+
+		$saldo = 0;
+
+		foreach ($result as $key => $value) {
+			if ($value->type == 'debit') {
+				$saldo += $value->amount;
+			} else {
+				$saldo -= $value->amount;
+			}
+		}
+
+		return $saldo;
+	}
+
+	public function insert($data, $saldo_awal = false)
+	{
+
+		if ($saldo_awal) {
+			$this->db->trans_start();
+			$this->db->insert('ms_finance_accounts', $data);
+
+			$this->db->trans_complete();
+			return $this->db->trans_status();
+		} else {
+			return $this->db->insert("ms_finance_accounts", $data);
+		}
+	}
+
+	public function insert_with_saldo($data, $receive_doc, $trans_saldo_awal)
+	{
+		$this->db->trans_start();
+		$this->db->insert('ms_finance_accounts', $data);
+		$this->db->insert('ms_finance_account_receives', $receive_doc['data']);
+		$this->db->insert('ms_finance_account_receive_trans', $receive_doc['items']);
+		$this->db->insert_batch('ms_finance_account_transactions', $trans_saldo_awal);
+		$this->db->trans_complete();
+		return $this->db->trans_status();
 	}
 
 	public function update($data)
@@ -63,5 +111,13 @@ class Accounts_model extends CI_Model
 
 		$this->db->order_by('account_name', 'ASC');
 		return $this->db->get("ms_finance_accounts");
+	}
+
+	public function get_last_account()
+	{
+		return $this->db->select('account_id')
+			->from('ms_finance_accounts')
+			->order_by('account_id', 'desc')
+			->limit(1)->get()->row();
 	}
 }

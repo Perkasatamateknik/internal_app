@@ -59,7 +59,7 @@ $(function () {
 						onHidden: function () {
 							window.location.href =
 								site_url +
-								"finance/accounts/spend_view?id=" +
+								"finance/accounts/receive_view?id=" +
 								$("input[name='trans_number']").val();
 						},
 					};
@@ -103,6 +103,35 @@ $(document).ready(function () {
 		fnDrawCallback: function (settings) {
 			$('[data-toggle="tooltip"]').tooltip();
 		},
+	});
+
+	$('[data-plugin="select_account"]').select2({
+		ajax: {
+			delay: 250,
+			url: site_url + "ajax_request/get_bank_account",
+			data: function (params) {
+				var queryParameters = {
+					query: params.term,
+				};
+				return queryParameters;
+			},
+
+			processResults: function (data) {
+				return {
+					results: data,
+				};
+			},
+			cache: true,
+			transport: function (params, success, failure) {
+				var $request = $.ajax(params);
+
+				$request.then(success);
+				$request.fail(failure);
+
+				return $request;
+			},
+		},
+		width: "100%",
 	});
 });
 

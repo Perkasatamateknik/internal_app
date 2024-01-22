@@ -28,17 +28,23 @@
 							<input type="text" name="trans_number" id="trans_number" class="form-control" readonly value="<?= $record->trans_number; ?>">
 						</div>
 					</div>
-
 					<div class="col-md-6">
 						<div class="form-group">
-							<label for="date"><?= $this->lang->line('ms_title_transfer_date'); ?></label>
-							<input type="datetime-local" name="date" id="date" class="form-control">
+							<label for="account_id"><?= $this->lang->line('ms_title_receive_account'); ?></label>
+							<select name="receive_account_id" id="receive_account_id" class="form-control select2" data-plugin="select_account" data-placeholder="<?= $this->lang->line('ms_title_select_options'); ?>" required>
+							</select>
 						</div>
 					</div>
 					<div class="col-md-6">
 						<div class="form-group">
 							<label for="reference"><?= $this->lang->line('ms_title_ref'); ?></label>
 							<input type="text" name="reference" id="reference" class="form-control">
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="form-group">
+							<label for="date"><?= $this->lang->line('ms_title_transfer_date'); ?></label>
+							<input type="datetime-local" name="date" id="date" class="form-control">
 						</div>
 					</div>
 				</div>

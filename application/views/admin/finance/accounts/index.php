@@ -86,7 +86,7 @@
 					<span aria-hidden="true">&times;</span>
 				</button>
 			</div>
-			<?php $attributes = array('name' => 'accounts', 'id' => 'add_account', 'autocomplete' => 'off', 'class' => 'form'); ?>
+			<?php $attributes = array('name' => 'accounts', 'id' => 'add_accoun', 'autocomplete' => 'off', 'class' => 'form'); ?>
 			<?php echo form_open('admin/finance/accounts/insert', $attributes); ?>
 			<div class="modal-body">
 				<div class="form-group">
@@ -112,6 +112,10 @@
 				<div class="form-group">
 					<label for="account_origin">Account Origin</label>
 					<input type="text" name="account_origin" id="account_origin" class="form-control" required>
+				</div>
+				<div class="form-group">
+					<label for="saldo_awal">Saldo Awal</label>
+					<input type="number" min="0" name="saldo_awal" id="saldo_awal" class="form-control">
 				</div>
 			</div>
 			<div class="modal-footer">

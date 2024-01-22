@@ -1901,8 +1901,10 @@ if (!function_exists('hrsale_team')) {
 if (!function_exists('dd')) {
 	function dd($data)
 	{
+		echo '<pre>';
 		var_dump($data);
 		die();
+		echo '</pre>';
 	}
 }
 

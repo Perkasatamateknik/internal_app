@@ -47,11 +47,11 @@
 				<i class="fas fa-exchange-alt"></i> <?= $this->lang->line('ms_title_add_trans'); ?>
 			</button>
 			<div class="dropdown-menu" aria-labelledby="triggerTrans">
-				<a class="dropdown-item" href="<?= base_url('admin/finance/accounts/create_trans?id=type=transfer') ?>"><i class="fa fa-exchange-alt fa-fw mr-3" aria-hidden="true"></i><?= $this->lang->line('ms_title_transfer'); ?></a>
+				<a class="dropdown-item" href="<?= base_url('admin/finance/accounts/create_trans?type=transfer') ?>"><i class="fa fa-exchange-alt fa-fw mr-3" aria-hidden="true"></i><?= $this->lang->line('ms_title_transfer'); ?></a>
 				<!-- <br> -->
-				<a class="dropdown-item" href="<?= base_url('admin/finance/accounts/create_trans?id=type=spend') ?>" class="btn btn-block btn-white text-left"><i class="fa fa-paper-plane fa-fw mr-3" aria-hidden="true"></i><?= $this->lang->line('ms_title_spend'); ?></a>
+				<a class="dropdown-item" href="<?= base_url('admin/finance/accounts/create_trans?type=spend') ?>" class="btn btn-block btn-white text-left"><i class="fa fa-paper-plane fa-fw mr-3" aria-hidden="true"></i><?= $this->lang->line('ms_title_spend'); ?></a>
 				<!-- <br> -->
-				<a class="dropdown-item" href="<?= base_url('admin/finance/accounts/create_trans?id=type=receive') ?>" class="btn btn-block btn-white text-left"><i class="fas fa-hand-holding-usd fa-fw mr-3"></i><?= $this->lang->line('ms_title_receive'); ?></a>
+				<a class="dropdown-item" href="<?= base_url('admin/finance/accounts/create_trans?type=receive') ?>" class="btn btn-block btn-white text-left"><i class="fas fa-hand-holding-usd fa-fw mr-3"></i><?= $this->lang->line('ms_title_receive'); ?></a>
 				<!-- <br> -->
 			</div>
 		</div>
@@ -63,14 +63,14 @@
 		<a href="#" target="" class="btn btn-transparent"><i class="fa fa-cog"></i></a>
 	</div>
 </div>
-<div class="row">
+<!-- <div class="row">
 	<div class="col-md-auto mr-0 mb-2 pr-0">
 		<a href="#" target="" class="btn btn-white"><i class="fa fa-filter" aria-hidden="true"></i> <?= $this->lang->line('ms_title_filter'); ?></a>
 	</div>
 	<div class="col-md-auto mr-0 mb-2 pr-0">
 		<a href="<?= base_url('admin/finance/accounts/transactions_doc?id=') ?>" target="" class="btn btn-white"><i class="fa fa-print" aria-hidden="true"></i> <?= $this->lang->line('ms_title_doc'); ?></a>
 	</div>
-</div>
+</div> -->
 <div class="row">
 	<div class="col-12">
 		<div class="card">

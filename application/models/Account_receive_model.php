@@ -160,15 +160,17 @@ class Account_receive_model extends CI_Model
 
 	public function get_trans_payment($id)
 	{
-		$record = $this->db->select('sum(amount) as total_amount')->where('receive_id', $id)->get('ms_finance_account_receive_trans')->row();
+		$record = $this->db->select('sum(tax_rate + amount) as total_amount')->where('receive_id', $id)->get('ms_finance_account_receive_trans')->row();
 
-		$get_tagihan_dibayar = $this->db->select(['ms_finance_account_transactions.*', 'COALESCE(ms_finance_accounts.account_code, "--") as account_code', 'COALESCE(ms_finance_accounts.account_name, "--") as account_name'])
-			->from('ms_finance_account_transactions')->join('ms_finance_accounts', 'ms_finance_account_transactions.account_id=ms_finance_accounts.account_id', 'LEFT')
-			->where('ms_finance_account_transactions.account_trans_cat_id', 2) // 2 = receive
+		$get_tagihan_dibayar = $this->db->select(['ms_finance_account_transactions.*', 'COALESCE(ms_finance_accounts.account_code, "--") as account_code', 'COALESCE(ms_finance_accounts.account_name, "--") as account_name', 'xin_employees.first_name', 'xin_employees.last_name'])
+			->from('ms_finance_account_transactions')
+			->join('ms_finance_accounts', 'ms_finance_account_transactions.account_id=ms_finance_accounts.account_id', 'LEFT')
+			->join('xin_employees', 'ms_finance_account_transactions.user_id=xin_employees.user_id')
+			->where('ms_finance_account_transactions.account_trans_cat_id', 3) // 3 = receive
 			->where('ms_finance_account_transactions.type', 'credit')
 			->where('ms_finance_account_transactions.join_id', $id)->get()->result();
 
-
+		// dd($get_tagihan_dibayar);
 		$tagihan_dibayar = 0;
 		foreach ($get_tagihan_dibayar as $val) {
 			$tagihan_dibayar += $val->amount;
@@ -179,6 +181,38 @@ class Account_receive_model extends CI_Model
 		$data->jumlah_tagihan = $record->total_amount;
 		$data->jumlah_dibayar = $tagihan_dibayar;
 		$data->log_payments = $get_tagihan_dibayar;
+
+		// dd($data);
+		return $data;
+	}
+
+	public function get_list_tagihan($id)
+	{
+		$receive_trans = $this->db->select(['receive_trans_id', 'account_id', 'tax_rate', 'amount'])->where('receive_id', $id)->get('ms_finance_account_receive_trans')->result();
+
+		$data = [];
+
+		foreach ($receive_trans as $key => $r) {
+			// check apakah sudah di bayar di tabel transaksi
+			$paid_trans = $this->db->select(['sum(amount) as amount'])->from('ms_finance_account_transactions')
+				// ->where('account_trans_cat_id', 3)->where('join_id', $id) // 3 = receive // aslinya ga kepake, soalnya udh ke filter sama ref_trans_id
+				->where('ref_trans_id', $r->receive_trans_id)->where('type', 'debit')
+				->get()->row();
+
+			$amount_bill = $r->tax_rate + $r->amount;
+			$paid = $paid_trans->amount;
+
+			if ($paid < $amount_bill) {
+				$res = new stdClass;
+				$res->receive_trans_id = $r->receive_trans_id;
+				$res->account_id = $r->account_id;
+				$res->bill_remaining = $amount_bill - $paid;
+
+				$data[] = $res;
+			} else {
+				continue;
+			}
+		}
 
 		return $data;
 	}

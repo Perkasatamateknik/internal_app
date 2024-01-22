@@ -3252,6 +3252,7 @@ $lang['ms_title_receive'] = "Terima Uang";
 
 
 $lang['ms_title_source_account'] = "Sumber Akun";
+$lang['ms_title_receive_account'] = "Akun Penerima";
 $lang['ms_title_number_document'] = "Number Document";
 $lang['ms_title_terget_account'] = "Tujuan Akun";
 $lang['ms_title_amount'] = "Jumlah";
@@ -3291,11 +3292,15 @@ $lang['ms_title_all_trans_doc'] = "Semua Transaksi Dokumen";
 $lang['ms_title_trans_made_by'] = "Transaction made By";
 $lang['ms_title_trans_approved_by'] = "Approved By";
 $lang['ms_title_trans_approved_by'] = "Approved By";
-$lang['ms_title_amount_paid'] = "Nilai Dibayar";
+$lang['ms_title_amount_paid'] = "Nilai Terbayar";
 $lang['ms_title_remaining_bill'] = "Sisa Tagihan";
 
 $lang['ms_title_desc'] = "Deskripsi";
 $lang['ms_title_trans_doc_draft'] = "Draft Dokumen";
+$lang['ms_title_trans_view'] = "Detail Transaksi";
+$lang['ms_title_trans_type'] = "Tipe Transaksi";
+$lang['ms_title_trans_pic'] = "PIC";
+$lang['ms_title_trans_cash_flow'] = "Cash Flow";
 /////////////////////////////////////////////////// akhir hrsale v2.0.1
 
 /* End of file hrsale_lang.php */
