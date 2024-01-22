@@ -162,6 +162,7 @@ class Account_receive_model extends CI_Model
 	{
 		$record = $this->db->select('sum(tax_rate + amount) as total_amount')->where('receive_id', $id)->get('ms_finance_account_receive_trans')->row();
 
+		// dd($record);
 		$get_tagihan_dibayar = $this->db->select(['ms_finance_account_transactions.*', 'COALESCE(ms_finance_accounts.account_code, "--") as account_code', 'COALESCE(ms_finance_accounts.account_name, "--") as account_name', 'xin_employees.first_name', 'xin_employees.last_name'])
 			->from('ms_finance_account_transactions')
 			->join('ms_finance_accounts', 'ms_finance_account_transactions.account_id=ms_finance_accounts.account_id', 'LEFT')
@@ -190,6 +191,7 @@ class Account_receive_model extends CI_Model
 	{
 		$receive_trans = $this->db->select(['receive_trans_id', 'account_id', 'tax_rate', 'amount'])->where('receive_id', $id)->get('ms_finance_account_receive_trans')->result();
 
+		// dd($receive_trans);
 		$data = [];
 
 		foreach ($receive_trans as $key => $r) {

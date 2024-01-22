@@ -191,7 +191,7 @@ if ($id == '') {
 				<div class="card-body">
 					<?php $attributes = array('name' => 'payment_form', 'id' => 'payment_form', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
 					<?php $hidden = array('type' => 'transfer', '_token' => $record->receive_id); ?>
-					<?php echo form_open('admin/finance/accounts/store_spend_payment', $attributes, $hidden); ?>
+					<?php echo form_open('admin/finance/accounts/store_receive_payment', $attributes, $hidden); ?>
 					<div class="row">
 						<div class="col-md-4">
 							<div class="form-group">
@@ -215,13 +215,13 @@ if ($id == '') {
 							<div class="form-group">
 								<label for="account_source"><?php echo $this->lang->line('ms_payment_account_source'); ?></label>
 								<input type="text" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_account_source'); ?>" readonly value="<?= ""; ?>">
-								<input type="hidden" name="source_payment_account" value="<?= $record->vendor; ?>">
+								<input type="hidden" name="source_payment_account" value="<?= $record->receive_account_id; ?>">
 							</div>
 						</div>
 						<div class="col-md-4">
 							<div class="form-group">
 								<label for="amount_paid"><?php echo $this->lang->line('ms_payment_amount_paid'); ?></label>
-								<input type="number" min="0" max="<?= $amount; ?>" value="0" name="amount_paid" id="amount_paid" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_amount_paid'); ?>" required>
+								<input type="number" min="0" max="<?= $record->sisa_tagihan; ?>" value="<?= $record->sisa_tagihan; ?>" name="amount_paid" id="amount_paid" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_amount_paid'); ?>" required>
 							</div>
 						</div>
 						<div class="col-md-4">

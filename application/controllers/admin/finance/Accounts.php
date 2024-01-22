@@ -2140,11 +2140,12 @@ class Accounts extends MY_Controller
 		$this->load->library('upload', $config);
 
 		// $upload
-		$this->upload->do_upload('attachment');
+		// $this->upload->do_upload('attachment');
 
 		// ambil tagihan
 		$list_tagihan = $this->Account_receive_model->get_list_tagihan($id);
 
+		// dd($list_tagihan);
 		// uang yang dibayar
 		$amount_paid = $this->input->post('amount_paid');
 
@@ -2171,7 +2172,7 @@ class Accounts extends MY_Controller
 					[
 						'account_id' => $bill->account_id,
 						'user_id' => $user_id,
-						'account_trans_cat_id' => 2,
+						'account_trans_cat_id' => 3, //receive
 						'amount' => $make_bill,
 						'date' => $date,
 						'type' => 'credit',
@@ -2184,7 +2185,7 @@ class Accounts extends MY_Controller
 				$data[] = [
 					'account_id' => $receive_account_id,
 					'user_id' => $user_id,
-					'account_trans_cat_id' => 2,
+					'account_trans_cat_id' => 3, // receive
 					'amount' => $make_bill,
 					'date' => $date,
 					'type' => 'debit',
