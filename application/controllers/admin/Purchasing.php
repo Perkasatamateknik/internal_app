@@ -18,6 +18,7 @@ class Purchasing extends MY_Controller
 		$this->load->model("Department_model");
 		$this->load->model("Purchase_items_model");
 		$this->load->model("Purchase_model");
+		$this->load->model("Account_trans_model");
 	}
 
 	/*Function to set JSON output*/
@@ -515,5 +516,91 @@ class Purchasing extends MY_Controller
 	{
 		$this->db->where($where, $value_where);
 		return $this->db->get('ms_purchase_logs', 1)->row();
+	}
+
+	public function store_payment_pi()
+	{
+		// pi number
+		$id = $this->input->post('_token');
+		$date = $this->input->post('date');
+		$payment_ref = $this->input->post('payment_ref');
+		$source_payment_account = $this->input->post('source_payment_account'); // vendor id
+
+		// get user id
+		$user_id = $this->session->userdata('username')['user_id'];
+
+		// doing attachment
+		$config['allowed_types'] = 'gif|jpg|png|pdf';
+		$config['max_size'] = '10240'; // max_size in kb
+		$config['upload_path'] = './uploads/finance/account_trans/';
+
+		$filename = $_FILES['attachment']['name'];
+
+		// get extention
+		$extension = pathinfo($filename, PATHINFO_EXTENSION);
+
+		$newName = date('YmdHis') . '_TRANS.' . $extension;
+
+		$config['filename'] = $newName;
+
+		//load upload class library
+		// $this->load->library('upload', $config);
+
+		// $upload
+		// $this->upload->do_upload('attachment');
+
+		//get_pi
+		// $res = $this->Purchase_model->read_pi_by_pi_number($id);
+
+		// uang yang dibayar
+		$amount_paid = $this->input->post('amount_paid');
+
+		$data = [
+			[
+				'account_id' => $source_payment_account,
+				'user_id' => $user_id,
+				'account_trans_cat_id' => 4, // pi payment
+				'amount' => $amount_paid,
+				'date' => $date,
+				'type' => 'credit',
+				'join_id' => $id, // pi_number
+				'ref' => $payment_ref,
+				'note' => "Kredit Pembayaran Transfer",
+				'attachment' => $newName,
+			],
+			[
+				'account_id' => 7, // account_id inventory
+				'user_id' => $user_id,
+				'account_trans_cat_id' => 4, // pi payment
+				'amount' => $amount_paid,
+				'date' => $date,
+				'type' => 'debit',
+				'join_id' => $id, // pi_number
+				'ref' => $payment_ref,
+				'note' => "Debit Pembayaran Transfer",
+				'attachment' => $newName,
+			]
+		];
+
+		$insert = $this->Account_trans_model->insert_payment($data);
+
+		// check if all tagihan is paid or partially paid
+		$check_tagihan = $this->Purchase_model->get_trans_payment($id);
+
+		if ($check_tagihan->sisa_tagihan == 0) {
+			// update status spend
+			// $this->Account_spend_model->update($id, ['status' => 'paid']);
+		} else {
+			// update status spend
+			// $this->Account_spend_model->update($id, ['status' => 'partially_paid']);
+		}
+
+		if ($insert) {
+			$Return['result'] = $this->lang->line('ms_title_payment_success');
+			$this->output($Return);
+		} else {
+			$Return['error'] = $this->lang->line('ms_title_peyment_error');
+			$this->output($Return);
+		}
 	}
 }

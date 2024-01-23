@@ -166,32 +166,32 @@
 					<table class="table table-sm table-borderless">
 						<tr>
 							<td><strong><?php echo $this->lang->line('xin_title_sub_total'); ?></strong></td>
-							<td>
+							<td align="right">
 								<strong id="discount_amount"><?= $this->Xin_model->currency_sign($record->subtotal); ?></strong>
 							</td>
 						</tr>
 						<tr>
 							<td><strong><?php echo $this->lang->line('xin_discount'); ?></strong></td>
-							<td>
+							<td align="right">
 								<strong id="discount_amount"><?= $this->Xin_model->currency_sign($record->discount); ?></strong>
 							</td>
 						</tr>
 						<tr>
 							<td><strong><?php echo $this->lang->line('xin_title_taxes'); ?></strong></td>
-							<td>
+							<td align="right">
 								<strong id="tax_amount"><?= $this->Xin_model->currency_sign($record->tax); ?></strong>
 							</td>
 						</tr>
 						<tr>
 							<td><strong><?php echo $this->lang->line('ms_delivery_fee'); ?></strong></td>
-							<td>
+							<td align="right">
 								<strong id="delivery_fee"><?= $this->Xin_model->currency_sign($record->delivery_fee); ?></strong>
 							</td>
 						</tr>
 						<tr>
 							<td><strong><?php echo $this->lang->line('xin_title_total'); ?></strong></td>
-							<td>
-								<strong class="text-danger" id="grand_total"><?= $this->Xin_model->currency_sign($record->total); ?></strong>
+							<td align="right">
+								<strong class="text-danger" id="grand_total"><?= $this->Xin_model->currency_sign($record->sisa_tagihan); ?></strong>
 							</td>
 						</tr>
 					</table>
@@ -201,51 +201,104 @@
 	</div>
 	<br>
 
-	<div class="card mb-3">
-		<div class="card-header">
-			<strong><?php echo $this->lang->line('ms_title_purchase_payment'); ?></strong>
+	<?php if (1 != 0) {; ?>
+		<div class="card mb-3">
+			<div class="card-header">
+				<strong><?php echo $this->lang->line('ms_title_purchase_payment'); ?></strong>
+			</div>
+			<div class="card-body">
+				<?php $attributes = array('name' => 'payment_form', 'id' => 'payment_form', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
+				<?php $hidden = array('type' => 'purchase_invoices', '_token' => $record->pi_number); ?>
+				<?php echo form_open('admin/purchasing/store_payment_pi', $attributes, $hidden); ?>
+				<div class="row">
+					<div class="col-md-4">
+						<div class="form-group">
+							<label for="date"><?php echo $this->lang->line('ms_payment_date'); ?></label>
+							<input type="date" name="date" id="date" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_date'); ?>" required>
+						</div>
+					</div>
+					<div class="col-md-4">
+						<div class="form-group">
+							<label for="payment_ref"><?php echo $this->lang->line('ms_payment_ref'); ?></label>
+							<input type="text" name="payment_ref" id="payment_ref" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_ref'); ?>" required>
+						</div>
+					</div>
+					<div class="col-md-4">
+						<div class="form-group">
+							<label for="attachment"><?php echo $this->lang->line('xin_attachment'); ?></label>
+							<input type="file" class="form-control" name="attachment" id="attachment" required>
+						</div>
+					</div>
+					<div class="col-md-4">
+						<div class="form-group">
+							<label for="account_source"><?php echo $this->lang->line('ms_payment_account_source'); ?></label>
+							<select name="account_id" id="account_id" class="form-control select2" data-plugin="select_account" data-placeholder="<?= $this->lang->line('ms_title_select_options'); ?>" required>
+							</select>
+						</div>
+					</div>
+					<div class="col-md-4">
+						<div class="form-group">
+							<label for="amount_paid"><?php echo $this->lang->line('ms_payment_amount_paid'); ?></label>
+							<input type="number" min="0" max="<?= $record->sisa_tagihan; ?>" value="<?= $record->sisa_tagihan; ?>" name="amount_paid" id="amount_paid" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_amount_paid'); ?>" required>
+						</div>
+					</div>
+					<div class="col-md-4">
+						<div class="form-group">
+							<label for="amount_paid">&nbsp;</label>
+							<button type="submit" class="btn btn-primary btn-block"> <i class="far fa-check-square"></i> <?php echo $this->lang->line('xin_save'); ?> </button>
+						</div>
+					</div>
+				</div>
+				<?php echo form_close(); ?>
+			</div>
 		</div>
-		<div class="card-body">
-			<div class="row">
-				<div class="col-md-4">
-					<div class="form-group">
-						<label for="date"><?php echo $this->lang->line('ms_payment_date'); ?></label>
-						<input type="date" name="date" id="date" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_date'); ?>">
-					</div>
-				</div>
-				<div class="col-md-4">
-					<div class="form-group">
-						<label for="payment_ref"><?php echo $this->lang->line('ms_payment_ref'); ?></label>
-						<input type="text" name="payment_ref" id="payment_ref" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_ref'); ?>">
-					</div>
-				</div>
-				<div class="col-md-4">
-					<div class="form-group">
-						<label for="attachment"><?php echo $this->lang->line('xin_attachment'); ?>s</label>
-						<input type="file" class="form-control" name="attachment" id="attachment">
-					</div>
-				</div>
-				<div class="col-md-4">
-					<div class="form-group">
-						<label for="account_source"><?php echo $this->lang->line('ms_payment_account_source'); ?></label>
-						<input type="text" name="account_source" id="account_source" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_account_source'); ?>">
-					</div>
-				</div>
-				<div class="col-md-4">
-					<div class="form-group">
-						<label for="amount_paid"><?php echo $this->lang->line('ms_payment_amount_paid'); ?></label>
-						<input type="number" min="0" name="amount_paid" id="amount_paid" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_amount_paid'); ?>">
-					</div>
-				</div>
-				<div class="col-md-4">
-					<div class="form-group">
-						<label for="amount_paid">&nbsp;</label>
-						<button type="submit" class="btn btn-primary btn-block"> <i class="far fa-check-square"></i> <?php echo $this->lang->line('xin_save'); ?> </button>
+	<?php }; ?>
+
+	<?php if ($record->jumlah_dibayar != 0) {; ?>
+		<div class="card mb-3">
+			<div class="card-header">
+				<strong><?php echo $this->lang->line('ms_purchase_log'); ?></strong>
+			</div>
+			<div class="card-body">
+				<div class="row">
+					<div class="col-md-12">
+						<div class="table-responsive">
+							<table class="table table-striped table" id="ms_table_items">
+								<thead>
+									<tr>
+										<th><?php echo $this->lang->line('ms_purchase_date'); ?></th>
+										<th><?php echo $this->lang->line('ms_purchase_pic'); ?></th>
+										<th><?php echo $this->lang->line('ms_title_desc'); ?></th>
+										<th><?php echo $this->lang->line('ms_title_accounts'); ?></th>
+										<th><?php echo $this->lang->line('xin_amount'); ?></th>
+									</tr>
+								</thead>
+								<tbody>
+									<?php
+									// dd($record->log_payments);
+									foreach ($record->log_payments as $key => $value) {
+										if (empty($value->first_name) or empty($value->last_name)) {
+											$pic = "--";
+										} else {
+											$pic = $value->first_name . "  " . $value->last_name;
+										}
+									?>
+										<tr>
+											<td><?= $this->Xin_model->set_date_format($value->date); ?></td>
+											<td><?= $pic; ?></td>
+											<td><?= $value->note; ?></td>
+											<td><?= "<b>$value->account_name</b>" . "  " . $value->account_code; ?></td>
+											<td><?= $this->Xin_model->currency_sign($value->amount); ?></td>
+										</tr>
+									<?php } ?>
+								</tbody>
+							</table>
+						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-	</div>
+	<?php }; ?>
 
 	<div class="card">
 		<div class="card-header">

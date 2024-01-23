@@ -399,4 +399,91 @@ class Purchase_model extends CI_Model
 		$this->db->from("ms_purchase_logs");
 		return $this->db->where($where, $id)->get()->row();
 	}
+
+	public function get_list_tagihan_pi($id)
+	{
+		$record = $this->db->select('*')->where('pi_number', $id)->get('ms_purchase_invoices')->row();
+
+		$records = $this->db->select("*")->where('pi_number', $id)->get('ms_items_purchase_invoice')->result();
+
+		$discount = 0;
+		$tax = 0;
+		$subtotal = 0;
+
+		foreach ($records as $key => $r) {
+			// count discount
+			$discount += $r->discount_rate;
+
+			// count tax
+			$tax += $r->tax_rate;
+
+			// count subtotal
+			$subtotal += ($r->price * $r->quantity);
+		}
+
+		// tambahin data yang sudah di bayarkan
+
+		return $subtotal - $discount + $tax + $record->delivery_fee;
+	}
+
+	public function get_trans_payment($id)
+	{
+		$record = $this->db->select('*')->where('pi_number', $id)->get('ms_purchase_invoices')->row();
+
+		$records = $this->db->select("*")->where('pi_number', $id)->get('ms_items_purchase_invoice')->result();
+
+		$discount = 0;
+		$tax = 0;
+		$subtotal = 0;
+
+		foreach ($records as $key => $r) {
+			// count discount
+			$discount += $r->discount_rate;
+
+			// count tax
+			$tax += $r->tax_rate;
+
+			// count subtotal
+			$subtotal += ($r->price * $r->quantity);
+		}
+
+		// tambahin data yang sudah di bayarkan
+		$jumlah_tagihan =  $subtotal - $discount + $tax + $record->delivery_fee;
+
+		$get_tagihan_dibayar = $this->db->select(['ms_finance_account_transactions.*', 'COALESCE(ms_finance_accounts.account_code, "--") as account_code', 'COALESCE(ms_finance_accounts.account_name, "--") as account_name', 'xin_employees.first_name', 'xin_employees.last_name'])
+			->from('ms_finance_account_transactions')->join('ms_finance_accounts', 'ms_finance_account_transactions.account_id=ms_finance_accounts.account_id', 'LEFT')
+			->join('xin_employees', 'ms_finance_account_transactions.user_id=xin_employees.user_id')
+			->where('ms_finance_account_transactions.account_trans_cat_id', 4) // 4 = purchase invoices
+			->where('ms_finance_account_transactions.type', 'credit')
+			->where('ms_finance_account_transactions.join_id', $id)->get()->result();
+
+		$tagihan_dibayar = 0;
+		foreach ($get_tagihan_dibayar as $val) {
+			$tagihan_dibayar += $val->amount;
+		}
+
+		$data = new stdClass;
+		$data->sisa_tagihan = $jumlah_tagihan - $tagihan_dibayar;
+		$data->jumlah_tagihan = $jumlah_tagihan;
+		$data->jumlah_dibayar = $tagihan_dibayar;
+		$data->log_payments = $get_tagihan_dibayar;
+
+		return $data;
+	}
+
+	public function get_tagihan_dibayar_pi($id)
+	{
+		$tagihan_dibayar = $this->db->select('SUM(amount) as amount_paid')
+			->where('account_trans_cat_id', 4) // 4 = purchase invoice
+			->where('join_id', $id)
+			->where('type', 'debit')
+			->group_by('account_trans_id')
+			->get('ms_finance_account_transactions')->result();
+
+		if (!is_null($tagihan_dibayar)) {
+			return $tagihan_dibayar;
+		} else {
+			return null;
+		}
+	}
 }

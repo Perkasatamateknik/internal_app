@@ -1,4 +1,33 @@
 $(document).ready(function () {
+	$('[data-plugin="select_account"]').select2({
+		ajax: {
+			delay: 250,
+			url: site_url + "ajax_request/get_bank_account",
+			data: function (params) {
+				var queryParameters = {
+					query: params.term,
+				};
+				return queryParameters;
+			},
+
+			processResults: function (data) {
+				return {
+					results: data,
+				};
+			},
+			cache: true,
+			transport: function (params, success, failure) {
+				var $request = $.ajax(params);
+
+				$request.then(success);
+				$request.fail(failure);
+
+				return $request;
+			},
+		},
+		width: "100%",
+	});
+
 	$('[data-plugin="select_hrm"]').select2({ width: "100%" });
 
 	var xin_table_purchase_invoices = $("#xin_table_purchase_invoices").dataTable(

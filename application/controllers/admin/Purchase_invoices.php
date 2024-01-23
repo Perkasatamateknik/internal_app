@@ -356,8 +356,14 @@ class Purchase_invoices extends Purchasing
 		$record->discount = $discount;
 		$record->tax = $tax;
 		$record->subtotal = $subtotal;
-		$record->total = $subtotal - $discount + $tax + $record->delivery_fee;
 
+		// get tagihan dibayar
+		$get_trans_payment = $this->Purchase_model->get_trans_payment($id);
+		$record->jumlah_dibayar = $get_trans_payment->jumlah_dibayar;
+		$record->sisa_tagihan = $get_trans_payment->sisa_tagihan;
+		$record->log_payments = $get_trans_payment->log_payments;
+
+		// dd($get_trans_payment);
 		$data['records'] = $item;
 		$role_resources_ids = $this->Xin_model->user_role_resource();
 

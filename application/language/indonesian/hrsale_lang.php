@@ -3127,7 +3127,7 @@ $lang['ms_purchasing'] = "Pembelian";
 $lang['ms_purchase_number'] = "Number";
 $lang['ms_purchase_origin'] = "Tipe Purchase";
 $lang['ms_purchase_pic'] = "PIC";
-$lang['ms_purchase_log'] = "Log Transaksi";
+$lang['ms_purchase_log'] = "Log Documents";
 
 
 
