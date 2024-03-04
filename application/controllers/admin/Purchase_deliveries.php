@@ -239,12 +239,12 @@ class Purchase_deliveries extends Purchasing
 
 			$pd_number = '<a href="' . site_url() . 'admin/purchase_deliveries/view/' . $r->pd_number . '/">' . $r->pd_number . '</a>';
 
-			if (in_array('492', $role_resources_ids)) { //edit
+			if (in_array('517', $role_resources_ids)) { //edit
 				$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" href="' . site_url() . 'admin/purchase_deliveries/edit/' . $r->pd_number  . '"><span class="fas fa-pencil-alt"></span></a></span>';
 			} else {
 				$edit = '';
 			}
-			if (in_array('493', $role_resources_ids)) { // delete
+			if (in_array('518', $role_resources_ids)) { // delete
 				$delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '"><button type="button" class="btn icon-btn btn-sm btn-outline-danger waves-effect waves-light delete" data-toggle="modal" data-target=".delete-modal" data-record-id="' . $r->pd_number . '" data-token_type="purchase_deliveries"><span class="fas fa-trash-restore"></span></button></span>';
 			} else {
 				$delete = '';

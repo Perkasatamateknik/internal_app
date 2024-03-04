@@ -5,13 +5,14 @@ class MY_Controller extends CI_Controller
 {
 	public $uri;
 	public $session;
-	// public $Xin_model;
+	public $Xin_model;
 	public $Tax_model;
 	public $Exin_model;
 	public $Vendor_model;
 	public $Product_model;
 	public $Project_model;
 	public $Department_model;
+	public $Company_model;
 	// public $Purchase_items_model;
 	// public $Purchase_model;
 	public $lang;
@@ -99,6 +100,36 @@ class MY_Controller extends CI_Controller
 			return $query->result();
 		} else {
 			return null;
+		}
+	}
+
+
+	public function upload_attachment($path, $prefix, $allowed_type = 'gif|jpg|png|pdf', $max_size = '10240')
+	{
+		// doing attachment
+		$config['allowed_types'] = $allowed_type;
+		$config['max_size'] = $max_size; // max_size in kb
+		$config['upload_path'] = $path;
+
+		$filename = $_FILES['attachment']['name'];
+
+		// get extention
+		$extension = pathinfo($filename, PATHINFO_EXTENSION);
+
+		$newName = date('YmdHis') . "_" . str_replace(" ", "_", $prefix) . '.' . $extension;
+
+		$config['filename'] = $newName;
+
+		//load upload class library
+		$this->load->library('upload', $config);
+
+		// $upload
+		$up = $this->upload->do_upload('attachment');
+
+		if ($up) {
+			return $newName;
+		} else {
+			return false;
 		}
 	}
 }

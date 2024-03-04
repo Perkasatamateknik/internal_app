@@ -1,6 +1,6 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
-class Expense_ms_model extends CI_Model
+class Budgeting_model extends CI_Model
 {
 
 	public function __construct()
@@ -29,7 +29,7 @@ class Expense_ms_model extends CI_Model
 	// get all expenses
 	public function all()
 	{
-		return $this->db->get("ms_finance_expenses");
+		return $this->db->order_by('year', 'desc')->get("ms_finance_budgeting");
 	}
 
 	public function get($id)

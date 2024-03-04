@@ -194,7 +194,7 @@ function addRow() {
 	$('[data-plugin="select_target_account"]').select2({
 		ajax: {
 			delay: 250,
-			url: site_url + "ajax_request/get_bank_account",
+			url: site_url + "ajax_request/get_accounts",
 			data: function (params) {
 				var queryParameters = {
 					query: params.term,

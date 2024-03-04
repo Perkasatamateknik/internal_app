@@ -271,6 +271,17 @@
 <script type="text/javascript" src="<?php echo base_url() . 'skin/hrsale_vendor/hrsale_scripts/' . $path_url . '.js'; ?>"></script>
 
 
+<script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
+
+
+
+
+
+
+
+
+
+
 <script>
 	$(document).ready(function() {
 		$(".select").select2({

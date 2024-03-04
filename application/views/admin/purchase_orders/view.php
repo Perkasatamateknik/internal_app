@@ -175,6 +175,12 @@
 							</td>
 						</tr>
 						<tr>
+							<td><strong><?php echo $this->lang->line('ms_title_service_fee'); ?></strong></td>
+							<td>
+								<strong id="service_fee"><?= $this->Xin_model->currency_sign($record->service_fee); ?></strong>
+							</td>
+						</tr>
+						<tr>
 							<td><strong><?php echo $this->lang->line('xin_title_total'); ?></strong></td>
 							<td>
 								<strong class="text-danger" id="grand_total"><?= $this->Xin_model->currency_sign($record->total); ?></strong>

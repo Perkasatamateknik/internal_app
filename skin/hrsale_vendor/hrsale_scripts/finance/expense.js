@@ -2,7 +2,7 @@ $(function () {
 	$('[data-plugin="select_account"]').select2({
 		ajax: {
 			delay: 250,
-			url: site_url + "ajax_request/get_bank_account",
+			url: site_url + "ajax_request/get_accounts",
 			data: function (params) {
 				var queryParameters = {
 					query: params.term,
@@ -159,10 +159,7 @@ $(document).ready(function () {
 	var id = getUrlParameter("id");
 	$("#ms_table").DataTable({
 		ajax: {
-			url: site_url + "finance/expense/get_ajax_expenses/",
-			data: {
-				id: id,
-			},
+			url: site_url + "finance/expenses/get_ajax_expenses/",
 			type: "GET",
 		},
 		fnDrawCallback: function (settings) {

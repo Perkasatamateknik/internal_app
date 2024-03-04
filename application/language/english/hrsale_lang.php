@@ -3206,6 +3206,7 @@ $lang['ms_notes'] = "Notes";
 
 
 
+
 ///////////////////////////////////////////////// end hrsale v2.0.1
 /* End of file hrsale_lang.php */
 /* Location: ./system/language/english/hrsale_lang.php */

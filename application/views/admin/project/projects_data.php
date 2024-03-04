@@ -141,7 +141,8 @@ $theme = $this->Xin_model->read_theme_info(1);
 											?>
 											<tr>
 												<td><?php echo $project_no; ?></td>
-												<td><?php echo $ls_projects->phase_no; ?></td>
+												<!-- <td><?php echo $ls_projects->phase_no; ?></td> -->
+												<td><?php echo $ls_projects->purchase_no; ?></td>
 												<th width="180"><?php echo $project_summary; ?></td>
 												<td><?php echo $priority; ?></td>
 												<td><?php echo $ol; ?></td>

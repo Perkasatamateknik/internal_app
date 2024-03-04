@@ -101,6 +101,13 @@ class Accounts extends MY_Controller
 		}
 	}
 
+
+	public function get_modal_add_account()
+	{
+		// $data['categories'] = $this->Account_categories_model->all()->result();
+		$this->load->view("admin/finance/accounts/parts/add_account");
+	}
+
 	public function insert()
 	{
 		/* Define return | here result is used to return user data and error for error message */
@@ -728,55 +735,128 @@ class Accounts extends MY_Controller
 
 	public function print()
 	{
-		$id = $this->input->get('id');
-
-		$record = $this->Accounts_model->get($id)->row();
-		// dd($record);
-		$role_resources_ids = $this->Xin_model->user_role_resource();
-
 		$data['title'] = $this->Xin_model->site_title();
 		$session = $this->session->userdata('username');
-		$data['breadcrumbs'] = "<strong>" . $record->account_code . "</strong>" . "&nbsp;&nbsp;" . $record->account_name;
-		$data['path_url'] = 'finance/transaction';
+		$role_resources_ids = $this->Xin_model->user_role_resource();
 		if (empty($session)) {
 			redirect('admin/');
 		}
 
-		// records
-		$record = $this->Finance_trans->get_trans($id);
+		$record = $this->Account_transfer_model->all();
+		$record_2 = $this->Account_spend_model->all();
+		$record_3 = $this->Account_receive_model->all();
 
-
-		// Datatables Variables
-		$draw = intval($this->input->get("draw"));
-		$start = intval($this->input->get("start"));
-		$length = intval($this->input->get("length"));
-
-		$records = array();
-		$balance = 0;
+		$data = array();
+		$amounts = 0;
 		foreach ($record->result() as $i => $r) {
 
-			$credit = 0;
-			$debit = 0;
-			if ($r->type == 'credit') {
-				$credit = $r->amount;
-				$balance -= $r->amount;
+			$amounts += $r->amount;
+
+			$from_account = $this->Accounts_model->get($r->account_id)->row();
+			if (!is_null($from_account)) {
+				$from = "<b>$from_account->account_name</b>" . "  " . $from_account->account_code;
 			} else {
-				$debit = $r->amount;
-				$balance += $r->amount;
+				$from = "--";
 			}
-			$records[] = array(
-				$i += 1,
+
+			// dd($r);
+			$to_account = $this->Accounts_model->get($r->terget_account_id)->row();
+			if (!is_null($to_account)) {
+				$to = "<b>$to_account->account_name</b>" . "  " . $to_account->account_code;
+			} else {
+				$to = "--";
+			}
+
+			$data[] = array(
+				"<a href='" . base_url('admin/finance/accounts/transfer_view?id=' . $r->trans_number) . "' class='text-secondary'><i class='fa fa-eye fa-fw' aria-hidden='true'></i></a>",
 				$this->Xin_model->set_date_format($r->created_at),
-				"Transfer",
-				$r->desc,
+				$r->trans_number,
+				"<small>" . $from . "<br>To<br>" . $to . "</small>",
 				$r->ref,
-				$this->Xin_model->currency_sign($debit),
-				$this->Xin_model->currency_sign($credit),
-				$this->Xin_model->currency_sign($balance),
+				doc_stats($r->status, true),
+				$this->Xin_model->currency_sign($r->amount),
 			);
 		}
 
-		$data['records'] = $records;
+		foreach ($record_2->result() as $i => $r) {
+
+			if (!in_array(null, [$r->account_id, $r->beneficiary], true)) {
+
+				$from_account = $this->Accounts_model->get($r->account_id)->row();
+				if (!is_null($from_account)) {
+					$from = "<b>$from_account->account_name</b>" . "  " . $from_account->account_code;
+				} else {
+					$from = "--";
+				}
+
+				$to_beneficiary = $this->Employees_model->read_employee_information($r->beneficiary);
+				if (!is_null($to_beneficiary)) {
+					$to = $to_beneficiary[0]->first_name . "  " . $to_beneficiary[0]->last_name;
+				} else {
+					$to = "--";
+				}
+			} else {
+				$from = "--";
+				$to = "--";
+			}
+
+
+			$amount = $this->Account_spend_items_model->get_total_amount($r->spend_id);
+			if (!is_null($amount)) {
+				$amount = $amount;
+			} else {
+				$amount = 0;
+			}
+
+			$amounts += $amount;
+			$data[] = array(
+				"<a href='" . base_url('admin/finance/accounts/spend_view?id=' . $r->trans_number) . "' class='text-secondary'><i class='fa fa-eye fa-fw' aria-hidden='true'></i></a>",
+				$this->Xin_model->set_date_format($r->created_at),
+				$r->trans_number,
+				"<small>" . $from . "<br>To<br>" . $to . "</small>",
+				$r->reference,
+				doc_stats($r->status, true),
+				$this->Xin_model->currency_sign($amount),
+			);
+		}
+
+		foreach ($record_3->result() as $i => $r) {
+			$receives = $this->Account_receive_items_model->get_account_from_receive($r->receive_id);
+			$result_receives = "";
+			foreach ($receives as $key => $rev) {
+				$titik_kome = $key == array_key_last($receives) ? ". " : ", ";
+				$result_receives .= "<b>$rev->account_name</b>" . "  " . $rev->account_code . $titik_kome;
+			}
+
+			$vendor = $this->Vendor_model->read_vendor_information($r->vendor_id);
+			if (!is_null($vendor)) {
+				$from = $vendor[0]->vendor_name;
+			} else {
+				$from = "--";
+			}
+
+
+			$amount = $this->Account_receive_items_model->get_total_amount($r->receive_id);
+			if (!is_null($amount)) {
+				$amount = $amount;
+			} else {
+				$amount = 0;
+			}
+
+			$amounts += $amount;
+			$data[] = array(
+				"<a href='" . base_url('admin/finance/accounts/receive_view?id=' . $r->trans_number) . "' class='text-secondary'><i class='fa fa-eye fa-fw' aria-hidden='true'></i></a>",
+				$this->Xin_model->set_date_format($r->created_at),
+				$r->trans_number,
+				"<small>" . $from . "<br>To<br>" . $result_receives . "</small>",
+				$r->reference,
+				doc_stats($r->status, true),
+				$this->Xin_model->currency_sign($amount),
+			);
+		}
+
+		$data['records'] = $data;
+		$data['amounts'] = $this->Xin_model->currency_sign($amounts);
 		if (in_array('503', $role_resources_ids)) {
 			return $this->load->view("admin/finance/accounts/print", $data);
 		} else {
@@ -1101,7 +1181,7 @@ class Accounts extends MY_Controller
 				$r->trans_number,
 				"<small>" . $from . "<br>To<br>" . $to . "</small>",
 				$r->ref,
-				$r->status == "paid" ? "<span class='badge badge-success'>" . $r->status . "</span>" : "<span class='badge badge-warning'>" . $r->status . "</span>",
+				doc_stats($r->status, true),
 				$this->Xin_model->currency_sign($r->amount),
 			);
 		}
@@ -1142,7 +1222,7 @@ class Accounts extends MY_Controller
 				$r->trans_number,
 				"<small>" . $from . "<br>To<br>" . $to . "</small>",
 				$r->reference,
-				$r->status == "paid" ? "<span class='badge badge-success'>" . $r->status . "</span>" : "<span class='badge badge-warning'>" . $r->status . "</span>",
+				doc_stats($r->status, true),
 				$this->Xin_model->currency_sign($amount),
 			);
 		}
@@ -1176,7 +1256,7 @@ class Accounts extends MY_Controller
 				$r->trans_number,
 				"<small>" . $from . "<br>To<br>" . $result_receives . "</small>",
 				$r->reference,
-				$r->status == "paid" ? "<span class='badge badge-success'>" . $r->status . "</span>" : "<span class='badge badge-warning'>" . $r->status . "</span>",
+				doc_stats($r->status, true),
 				$this->Xin_model->currency_sign($amount),
 			);
 		}
@@ -1193,6 +1273,8 @@ class Accounts extends MY_Controller
 
 	public function get_ajax_account_trans()
 	{
+		$role_resources_ids = $this->Xin_model->user_role_resource();
+
 		$data['title'] = $this->Xin_model->site_title();
 		$session = $this->session->userdata('username');
 		if (empty($session)) {
@@ -1227,13 +1309,27 @@ class Accounts extends MY_Controller
 				$to = "--";
 			}
 
+			if (in_array('99999', $role_resources_ids)) { //edit
+				$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" href="' . site_url() . 'admin/purchase_requisitions/edit/' . $r->transfer_id  . '"><span class="fas fa-pencil-alt"></span></a></span>';
+			} else {
+				$edit = '';
+			}
+			if (in_array('99999', $role_resources_ids)) { // delete
+				$delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '"><button type="button" class="btn icon-btn btn-sm btn-outline-danger waves-effect waves-light delete" data-toggle="modal" data-target=".delete-modal" data-record-id="' . $r->transfer_id . '" data-token_type="purchase_requisitions"><span class="fas fa-trash-restore"></span></button></span>';
+			} else {
+				$delete = '';
+			}
+
+			$href = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_view') . '"><a href="' . base_url('admin/finance/accounts/transfer_view?id=' . $r->trans_number) . '" class="btn icon-btn btn-sm btn-outline-info waves-effect waves-light"><span class="fa fa-eye"></span></a></span>';
+			$combhr = $edit . $delete . $href;
+
 			$data[] = array(
-				"<a href='" . base_url('admin/finance/accounts/transfer_view?id=' . $r->trans_number) . "' class='text-secondary'><i class='fa fa-eye fa-fw' aria-hidden='true'></i></a>",
+				$combhr,
 				$this->Xin_model->set_date_format($r->created_at),
 				$r->trans_number,
 				"<small>" . $from . "<br>To<br>" . $to . "</small>",
 				$r->ref,
-				$r->status == "paid" ? "<span class='badge badge-success'>" . $r->status . "</span>" : "<span class='badge badge-warning'>" . $r->status . "</span>",
+				doc_stats($r->status, true),
 				$this->Xin_model->currency_sign($r->amount),
 			);
 		}
@@ -1268,13 +1364,27 @@ class Accounts extends MY_Controller
 				$amount = 0;
 			}
 
+			if (in_array('99999', $role_resources_ids)) { //edit
+				$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" href="' . site_url() . 'admin/purchase_requisitions/edit/' . $r->spend_id  . '"><span class="fas fa-pencil-alt"></span></a></span>';
+			} else {
+				$edit = '';
+			}
+			if (in_array('99999', $role_resources_ids)) { // delete
+				$delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '"><button type="button" class="btn icon-btn btn-sm btn-outline-danger waves-effect waves-light delete" data-toggle="modal" data-target=".delete-modal" data-record-id="' . $r->spend_id . '" data-token_type="purchase_requisitions"><span class="fas fa-trash-restore"></span></button></span>';
+			} else {
+				$delete = '';
+			}
+
+			$href = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_view') . '"><a href="' . base_url('admin/finance/accounts/spend_view?id=' . $r->trans_number) . '" class="btn icon-btn btn-sm btn-outline-info waves-effect waves-light"><span class="fa fa-eye"></span></a></span>';
+			$combhr = $edit . $delete . $href;
+
 			$data[] = array(
-				"<a href='" . base_url('admin/finance/accounts/spend_view?id=' . $r->trans_number) . "' class='text-secondary'><i class='fa fa-eye fa-fw' aria-hidden='true'></i></a>",
+				$combhr,
 				$this->Xin_model->set_date_format($r->created_at),
 				$r->trans_number,
 				"<small>" . $from . "<br>To<br>" . $to . "</small>",
 				$r->reference,
-				$r->status == "paid" ? "<span class='badge badge-success'>" . $r->status . "</span>" : "<span class='badge badge-warning'>" . $r->status . "</span>",
+				doc_stats($r->status, true),
 				$this->Xin_model->currency_sign($amount),
 			);
 		}
@@ -1302,13 +1412,28 @@ class Accounts extends MY_Controller
 				$amount = 0;
 			}
 
+
+			if (in_array('99999', $role_resources_ids)) { //edit
+				$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" href="' . site_url() . 'admin/purchase_requisitions/edit/' . $r->receive_id  . '"><span class="fas fa-pencil-alt"></span></a></span>';
+			} else {
+				$edit = '';
+			}
+			if (in_array('99999', $role_resources_ids)) { // delete
+				$delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '"><button type="button" class="btn icon-btn btn-sm btn-outline-danger waves-effect waves-light delete" data-toggle="modal" data-target=".delete-modal" data-record-id="' . $r->receive_id . '" data-token_type="purchase_requisitions"><span class="fas fa-trash-restore"></span></button></span>';
+			} else {
+				$delete = '';
+			}
+
+			$href = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_view') . '"><a href="' . base_url('admin/finance/accounts/receive_view?id=' . $r->trans_number) . '" class="btn icon-btn btn-sm btn-outline-info waves-effect waves-light"><span class="fa fa-eye"></span></a></span>';
+			$combhr = $edit . $delete . $href;
+
 			$data[] = array(
-				"<a href='" . base_url('admin/finance/accounts/receive_view?id=' . $r->trans_number) . "' class='text-secondary'><i class='fa fa-eye fa-fw' aria-hidden='true'></i></a>",
+				$combhr,
 				$this->Xin_model->set_date_format($r->created_at),
 				$r->trans_number,
 				"<small>" . $from . "<br>To<br>" . $result_receives . "</small>",
 				$r->reference,
-				$r->status == "paid" ? "<span class='badge badge-success'>" . $r->status . "</span>" : "<span class='badge badge-warning'>" . $r->status . "</span>",
+				doc_stats($r->status, true),
 				$this->Xin_model->currency_sign($amount),
 			);
 		}
@@ -1325,6 +1450,7 @@ class Accounts extends MY_Controller
 
 	public function get_ajax_account_transfer()
 	{
+		$role_resources_ids = $this->Xin_model->user_role_resource();
 		$data['title'] = $this->Xin_model->site_title();
 		$session = $this->session->userdata('username');
 		if (empty($session)) {
@@ -1357,14 +1483,27 @@ class Accounts extends MY_Controller
 				$to = "--";
 			}
 
+			if (in_array('99999', $role_resources_ids)) { //edit
+				$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" href="' . site_url() . 'admin/purchase_requisitions/edit/' . $r->transfer_id  . '"><span class="fas fa-pencil-alt"></span></a></span>';
+			} else {
+				$edit = '';
+			}
+			if (in_array('99999', $role_resources_ids)) { // delete
+				$delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '"><button type="button" class="btn icon-btn btn-sm btn-outline-danger waves-effect waves-light delete" data-toggle="modal" data-target=".delete-modal" data-record-id="' . $r->transfer_id . '" data-token_type="purchase_requisitions"><span class="fas fa-trash-restore"></span></button></span>';
+			} else {
+				$delete = '';
+			}
+
+			$href = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_view') . '"><a href="' . base_url('admin/finance/accounts/transfer_view?id=' . $r->trans_number) . '" class="btn icon-btn btn-sm btn-outline-info waves-effect waves-light"><span class="fa fa-eye"></span></a></span>';
+			$combhr = $edit . $delete . $href;
 
 			$data[] = array(
-				"<a href='" . base_url('admin/finance/accounts/transfer_view?id=' . $r->trans_number) . "' class='text-secondary'><i class='fa fa-eye fa-fw' aria-hidden='true'></i></a>",
+				$combhr,
 				$this->Xin_model->set_date_format($r->created_at),
 				$r->trans_number,
 				"<small>" . $from . "<br>To<br>" . $to . "</small>",
 				$r->ref,
-				$r->status == "paid" ? "<span class='badge badge-success'>" . $r->status . "</span>" : "<span class='badge badge-warning'>" . $r->status . "</span>",
+				doc_stats($r->status, true),
 				$this->Xin_model->currency_sign($r->amount),
 			);
 		}
@@ -1381,6 +1520,7 @@ class Accounts extends MY_Controller
 
 	public function get_ajax_account_spends()
 	{
+		$role_resources_ids = $this->Xin_model->user_role_resource();
 		$data['title'] = $this->Xin_model->site_title();
 		$session = $this->session->userdata('username');
 		if (empty($session)) {
@@ -1418,7 +1558,6 @@ class Accounts extends MY_Controller
 				$to = "--";
 			}
 
-
 			$amount = $this->Account_spend_items_model->get_total_amount($r->spend_id);
 			if (!is_null($amount)) {
 				$amount = $amount;
@@ -1426,13 +1565,28 @@ class Accounts extends MY_Controller
 				$amount = 0;
 			}
 
+
+			if (in_array('99999', $role_resources_ids)) { //edit
+				$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" href="' . site_url() . 'admin/purchase_requisitions/edit/' . $r->spend_id  . '"><span class="fas fa-pencil-alt"></span></a></span>';
+			} else {
+				$edit = '';
+			}
+			if (in_array('99999', $role_resources_ids)) { // delete
+				$delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '"><button type="button" class="btn icon-btn btn-sm btn-outline-danger waves-effect waves-light delete" data-toggle="modal" data-target=".delete-modal" data-record-id="' . $r->spend_id . '" data-token_type="purchase_requisitions"><span class="fas fa-trash-restore"></span></button></span>';
+			} else {
+				$delete = '';
+			}
+
+			$href = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_view') . '"><a href="' . base_url('admin/finance/accounts/spend_view?id=' . $r->trans_number) . '" class="btn icon-btn btn-sm btn-outline-info waves-effect waves-light"><span class="fa fa-eye"></span></a></span>';
+			$combhr = $edit . $delete . $href;
+
 			$data[] = array(
-				"<a href='" . base_url('admin/finance/accounts/spend_view?id=' . $r->trans_number) . "' class='text-secondary'><i class='fa fa-eye fa-fw' aria-hidden='true'></i></a>",
+				$combhr,
 				$this->Xin_model->set_date_format($r->created_at),
 				$r->trans_number,
 				"<small>" . $from . "<br>To<br>" . $to . "</small>",
 				$r->reference,
-				$r->status == "paid" ? "<span class='badge badge-success'>" . $r->status . "</span>" : "<span class='badge badge-warning'>" . $r->status . "</span>",
+				doc_stats($r->status, true),
 				$this->Xin_model->currency_sign($amount),
 			);
 		}
@@ -1449,6 +1603,7 @@ class Accounts extends MY_Controller
 
 	public function get_ajax_account_receives()
 	{
+		$role_resources_ids = $this->Xin_model->user_role_resource();
 		$data['title'] = $this->Xin_model->site_title();
 		$session = $this->session->userdata('username');
 		if (empty($session)) {
@@ -1487,13 +1642,27 @@ class Accounts extends MY_Controller
 				$amount = 0;
 			}
 
+			if (in_array('99999', $role_resources_ids)) { //edit
+				$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" href="' . site_url() . 'admin/purchase_requisitions/edit/' . $r->receive_id  . '"><span class="fas fa-pencil-alt"></span></a></span>';
+			} else {
+				$edit = '';
+			}
+			if (in_array('99999', $role_resources_ids)) { // delete
+				$delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '"><button type="button" class="btn icon-btn btn-sm btn-outline-danger waves-effect waves-light delete" data-toggle="modal" data-target=".delete-modal" data-record-id="' . $r->receive_id . '" data-token_type="purchase_requisitions"><span class="fas fa-trash-restore"></span></button></span>';
+			} else {
+				$delete = '';
+			}
+
+			$href = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_view') . '"><a href="' . base_url('admin/finance/accounts/receive_view?id=' . $r->trans_number) . '" class="btn icon-btn btn-sm btn-outline-info waves-effect waves-light"><span class="fa fa-eye"></span></a></span>';
+			$combhr = $edit . $delete . $href;
+
 			$data[] = array(
-				"<a href='" . base_url('admin/finance/accounts/receive_view?id=' . $r->trans_number) . "' class='text-secondary'><i class='fa fa-eye fa-fw' aria-hidden='true'></i></a>",
+				$combhr,
 				$this->Xin_model->set_date_format($r->created_at),
 				$r->trans_number,
 				"<small>" . $from . "<br>To<br>" . $result_receives . "</small>",
 				$r->reference,
-				$r->status == "paid" ? "<span class='badge badge-success'>" . $r->status . "</span>" : "<span class='badge badge-warning'>" . $r->status . "</span>",
+				doc_stats($r->status, true),
 				$this->Xin_model->currency_sign($amount),
 			);
 		}
@@ -1910,42 +2079,31 @@ class Accounts extends MY_Controller
 		}
 	}
 
-	public function store_payment()
+	public function store_transfer_payment()
 	{
+		/* Define return | here result is used to return user data and error for error message */
+		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
+		$Return['csrf_hash'] = $this->security->get_csrf_hash();
+
 		// transfer_id
 		$id = $this->input->post('_token');
 		$date = $this->input->post('date');
 		$payment_ref = $this->input->post('payment_ref');
-		$attachment = $_FILES['attachment'];
 		$source_payment_account = $this->input->post('source_payment_account');
 		$amount_paid = $this->input->post('amount_paid');
 
 
+		// get record
+		$record = $this->Account_transfer_model->get($id);
+
+		$Return['record'] = $record;
 		// get user id
 		$user_id = $this->session->userdata('username')['user_id'];
 
 		// penerima debit
 		$target_account_id = $this->input->post('target_account_id');
 
-		// doing attachment
-		$config['allowed_types'] = 'gif|jpg|png|pdf';
-		$config['max_size'] = '10240'; // max_size in kb
-		$config['upload_path'] = './uploads/finance/account_trans/';
-
-		$filename = $_FILES['attachment']['name'];
-
-		// get extention
-		$extension = pathinfo($filename, PATHINFO_EXTENSION);
-
-		$newName = date('YmdHis') . '_TRANS.' . $extension;
-
-		$config['filename'] = $newName;
-
-		//load upload class library
-		$this->load->library('upload', $config);
-
-		// $upload
-		$upload = $this->upload->do_upload('attachment');
+		$file_attachment = $this->upload_attachment('./uploads/finance/account_trans/', 'TRANS');
 
 		$data = [
 			[
@@ -1958,7 +2116,7 @@ class Accounts extends MY_Controller
 				'join_id' => $id, // transfer_id
 				'ref' => $payment_ref,
 				'note' => "Kredit Pembayaran Transfer",
-				'attachment' => $newName,
+				'attachment' => $file_attachment,
 			],
 			[
 				'account_id' => $target_account_id,
@@ -1970,7 +2128,7 @@ class Accounts extends MY_Controller
 				'join_id' => $id, // transfer_id
 				'ref' => $payment_ref,
 				'note' => "Debit Pembayaran Transfer",
-				'attachment' => $newName,
+				'attachment' => $file_attachment,
 			]
 		];
 
@@ -1987,6 +2145,7 @@ class Accounts extends MY_Controller
 			$this->Account_transfer_model->update($id, ['status' => 'partially_paid']);
 		}
 
+		$Return['trans_number'] = $record->trans_number;
 		if ($insert) {
 			$Return['result'] = $this->lang->line('ms_title_payment_success');
 			$this->output($Return);
@@ -2458,6 +2617,32 @@ class Accounts extends MY_Controller
 		} else {
 			$Return['error'] = $this->lang->line('ms_title_peyment_error');
 			$this->output($Return);
+		}
+	}
+
+	public function store_payment()
+	{
+		/* Define return | here result is used to return user data and error for error message */
+		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
+		$Return['csrf_hash'] = $this->security->get_csrf_hash();
+
+		// is not ajax request
+		if (!$this->input->is_ajax_request()) {
+			$this->output(['message' => 'No direct script access allowed!']);
+			exit();
+		}
+
+
+		$type = $this->input->post('type');
+
+		if ($type == 'transfer') {
+			return $this->store_transfer_payment();
+		} else if ($type == 'spend') {
+			$this->store_spend_payment();
+		} else if ($type == 'receive') {
+			$this->store_receive_payment();
+		} else {
+			$this->output(['error' => 'Tipe tidak ditemukan']);
 		}
 	}
 }

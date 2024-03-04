@@ -189,6 +189,12 @@
 							</td>
 						</tr>
 						<tr>
+							<td><strong><?php echo $this->lang->line('ms_title_service_fee'); ?></strong></td>
+							<td align="right">
+								<strong id="delivery_fee"><?= $this->Xin_model->currency_sign($record->service_fee); ?></strong>
+							</td>
+						</tr>
+						<tr>
 							<td><strong><?php echo $this->lang->line('xin_title_total'); ?></strong></td>
 							<td align="right">
 								<strong class="text-danger" id="grand_total"><?= $this->Xin_model->currency_sign($record->sisa_tagihan); ?></strong>
@@ -275,7 +281,7 @@
 								</thead>
 								<tbody>
 									<?php
-									// dd($record->log_payments);
+
 									foreach ($record->log_payments as $key => $value) {
 										if (empty($value->first_name) or empty($value->last_name)) {
 											$pic = "--";

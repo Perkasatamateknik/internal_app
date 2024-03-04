@@ -1,8 +1,37 @@
 $(function () {
-	$('[data-plugin="select_account"]').select2({
+	$('[data-plugin="select_vendor"]').select2({
 		ajax: {
 			delay: 250,
 			url: site_url + "ajax_request/find_vendor",
+			data: function (params) {
+				var queryParameters = {
+					query: params.term,
+				};
+				return queryParameters;
+			},
+
+			processResults: function (data) {
+				return {
+					results: data,
+				};
+			},
+			cache: true,
+			transport: function (params, success, failure) {
+				var $request = $.ajax(params);
+
+				$request.then(success);
+				$request.fail(failure);
+
+				return $request;
+			},
+		},
+		width: "100%",
+	});
+
+	$('[data-plugin="select_account"]').select2({
+		ajax: {
+			delay: 250,
+			url: site_url + "ajax_request/get_accounts",
 			data: function (params) {
 				var queryParameters = {
 					query: params.term,
@@ -104,35 +133,6 @@ $(document).ready(function () {
 			$('[data-toggle="tooltip"]').tooltip();
 		},
 	});
-
-	$('[data-plugin="select_account"]').select2({
-		ajax: {
-			delay: 250,
-			url: site_url + "ajax_request/get_bank_account",
-			data: function (params) {
-				var queryParameters = {
-					query: params.term,
-				};
-				return queryParameters;
-			},
-
-			processResults: function (data) {
-				return {
-					results: data,
-				};
-			},
-			cache: true,
-			transport: function (params, success, failure) {
-				var $request = $.ajax(params);
-
-				$request.then(success);
-				$request.fail(failure);
-
-				return $request;
-			},
-		},
-		width: "100%",
-	});
 });
 
 /* ----------------------- CALCULATE ITEMS ----------------------------- */
@@ -193,7 +193,7 @@ function addRow() {
 	$('[data-plugin="select_target_account"]').select2({
 		ajax: {
 			delay: 250,
-			url: site_url + "ajax_request/get_bank_account",
+			url: site_url + "ajax_request/get_accounts",
 			data: function (params) {
 				var queryParameters = {
 					query: params.term,

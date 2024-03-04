@@ -619,7 +619,8 @@ class Project extends MY_Controller
 			$data[] = array(
 				$combhr,
 				$project_no,
-				$r->phase_no,
+				// $r->phase_no,
+				$r->purchase_no,
 				$project_summary,
 				$priority,
 				$ol . $add_users,

@@ -3536,7 +3536,7 @@
 		<br>
 		<br>
 	</div>
-	<div class="container">
+	<div class="mb-3">
 		<div class="row">
 			<div class="col-12">
 				<div class="form-group">
@@ -3554,12 +3554,11 @@
 									<tr>
 										<th>#</th>
 										<th><?= $this->lang->line('ms_title_date'); ?></th>
-										<th><?= $this->lang->line('ms_title_type'); ?></th>
-										<th><?= $this->lang->line('ms_title_desc'); ?></th>
+										<th><?= $this->lang->line('ms_title_number_document'); ?></th>
+										<th><?= $this->lang->line('ms_title_transfer'); ?></th>
 										<th><?= $this->lang->line('ms_title_ref'); ?></th>
-										<th><?= $this->lang->line('ms_title_debit'); ?></th>
-										<th><?= $this->lang->line('ms_title_credit'); ?></th>
-										<th><?= $this->lang->line('ms_title_balance'); ?></th>
+										<th><?= $this->lang->line('ms_title_status'); ?></th>
+										<th style="min-width: 150px;"><?= $this->lang->line('ms_title_amount'); ?></th>
 									</tr>
 								</thead>
 								<tbody>
@@ -3572,17 +3571,15 @@
 											<td><?= $r[4]; ?></td>
 											<td><?= $r[5]; ?></td>
 											<td><?= $r[6]; ?></td>
-											<td><?= $r[7]; ?></td>
 										</tr>
 
 									<?php }; ?>
 								</tbody>
 								<tfoot>
 									<tr>
-										<td colspan="5"><?= $this->lang->line('ms_amount'); ?></td>
-										<td>000:000:000</td>
+										<td colspan="5" align="right"><?= $this->lang->line('ms_amount'); ?></td>
 										<td></td>
-										<td>000:000:000</td>
+										<td><?= $amounts; ?></td>
 									</tr>
 								</tfoot>
 							</table>
@@ -3595,3 +3592,7 @@
 </body>
 
 </html>
+
+<script>
+	window.print();
+</script>

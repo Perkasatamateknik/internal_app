@@ -21,6 +21,18 @@ class Accounts_model extends CI_Model
 		return $this->db->get("ms_finance_accounts");
 	}
 
+	public function get_account_by_id($id)
+	{
+		$this->db->where('account_id', $id);
+		return $this->db->get("ms_finance_accounts")->row();
+	}
+
+	public function get_account_by_cat($id)
+	{
+		$this->db->where('category_id', $id);
+		return $this->db->get("ms_finance_accounts")->row();
+	}
+
 	public function get_all_bank()
 	{
 		$this->db->where('category_id', 1); // 1 = bank
@@ -107,10 +119,24 @@ class Accounts_model extends CI_Model
 			$this->db->or_like('account_code', $query);
 		}
 
-		$this->db->limit(10);
+		// $this->db->limit(10);
 
 		$this->db->order_by('account_name', 'ASC');
 		return $this->db->get("ms_finance_accounts");
+	}
+
+	public function get_tax_account($query = false)
+	{
+		$this->db->where('category_id', 12);
+		if ($query) {
+			$this->db->like('account_name', $query);
+			$this->db->or_like('account_code', $query);
+		}
+
+		$this->db->limit(10);
+
+		$this->db->order_by('account_name', 'ASC');
+		return $this->db->get("ms_finance_accounts")->result();
 	}
 
 	public function get_last_account()

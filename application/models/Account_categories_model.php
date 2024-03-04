@@ -28,7 +28,5 @@ class Account_categories_model extends CI_Model
 		} else {
 			return null;
 		}
-
-		// return $this->db->result();
 	}
 }

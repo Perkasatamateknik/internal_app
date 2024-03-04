@@ -1,6 +1,6 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
-class expense_model extends CI_Model
+class Expense_model extends CI_Model
 {
 
 	public function __construct()
@@ -9,106 +9,90 @@ class expense_model extends CI_Model
 		$this->load->database();
 	}
 
+	public function trans_number()
+	{
+		$query = $this->get_last_spend();
+
+		if (!is_null($query)) {
+			// Extract the numeric part of the invoice number
+			$numericPart = intval(substr($query->trans_number, 4));
+
+			// Increment the numeric part
+			$nextNumericPart = $numericPart + 1;
+		} else {
+			$nextNumericPart = 1;
+		}
+
+		// Create the new invoice number with the prefix and padded numeric part
+		return sprintf("EXP-%05d", $nextNumericPart);
+	}
 	// get all expenses
-	public function get_expenses()
+	public function all()
 	{
-		return $this->db->get("xin_expenses");
+		return $this->db->get("ms_finance_expenses");
 	}
 
-	// get employee claim expense
-	public function get_employee_expenses()
+	public function get($id)
 	{
-
-		$session = $this->session->userdata('username');
-		$sql = 'SELECT * FROM xin_expenses WHERE employee_id = ?';
-		$binds = array($session['user_id']);
-		$query = $this->db->query($sql, $binds);
-
-		return $query;
+		$this->db->where('expense_id', $id);
+		return $this->db->get("ms_finance_expenses");
 	}
 
-	// get total number of expenses
-	public function get_total_expenses()
+	public function get_last_spend()
 	{
-		$query = $this->db->query("SELECT SUM(amount) as exp_amount FROM xin_expenses");
-		return $query->result();
+		return $this->db->select('*')
+			->from('ms_finance_expenses')
+			->order_by('trans_number', 'desc')
+			->limit(1)->get()->row();
 	}
 
-	// get total number of finance expenses
-	public function get_total_finance_expenses()
+	public function init_trans()
 	{
-		$query = $this->db->query("SELECT SUM(amount) as exp_amount FROM xin_finance_transaction where transaction_type = 'expense'");
-		return $query->result();
+		$last = $this->get_last_spend();
+
+		if (is_null($last) or !in_array(null, [$last->beneficiary], true)) {
+			$trans_number = $this->trans_number();
+			$this->db->insert('ms_finance_expenses', [
+				'trans_number' => $trans_number
+			]);
+			$last_id = $this->db->insert_id();
+
+			return $this->get($last_id)->row();
+		} else {
+			return $last;
+		}
 	}
 
-	public function read_expense_information($id)
+	public function update_with_items_and_files($id, $data, array $items = null, array $files = null)
 	{
+		$this->db->trans_start();
+		$this->db->update('ms_finance_expenses', $data, ['expense_id' => $id]);
 
-		$sql = 'SELECT * FROM xin_expenses WHERE expense_id = ?';
-		$binds = array($id);
-		$query = $this->db->query($sql, $binds);
+		if (!is_null($items)) {
+			if (count($items) > 0) {
+				$this->db->insert_batch('ms_finance_expense_trans', $items);
+			}
+		}
 
-		return $query->result();
+		if (!is_null($files)) {
+			if (count($files) > 0) {
+				$this->db->insert_batch('ms_files', $files);
+			}
+		}
+
+		$this->db->trans_complete();
+		return $this->db->trans_status();
 	}
 
-	public function read_expense_type_information($id)
+	public function get_by_number_doc($id)
 	{
+		$this->db->where("trans_number", $id);
+		$res = $this->db->get("ms_finance_expenses");
 
-		$sql = 'SELECT * FROM xin_expense_type WHERE expense_type_id = ?';
-		$binds = array($id);
-		$query = $this->db->query($sql, $binds);
-
-		if ($query->num_rows() > 0) {
-			return $query->result();
+		if ($res->num_rows() > 0) {
+			return $res->row();
 		} else {
 			return null;
-		}
-	}
-
-	// get all expense types
-	public function all_expense_types()
-	{
-		$query = $this->db->query("SELECT * from xin_expense_type");
-		return $query->result();
-	}
-
-	// Function to add record in table
-	public function add($data)
-	{
-		$this->db->insert('xin_expenses', $data);
-		if ($this->db->affected_rows() > 0) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	// Function to Delete selected record from table
-	public function delete_record($id)
-	{
-		$this->db->where('expense_id', $id);
-		$this->db->delete('xin_expenses');
-	}
-
-	// Function to update record in table
-	public function update_record($data, $id)
-	{
-		$this->db->where('expense_id', $id);
-		if ($this->db->update('xin_expenses', $data)) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	// Function to update record without logo > in table
-	public function update_record_no_logo($data, $id)
-	{
-		$this->db->where('expense_id', $id);
-		if ($this->db->update('xin_expenses', $data)) {
-			return true;
-		} else {
-			return false;
 		}
 	}
 }

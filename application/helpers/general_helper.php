@@ -1963,6 +1963,34 @@ if (!function_exists('po_stats')) {
 	}
 }
 
+if (!function_exists('doc_stats')) {
+	function doc_stats($status, $badge = false)
+	{
+
+		if ($badge) {
+			$class = "badge badge";
+		} else {
+			$class = "text";
+		}
+
+		// string replace 
+		$status = str_replace('_', ' ', $status);
+
+		$CI = &get_instance();
+		if ($status == 'unpaid') {
+			$text = '<strong class="' . $class . '-danger">' . $CI->lang->line('ms_title_unpaid') . '</strong>';
+		} elseif ($status == 'partially paid') {
+			$text = '<strong class="' . $class . '-info">' . $CI->lang->line('ms_title_partial') . '</strong>';
+		} elseif ($status == 'paid') {
+			$text = '<strong class="' . $class . '-success">' . $CI->lang->line('ms_title_billed') . '</strong>';
+		} else {
+			$text = '--';
+		}
+
+		return $text;
+	}
+}
+
 if (!function_exists('pd_stats')) {
 	function pd_stats($status)
 	/* 0 = reject, 1 open, 2 billed */
@@ -1988,11 +2016,11 @@ if (!function_exists('pi_stats')) {
 	{
 		$CI = &get_instance();
 		if ($status == 0) {
-			$text = '<strong class="text-small text-danger">' . $CI->lang->line('ms_title_unpaid') . '</strong>';
+			$text = '<strong class="badge badge-danger">' . $CI->lang->line('ms_title_unpaid') . '</strong>';
 		} elseif ($status == 1) {
-			$text = '<strong class="text-small text-info">' . $CI->lang->line('ms_title_partial') . '</strong>';
+			$text = '<strong class="badge badge-info">' . $CI->lang->line('ms_title_partial') . '</strong>';
 		} elseif ($status == 2) {
-			$text = '<strong class="text-small text-success">' . $CI->lang->line('ms_title_paid') . '</strong>';
+			$text = '<strong class="badge badge-success">' . $CI->lang->line('ms_title_paid') . '</strong>';
 		} else {
 			$text = '--';
 		}
@@ -2393,5 +2421,71 @@ if (!function_exists('convertThreeDigitsToWords')) {
 		}
 
 		return $result;
+	}
+}
+
+if (!function_exists('payment_increase')) {
+	function payment_increase($old_payment, $new_payment)
+	{
+		$CI = &get_instance();
+		$increase = ($old_payment != 0) ? (($new_payment - $old_payment) / $old_payment) * 100 : 0;
+
+		if ($increase > 0) {
+			$increase = number_format($increase, 2);
+			$icon = "<i class='fa fa-arrow-up text-success'></i>";
+			$text = "<span class='text-success'>+" . $increase . "%</span>";
+		} elseif ($increase < 0) {
+			$increase = number_format($increase, 2);
+			$icon = "<i class='fa fa-arrow-down text-danger'></i>";
+			$text = "<span class='text-danger'>" . $increase . "%</span>";
+		} else {
+			$icon = "";
+			$text = "<span class='text-secondary'>0%</span>";
+		}
+		return "<span>" . $icon . " " . $text . " " .  $CI->lang->line('ms_title_form_last_month') . "</span>";
+	}
+}
+
+if (!function_exists('getTimeDisplay')) {
+	function getTimeDisplay($timestamp, $prefix = '', $suffix = '')
+	{
+		$CI = &get_instance();
+
+		$currentDate = new DateTime();
+		$givenDate = new DateTime($timestamp);
+
+		if ($givenDate < $currentDate) {
+			// If the given date is in the past, return a due date message
+			$interval = $currentDate->diff($givenDate);
+			if ($interval->y >= 1) {
+				return $prefix . ' ' . $interval->y . ' ' . $CI->lang->line('ms_title_year') . ' ' . $suffix;
+			} elseif ($interval->m >= 1) {
+				return $prefix . ' ' . $interval->m . ' ' . $CI->lang->line('ms_title_month') . ' ' . $suffix;
+			} elseif ($interval->d >= 1) {
+				return $prefix . ' ' . $interval->d . ' ' . $CI->lang->line('ms_title_day')  . ' ' . $suffix;
+			} elseif ($interval->h >= 1) {
+				return $prefix . ' ' . $interval->h . ' ' . $CI->lang->line('ms_title_hour')  . ' ' . $suffix;
+			} elseif ($interval->i >= 1) {
+				return $prefix . ' ' . $interval->i . ' ' . $CI->lang->line('ms_title_minute')  . ' ' . $suffix;
+			} else {
+				return "Due just now";
+			}
+		} else {
+			// If the given date is not in the past, continue with the regular time ago logic
+			$interval = $currentDate->diff($givenDate);
+			if ($interval->y >= 1) {
+				return $interval->y . ' ' . $CI->lang->line('ms_title_year') . ' ' . $suffix;
+			} elseif ($interval->m >= 1) {
+				return $interval->m . ' ' . $CI->lang->line('ms_title_month')  . ' ' . $suffix;
+			} elseif ($interval->d >= 1) {
+				return $interval->d . ' ' . $CI->lang->line('ms_title_day')  . ' ' . $suffix;
+			} elseif ($interval->h >= 1) {
+				return $interval->h . ' ' . $CI->lang->line('ms_title_hour')  . ' ' . $suffix;
+			} elseif ($interval->i >= 1) {
+				return $interval->i . ' ' . $CI->lang->line('ms_title_minute')  . ' ' . $suffix;
+			} else {
+				return "just now";
+			}
+		}
 	}
 }

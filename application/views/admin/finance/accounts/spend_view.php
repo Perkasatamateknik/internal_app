@@ -16,7 +16,7 @@ if ($id == '') {
 			<div class="card-body">
 				<div class="row justify-content-between">
 					<div class="col-md-auto">
-						<a href="<?= base_url('/admin/finance/trans_doc') ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
+						<a href="<?= base_url('/admin/finance/accounts/trans_doc') ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
 					</div>
 					<div class="col-md-auto">
 						<div class="row">

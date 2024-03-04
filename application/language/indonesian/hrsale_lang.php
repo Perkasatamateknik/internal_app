@@ -3201,13 +3201,14 @@ $lang['ms_title_finance_dashboard'] = "Dashboard Keuangan";
 $lang['ms_title_finance_calendar'] = "Kelender Keuangan";
 $lang['ms_title_cash_bank'] = "Cash & Bank";
 // $lang['ms_title_accounts'] = "Akun";
-$lang['ms_title_expense'] = "Expense";
+$lang['ms_title_expense'] = "Biaya";
 $lang['ms_title_transaction'] = "Transaksi";
 $lang['ms_title_income'] = "Income";
 $lang['ms_title_payment'] = "Payment";
 $lang['ms_title_payment_success'] = "Transaksi Berhasil";
 $lang['ms_title_payment_error'] = "Transaksi Gagal";
 $lang['ms_title_budgeting'] = "Budgeting";
+$lang['ms_title_budget'] = "Budget";
 
 $lang['ms_title_total_balance'] = "Total Balance";
 
@@ -3253,6 +3254,7 @@ $lang['ms_title_receive'] = "Terima Uang";
 
 $lang['ms_title_source_account'] = "Sumber Akun";
 $lang['ms_title_receive_account'] = "Akun Penerima";
+$lang['ms_title_receive_person'] = "Pihak Penerima";
 $lang['ms_title_number_document'] = "Number Document";
 $lang['ms_title_terget_account'] = "Tujuan Akun";
 $lang['ms_title_amount'] = "Jumlah";
@@ -3262,6 +3264,7 @@ $lang['ms_title_attachment'] = "Lampiran";
 $lang['ms_title_note'] = "Catatan";
 $lang['ms_title_beneficiary'] = "Penerima";
 $lang['ms_title_select_options'] = "-- Pilih Data --";
+$lang['ms_title_select_year'] = "-- Pilih Tahun --";
 
 
 $lang['ms_title_paid_expenses'] = "Beban Dibayar";
@@ -3276,7 +3279,7 @@ $lang['ms_title_save_draft'] = "Simpan Draft";
 $lang['ms_title_fund_source'] = "Sumber Dana";
 $lang['ms_title_balance_due'] = "Pembayaran Jatuh Tempo";
 
-$lang['ms_title_expense'] = "Beban Pengeluaran";
+// $lang['ms_title_expense'] = "Biaya";
 $lang['ms_title_add_expense'] = "Tambah Beban";
 $lang['ms_title_transfer_due_date'] = "Jatuh Tempo";
 $lang['ms_title_term'] = "Term";
@@ -3301,6 +3304,48 @@ $lang['ms_title_trans_view'] = "Detail Transaksi";
 $lang['ms_title_trans_type'] = "Tipe Transaksi";
 $lang['ms_title_trans_pic'] = "PIC";
 $lang['ms_title_trans_cash_flow'] = "Cash Flow";
+
+
+$lang['ms_title_tax_buy_account'] = "Akun Pembelian";
+$lang['ms_title_tax_sell_account'] = "Akun Penjualan";
+$lang['ms_title_tax_withholding'] = "Withholding";
+$lang['ms_title_is_active'] = "Aktif";
+$lang['ms_title_report'] = "Laporan";
+$lang['ms_title_service_fee'] = "Biaya Layanan";
+
+
+$lang['ms_title_in'] = "Laporan";
+$lang['ms_title_income'] = "Incomes";
+$lang['ms_title_invoice'] = "Invoice";
+$lang['ms_title_project_invoice'] = "Projek Invoice";
+$lang['ms_title_sale'] = "Sale";
+$lang['ms_title_active'] = "Aktif";
+$lang['ms_title_inactive'] = "Tidak Aktif";
+$lang['ms_title_no'] = "Tidak";
+$lang['ms_title_yes'] = "Ya";
+$lang['ms_title_yes'] = "Ya";
+$lang['ms_title_payment_paid'] = "Terbayar";
+$lang['ms_title_payment_unpaid'] = "Belum Dibayar";
+
+$lang['ms_title_form_last_month'] = "Dari Bulan Terakhir";
+$lang['ms_title_amount_expense'] = "Total Expense";
+$lang['ms_title_client'] = "Klien";
+$lang['ms_title_publish_date'] = "Tanggal Publish";
+
+$lang['ms_title_year'] = "Tahun";
+$lang['ms_title_month'] = "Bulan";
+$lang['ms_title_day'] = "Hari";
+$lang['ms_title_hour'] = "Jam";
+$lang['ms_title_minute'] = "Menit";
+$lang['ms_title_due'] = "Due";
+$lang['ms_title_ago'] = "Yang lalu";
+
+$lang['ms_title_trans_overview'] = "Overview Transaksi";
+
+
+
+
+
 /////////////////////////////////////////////////// akhir hrsale v2.0.1
 
 /* End of file hrsale_lang.php */

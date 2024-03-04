@@ -261,12 +261,13 @@ class Purchase_requisitions extends Purchasing
 
 			$pr_number = '<a href="' . site_url() . 'admin/purchase_requisitions/view/' . $r->pr_number . '/">' . $r->pr_number . '</a>';
 
-			if (in_array('492', $role_resources_ids)) { //edit
+			if (in_array('504', $role_resources_ids)) { //edit
 				$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" href="' . site_url() . 'admin/purchase_requisitions/edit/' . $r->pr_number  . '"><span class="fas fa-pencil-alt"></span></a></span>';
 			} else {
 				$edit = '';
 			}
-			if (in_array('493', $role_resources_ids)) { // delete
+			
+			if (in_array('505', $role_resources_ids)) { // delete
 				$delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '"><button type="button" class="btn icon-btn btn-sm btn-outline-danger waves-effect waves-light delete" data-toggle="modal" data-target=".delete-modal" data-record-id="' . $r->pr_number . '" data-token_type="purchase_requisitions"><span class="fas fa-trash-restore"></span></button></span>';
 			} else {
 				$delete = '';
@@ -470,6 +471,7 @@ class Purchase_requisitions extends Purchasing
 					$project_name = '--';
 				}
 
+				var_dump($records->result());
 				$item_name = $r->product_name . '<br><b style="font-size:10px">' . $r->product_number . '</b>';
 
 				$item[] = array(
@@ -482,6 +484,7 @@ class Purchase_requisitions extends Purchasing
 			}
 		}
 
+		dd($item);
 		if ($record) {
 			$data['record'] = $record;
 			$data['records'] = $item;

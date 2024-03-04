@@ -7,9 +7,9 @@
 						<span class="ion ion-md-add"></span> Saldo Awal
 					</a>
 					&nbsp;
-					<a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addAccount">
+					<button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#add-modal-data">
 						<span class="ion ion-md-add"></span> Add Account
-					</a>
+					</button>
 					&nbsp;
 					<a href="#" class="btn btn-primary btn-sm">
 						<span class="ion ion-md-attachment"></span> Manual Jurnal
@@ -73,56 +73,6 @@
 					</tbody> -->
 				</table>
 			</div>
-		</div>
-	</div>
-</div>
-
-<div class="modal fade" id="addAccount" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
-	<div class="modal-dialog" role="document">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h5 class="modal-title">Tambah Akun</h5>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-					<span aria-hidden="true">&times;</span>
-				</button>
-			</div>
-			<?php $attributes = array('name' => 'accounts', 'id' => 'add_accoun', 'autocomplete' => 'off', 'class' => 'form'); ?>
-			<?php echo form_open('admin/finance/accounts/insert', $attributes); ?>
-			<div class="modal-body">
-				<div class="form-group">
-					<label for="account_name">Nama Akun</label>
-					<input type="text" name="account_name" id="account_name" class="form-control" required>
-				</div>
-				<div class="form-group">
-					<label for="account_code">Code</label>
-					<input type="text" name="account_code" id="account_code" class="form-control" required>
-				</div>
-				<div class="form-group">
-					<label for="account_number">Account Number</label>
-					<input type="text" name="account_number" id="account_number" class="form-control" required>
-				</div>
-				<div class="form-group">
-					<label for="category_id">Select Category</label>
-					<select class="form-control" name="category_id" id="category_id" data-plugin="select_hrm" data-placeholder="Pilih">
-						<?php foreach ($categories as $r) {; ?>
-							<option value="<?= $r->category_id; ?>"><?= $r->category_name; ?></option>
-						<?php } ?>
-					</select>
-				</div>
-				<div class="form-group">
-					<label for="account_origin">Account Origin</label>
-					<input type="text" name="account_origin" id="account_origin" class="form-control" required>
-				</div>
-				<div class="form-group">
-					<label for="saldo_awal">Saldo Awal</label>
-					<input type="number" min="0" name="saldo_awal" id="saldo_awal" class="form-control">
-				</div>
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-				<button type="submit" class="btn btn-primary">Save</button>
-			</div>
-			<?php echo form_close(); ?>
 		</div>
 	</div>
 </div>

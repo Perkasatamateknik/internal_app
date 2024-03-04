@@ -1,7 +1,3 @@
-<?php
-/* User Roles view
-*/
-?>
 <?php $session = $this->session->userdata('username'); ?>
 <?php $get_animate = $this->Xin_model->get_content_animate(); ?>
 <?php $role_resources_ids = $this->Xin_model->user_role_resource(); ?>

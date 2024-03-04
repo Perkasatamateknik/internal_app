@@ -333,6 +333,11 @@ class Purchase_model extends CI_Model
 		return $this->db->get("ms_purchase_invoices");
 	}
 
+	public function get_all_pi_unpaid()
+	{
+		return $this->db->where('status !=', 2)->get("ms_purchase_invoices");
+	}
+
 	public function get_amount_pi($id)
 	{
 		$this->db->select_sum('amount');
@@ -448,7 +453,7 @@ class Purchase_model extends CI_Model
 		}
 
 		// tambahin data yang sudah di bayarkan
-		$jumlah_tagihan =  $subtotal - $discount + $tax + $record->delivery_fee;
+		$jumlah_tagihan =  $subtotal - $discount + $tax + $record->delivery_fee + $record->service_fee;
 
 		$get_tagihan_dibayar = $this->db->select(['ms_finance_account_transactions.*', 'COALESCE(ms_finance_accounts.account_code, "--") as account_code', 'COALESCE(ms_finance_accounts.account_name, "--") as account_name', 'xin_employees.first_name', 'xin_employees.last_name'])
 			->from('ms_finance_account_transactions')->join('ms_finance_accounts', 'ms_finance_account_transactions.account_id=ms_finance_accounts.account_id', 'LEFT')

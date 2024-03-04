@@ -524,7 +524,7 @@ class Purchasing extends MY_Controller
 		$id = $this->input->post('_token');
 		$date = $this->input->post('date');
 		$payment_ref = $this->input->post('payment_ref');
-		$source_payment_account = $this->input->post('source_payment_account'); // vendor id
+		$source_payment_account = $this->input->post('account_id'); // account_id
 
 		// get user id
 		$user_id = $this->session->userdata('username')['user_id'];
@@ -547,7 +547,7 @@ class Purchasing extends MY_Controller
 		// $this->load->library('upload', $config);
 
 		// $upload
-		// $this->upload->do_upload('attachment');
+		$this->upload->do_upload('attachment');
 
 		//get_pi
 		// $res = $this->Purchase_model->read_pi_by_pi_number($id);
@@ -566,7 +566,7 @@ class Purchasing extends MY_Controller
 				'join_id' => $id, // pi_number
 				'ref' => $payment_ref,
 				'note' => "Kredit Pembayaran Transfer",
-				'attachment' => $newName,
+				'attachment' => $filename,
 			],
 			[
 				'account_id' => 7, // account_id inventory

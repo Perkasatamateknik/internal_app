@@ -136,4 +136,5 @@
 	<link rel="stylesheet" href="<?= base_url("skin/vendor/fileUpload/fileUpload.css"); ?>">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Material+Icons+Outlined">
 
+	<link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet">
 </head>

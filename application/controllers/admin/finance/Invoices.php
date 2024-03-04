@@ -1,7 +1,7 @@
 <?php
 if (!defined('BASEPATH')) exit('No direct script access allowed');
 
-class Expense extends MY_Controller
+class Invoices extends MY_Controller
 {
 
 	public $redirect_uri;
@@ -23,19 +23,14 @@ class Expense extends MY_Controller
 		//load the models
 		$this->load->model('Xin_model');
 		$this->load->model('Tax_model');
-		$this->load->model('Finance_model');
-		$this->load->model('Expense_ms_model');
-		$this->load->model('Invoices_model');
-		$this->load->model('Employees_model');
-		$this->load->model('Department_model');
 		$this->load->model('Project_model');
-		$this->load->model('Awards_model');
+		$this->load->model('Invoices_model');
+		$this->load->model('Invoice_items_model');
+		$this->load->model('Employees_model');
 		$this->load->model('Accounts_model');
-		$this->load->model('Training_model');
 		$this->load->model('Files_ms_model');
-		$this->load->model('Expense_items_model');
 
-		$this->redirect_uri = 'admin/finance/expense';
+		$this->redirect_uri = 'admin/finance/invoices';
 		$this->redirect_access = 'admin/';
 	}
 
@@ -45,28 +40,28 @@ class Expense extends MY_Controller
 
 		$data['title'] = $this->Xin_model->site_title();
 		$session = $this->session->userdata('username');
-		$data['breadcrumbs'] = $this->lang->line('ms_title_expense');
-		$data['path_url'] = 'finance/expense';
+		$data['breadcrumbs'] = $this->lang->line('ms_title_invoice');
+		$data['path_url'] = 'finance/invoice';
 		if (empty($session)) {
 			redirect($this->redirect_access);
 		}
 
 		if (true) {
-			$data['subview'] = $this->load->view("admin/finance/expense/index", $data, TRUE);
+			$data['subview'] = $this->load->view("admin/finance/invoices/index", $data, TRUE);
 			$this->load->view('admin/layout/layout_main', $data); //page load
 		} else {
 			redirect($this->redirect_access);
 		}
 	}
 
-	public function get_ajax_expenses()
+	public function get_ajax_invoices()
 	{
 		$data['title'] = $this->Xin_model->site_title();
 		$session = $this->session->userdata('username');
 		if (empty($session)) {
 			redirect('admin/');
 		}
-		$record = $this->Expense_ms_model->all();
+		$record = $this->Invoices_model->all();
 
 
 		// Datatables Variables
@@ -102,7 +97,7 @@ class Expense extends MY_Controller
 
 			$data[] = array(
 				$this->Xin_model->set_date_format($r->date),
-				"<a href='" . base_url('admin/finance/expense/view?id=' . $r->trans_number) . "' class='text-secondary'>" . $r->trans_number . "</a>",
+				"<a href='" . base_url('admin/finance/invoice/view?id=' . $r->trans_number) . "' class='text-secondary'>" . $r->trans_number . "</a>",
 				$r->reference ?? "--",
 				$from,
 				status_trans($r->status),
@@ -138,15 +133,16 @@ class Expense extends MY_Controller
 			redirect($this->redirect_access);
 		}
 
+		$data['accounts'] = $this->Accounts_model->get_account_by_cat(12);
 		$role_resources_ids = $this->Xin_model->user_role_resource();
 
 		if (in_array('503', $role_resources_ids)) {
-			$data['path_url'] = 'finance/expense';
-			$init = $this->Expense_ms_model->init_trans();
+			$data['path_url'] = 'finance/invoice';
+			$init = $this->Invoices_model->init_trans();
 
 			$data['record'] = $init;
-			$data['breadcrumbs'] = $this->lang->line('ms_title_expense');
-			$data['subview'] = $this->load->view("admin/finance/expense/create", $data, TRUE);
+			$data['breadcrumbs'] = $this->lang->line('ms_title_invoice');
+			$data['subview'] = $this->load->view("admin/finance/invoices/create", $data, TRUE);
 			#
 			$this->load->view('admin/layout/layout_main', $data); //page load
 		} else {
@@ -168,8 +164,8 @@ class Expense extends MY_Controller
 		$data = [
 			'account_id' => $this->input->post('account_id'),
 			'trans_number' => $this->input->post('trans_number'),
-			'beneficiary' => $this->input->post('beneficiary'),
-			'date' => $this->input->post('date'),
+			'client_id' => $this->input->post('client'),
+			'publish_date' => $this->input->post('publish_date'),
 			'reference' => $this->input->post('reference'),
 			'due_date' => $this->input->post('due_date'),
 			'term' => $this->input->post('select_due_date'),
@@ -180,8 +176,8 @@ class Expense extends MY_Controller
 		for ($i = 0; $i < count($this->input->post('row_amount')); $i++) {
 
 			$items[] = [
-				'expense_id' => $id,
-				'account_id' => $this->input->post('row_target_id')[$i],
+				'invoice_id' => $id,
+				'project_id' => $this->input->post('row_target_id')[$i],
 				'tax_id' => $this->input->post('row_tax_id')[$i],
 				'tax_rate' => $this->input->post('row_tax_rate')[$i],
 				'amount' => $this->input->post('row_amount')[$i],
@@ -224,7 +220,7 @@ class Expense extends MY_Controller
 						'file_size' => $files['size'][$key],
 						'file_type' => $files['type'][$key],
 						'file_ext' => $extension,
-						'file_access' => 4, // expense
+						'file_access' => 5, // invoice
 						'access_id' => $id
 					);
 				} else {
@@ -236,7 +232,7 @@ class Expense extends MY_Controller
 			$file_attachments = null;
 		}
 
-		$query = $this->Expense_ms_model->update_with_items_and_files($id, $data, $items, $file_attachments);
+		$query = $this->Invoices_model->update_with_items_and_files($id, $data, $items, $file_attachments);
 
 		if ($query) {
 			$Return['result'] = $this->lang->line('ms_title_success_added');
@@ -252,26 +248,53 @@ class Expense extends MY_Controller
 		$id = $this->input->get('id');
 
 		$role_resources_ids = $this->Xin_model->user_role_resource();
-		$record = $this->Expense_ms_model->get_by_number_doc($id);
+		$record = $this->Invoices_model->get_by_number_doc($id);
 
 		if (!is_null($record)) {
 			$from = $this->Accounts_model->get($record->account_id)->row();
-			$to = $this->Employees_model->read_employee_information($record->beneficiary);
+			$to = $this->Employees_model->read_employee_information($record->client_id);
 			$record->source_account = $from->account_name . " " . $from->account_code;
-			$record->beneficiary = $to[0]->first_name . " " . $to[0]->last_name;
+			$record->client = $to[0]->first_name . " " . $to[0]->last_name;
+		} else {
+			redirect('admin/finance/invoice');
+		}
 
-			// dd($record);
+		$data['title'] = $this->Xin_model->site_title();
+		$session = $this->session->userdata('username');
+		$data['breadcrumbs'] = $this->lang->line('ms_title_invoice');
+		$data['path_url'] = 'finance/invoice';
+		if (empty($session)) {
+			redirect('admin/');
+		}
 
-			// 4 => roles expense
-			$attachments = $this->Files_ms_model->get_by_access_id(4, $record->expense_id)->result();
-			$data['attachments'] = $attachments;
 
-			//add expense items model
-			$items = $this->Expense_items_model->get($record->expense_id);
+		$data['record'] = $record;
+		if (in_array('503', $role_resources_ids)) {
+			$data['subview'] = $this->load->view("admin/finance/invoices/view", $data, TRUE);
+			$this->load->view('admin/layout/layout_main', $data); //page load
+		} else {
+			redirect('admin/dashboard');
+		}
+	}
+
+
+
+
+
+
+	/* AJAX REQUEST HTML DATA */
+	public function get_view_details()
+	{
+		// is ajax 
+		if ($this->input->is_ajax_request()) {
+			$id = $this->input->get('id');
+
+			//add invoice items model
+			$items = $this->Invoice_items_model->get($id);
 			// dd($items);
 			if (!is_null($items)) {
 				foreach ($items as $item) {
-					$item->account_name = $this->Accounts_model->get($item->account_id)->row()->account_name;
+					$item->project_name = $this->Project_model->read_project_information($item->project_id)[0]->title;
 					$tax = $this->Tax_model->read_tax_information($item->tax_id); // return bool
 
 					if ($tax) {
@@ -284,26 +307,48 @@ class Expense extends MY_Controller
 				}
 			}
 
-			$data['items'] = $items;
-		} else {
-			redirect('admin/finance/expense');
+			if (count($items) > 0) {
+				$data['items'] = $items;
+
+				$view = $this->load->view("admin/finance/invoices/v_view_details", $data, TRUE);
+				$this->output($view);
+			} else {
+				$this->output(null);
+			}
 		}
+	}
 
-		$data['title'] = $this->Xin_model->site_title();
-		$session = $this->session->userdata('username');
-		$data['breadcrumbs'] = $this->lang->line('ms_title_expense');
-		$data['path_url'] = 'finance/account_expense';
-		if (empty($session)) {
-			redirect('admin/');
+	public function get_attachments()
+	{
+		// is ajax 
+		if ($this->input->is_ajax_request()) {
+			$id = $this->input->get('id');
+			// 5 => roles invoice
+			$attachments = $this->Files_ms_model->get_by_access_id(5, $id)->result();
+			if (count($attachments) > 0) {
+				$data['attachments'] = $attachments;
+				$view = $this->load->view("admin/finance/invoices/v_attachment", $data, TRUE);
+				$this->output($view);
+			} else {
+				$this->output(null);
+			}
 		}
+	}
 
-
-		$data['record'] = $record;
-		if (in_array('503', $role_resources_ids)) {
-			$data['subview'] = $this->load->view("admin/finance/expense/view", $data, TRUE);
-			$this->load->view('admin/layout/layout_main', $data); //page load
-		} else {
-			redirect('admin/dashboard');
+	public function get_log_payments()
+	{
+		// is ajax 
+		if ($this->input->is_ajax_request()) {
+			$id = $this->input->get('id');
+			// 5 => roles invoice
+			$attachments = $this->Files_ms_model->get_by_access_id(5, $id)->result();
+			if (count($attachments) > 0) {
+				$data['attachments'] = $attachments;
+				$view = $this->load->view("admin/finance/invoices/v_attachment", $data, TRUE);
+				$this->output($view);
+			} else {
+				$this->output(null);
+			}
 		}
 	}
 }

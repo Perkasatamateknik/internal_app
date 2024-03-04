@@ -15,38 +15,44 @@
 			<h4><?= $breadcrumbs; ?></h4>
 		</div>
 	</div>
-	<div class="col-md-auto">
-		<style>
-			.has-search .form-control {
-				padding-left: 2.375rem;
-			}
+	<div class="col-md-8">
+		<div class="row justify-content-end">
+			<div class="col-md-auto mx-0 px-1">
+				<style>
+					.has-search .form-control {
+						padding-left: 2.375rem;
+					}
 
-			.has-search .form-control-feedback {
-				position: absolute;
-				z-index: 2;
-				display: block;
-				width: 2.375rem;
-				height: 2.375rem;
-				line-height: 2.375rem;
-				text-align: center;
-				pointer-events: none;
-				color: #aaa;
-			}
-		</style>
-		<div class="form-group has-search">
-			<span class="fa fa-search form-control-feedback"></span>
-			<input type="text" class="form-control" placeholder="Search">
+					.has-search .form-control-feedback {
+						position: absolute;
+						z-index: 2;
+						display: block;
+						width: 2.375rem;
+						height: 2.375rem;
+						line-height: 2.375rem;
+						text-align: center;
+						pointer-events: none;
+						color: #aaa;
+					}
+				</style>
+				<div class="form-group has-search">
+					<span class="fa fa-search form-control-feedback"></span>
+					<input type="text" class="form-control" placeholder="Search">
+				</div>
+			</div>
+			<div class="col-md-auto mx-0 px-1">
+				<a href="<?= base_url('admin/finance/accounts'); ?>" target="" class="btn btn-white"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
+			</div>
+			<div class="col-md-auto mx-0 px-1">
+				<a href="#" class="btn btn-white" data-toggle="modal" data-target="#modalAdd"><i class="fas fa-exchange-alt"></i> <?= $this->lang->line('ms_title_add_trans'); ?></a>
+			</div>
+			<div class="col-md-auto mx-0 px-1">
+				<a href="#" target="" class="btn btn-white"><i class="fa fa-print" aria-hidden="true"></i> <?= $this->lang->line('ms_title_add_trans'); ?></a>
+			</div>
+			<!-- <div class="col-md-auto mx-0 px-1">
+				<a href="#" target="" class="btn btn-transparent"><i class="fa fa-cog"></i></a>
+			</div> -->
 		</div>
-	</div>
-	<div class="col-md-auto">
-		<a href="<?= base_url('admin/finance/accounts'); ?>" target="" class="btn btn-white"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
-		&nbsp;
-		<a href="#" class="btn btn-white" data-toggle="modal" data-target="#modalAdd"><i class="fas fa-exchange-alt"></i> <?= $this->lang->line('ms_title_add_trans'); ?></a>
-		&nbsp;
-		<a href="#" target="" class="btn btn-white"><i class="fa fa-print" aria-hidden="true"></i> <?= $this->lang->line('ms_title_add_trans'); ?></a>
-		&nbsp;
-		<a href="#" target="" class="btn btn-transparent"><i class="fa fa-cog"></i></a>
-		&nbsp;
 	</div>
 </div>
 <div class="row">

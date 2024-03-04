@@ -20,6 +20,7 @@ class Ajax_request extends MY_Controller
 		$this->load->model("Project_costs_model");
 		$this->load->model("Purchase_items_model");
 		$this->load->model("Accounts_model");
+		$this->load->model("Account_categories_model");
 
 		// if (!$this->input->is_ajax_request()) {
 		// 	$this->output([
@@ -136,7 +137,7 @@ class Ajax_request extends MY_Controller
 		foreach ($res as $key => $r) {
 			$data[] = array(
 				'id' => $r->account_id,
-				'text' => $r->account_code . " - " . $r->account_name
+				'text' => $r->account_code . " | " . $r->account_name
 			);
 		}
 		echo $this->output($data);
@@ -156,7 +157,7 @@ class Ajax_request extends MY_Controller
 		foreach ($res as $key => $r) {
 			$data[] = array(
 				'id' => $r->account_id,
-				'text' => $r->account_code . " - " . $r->account_name
+				'text' => $r->account_code . " | " . $r->account_name
 			);
 		}
 		echo $this->output($data);
@@ -201,6 +202,21 @@ class Ajax_request extends MY_Controller
 		echo $this->output($data);
 		exit();
 	}
+
+	// public function find_vendor()
+	// {
+	// 	$query = $this->input->get('query');
+	// 	$res = $this->Accounts_model->get($query);
+	// 	$data = [];
+	// 	foreach ($res as $key => $r) {
+	// 		$data[] = array(
+	// 			'id' => $r->vendor_id,
+	// 			'text' => $r->vendor_name,
+	// 		);
+	// 	}
+	// 	echo $this->output($data);
+	// 	exit();
+	// }
 
 	public function find_product()
 	{
@@ -301,6 +317,40 @@ class Ajax_request extends MY_Controller
 		exit();
 	}
 
+	public function find_account_tax()
+	{
+		$query = $this->input->get('query');
+		$res = $this->Accounts_model->get_tax_account($query);
+		$data = [];
+
+		foreach ($res as $key => $r) {
+
+			$data[] = array(
+				'id' => $r->account_id,
+				'text' => $r->account_code . " | " . $r->account_name
+			);
+		}
+		echo $this->output($data);
+		exit();
+	}
+
+	public function find_account_categories()
+	{
+		$query = $this->input->get('query');
+		$res = $this->Account_categories_model->all($query)->result();
+		$data = [];
+
+		foreach ($res as $key => $r) {
+
+			$data[] = array(
+				'id' => $r->category_id,
+				'text' => $r->category_name
+			);
+		}
+		echo $this->output($data);
+		exit();
+	}
+
 	public function find_tax_by_id()
 	{
 		$query = $this->input->get('query');
@@ -351,6 +401,14 @@ class Ajax_request extends MY_Controller
 	{
 		$query = $this->input->get('query');
 		$res = $this->Xin_model->find_vendor_by_id($query);
+		echo $this->output($res);
+		exit();
+	}
+
+	public function find_account_by_id()
+	{
+		$query = $this->input->get('query');
+		$res = $this->Accounts_model->get_account_by_id($query);
 		echo $this->output($res);
 		exit();
 	}

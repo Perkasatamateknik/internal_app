@@ -1,6 +1,7 @@
 $(document).ready(function () {
 	var id = getUrlParameter("id");
-	$("#ms_table").DataTable({
+	var otable = $("#ms_table").DataTable({
+		bPaginate: false,
 		ajax: {
 			url: site_url + "finance/accounts/get_ajax_trans_account/",
 			data: {
@@ -11,5 +12,10 @@ $(document).ready(function () {
 		fnDrawCallback: function (settings) {
 			$('[data-toggle="tooltip"]').tooltip();
 		},
+	});
+
+	$("#ms_table_filter").hide();
+	$("#cari_data").keyup(function () {
+		otable.search($(this).val()).draw();
 	});
 });
