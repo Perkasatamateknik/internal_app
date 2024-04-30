@@ -16,14 +16,10 @@ class Account_spend_items_model extends CI_Model
 		return $this->db->get("ms_finance_account_spend_trans");
 	}
 
-	public function get($id = false)
+	public function get($trans_number)
 	{
-		if ($id) {
-			$this->db->where("spend_id", $id);
-		}
-
+		$this->db->where("trans_number", $trans_number);
 		$res = $this->db->get("ms_finance_account_spend_trans");
-
 
 		if ($res->num_rows() > 0) {
 			return $res->result();
@@ -32,10 +28,32 @@ class Account_spend_items_model extends CI_Model
 		}
 	}
 
-	public function get_total_amount($id)
+	public function get_by_trans_number($id)
 	{
-		return $this->db->select_sum('amount')
-			->where('spend_id', $id)
-			->get('ms_finance_account_spend_trans')->row()->amount;
+		$this->db->where("trans_number", $id);
+		$res = $this->db->get("ms_finance_account_spend_trans");
+
+		if ($res->num_rows() > 0) {
+			return $res->result();
+		} else {
+			return null;
+		}
+	}
+
+	public function get_total_amount($trans_number)
+	{
+		$res = $this->db->where('trans_number', $trans_number)
+			->get('ms_finance_account_spend_trans')->result();
+
+		$amount = 0;
+		foreach ($res as $r) {
+			if ($r->tax_withholding == 1) {
+				$amount += $r->amount - $r->tax_rate;
+			} else {
+				$amount += $r->amount + $r->tax_rate;
+			}
+		}
+
+		return $amount;
 	}
 }

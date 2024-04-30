@@ -71,7 +71,6 @@ $reports_to = get_reports_team_data($session['user_id']); ?>
 							<select class="form-control form-control-sm" name="selected" id="valueSelector">
 								<option value="category"><?php echo $this->lang->line('ms_title_categories'); ?></option>
 								<option value="sub-category"><?php echo $this->lang->line('ms_title_sub_categories'); ?></option>
-								<option value="uom"><?php echo $this->lang->line('ms_uoms'); ?></option>
 							</select>
 						</div>
 					</div>
@@ -79,7 +78,7 @@ $reports_to = get_reports_team_data($session['user_id']); ?>
 						<div class="row">
 							<div class="col-md-12">
 								<div class="container-chart">
-									<canvas id="get_purchase_selected" class="chart-body"></canvas>
+									<canvas id="get_purchase_selecteds" class="chart-body"></canvas>
 								</div>
 							</div>
 							<div class="col-md-12">
@@ -281,7 +280,7 @@ $reports_to = get_reports_team_data($session['user_id']); ?>
 								<div class="row">
 									<div class="col-md-4">
 										<div class="container-chart">
-											<canvas id="get_purchase_by_vendors" class="chart-body"></canvas>
+											<canvas id="get_purchase_by_vendorss" class="chart-body"></canvas>
 										</div>
 									</div>
 									<div class="col-md-8">

@@ -28,7 +28,7 @@
 		</div>
 	</div> -->
 	<div class="col-md-6">
-		<a href="<?= base_url('admin/finance/expense/create'); ?>" target="" class="btn btn-white float-right"><i class="fa fa-plus" aria-hidden="true"></i> <?= $this->lang->line('ms_title_add_expense'); ?></a>
+		<a href="<?= base_url('admin/finance/expenses/create'); ?>" target="" class="btn btn-white float-right"><i class="fa fa-plus" aria-hidden="true"></i> <?= $this->lang->line('ms_title_add_expense'); ?></a>
 	</div>
 </div>
 <div class="row">
@@ -151,7 +151,7 @@
 		</style>
 		<div class="form-group has-search">
 			<span class="fa fa-search form-control-feedback"></span>
-			<input type="text" class="form-control" placeholder="Search">
+			<input type="text" class="form-control" placeholder="Search" id="cari_data">
 		</div>
 	</div>
 	<div class="col-md-auto mx-0 px-1">

@@ -11,7 +11,7 @@ class MY_Controller extends CI_Controller
 	public $Vendor_model;
 	public $Product_model;
 	public $Project_model;
-	public $Department_model;
+	// public $Department_model;
 	public $Company_model;
 	// public $Purchase_items_model;
 	// public $Purchase_model;
@@ -22,6 +22,7 @@ class MY_Controller extends CI_Controller
 	public $load;
 
 	public $role;
+	public $roles;
 
 
 
@@ -42,8 +43,6 @@ class MY_Controller extends CI_Controller
 		$this->load->model("Xin_model");
 		$this->load->model("Company_model");
 		$this->load->model("Purchase_model");
-
-		// $this->role = $this->Xin_model->user_role_resource();
 
 		// set default timezone  
 		$system = $this->read_setting_info(1);
@@ -106,30 +105,34 @@ class MY_Controller extends CI_Controller
 
 	public function upload_attachment($path, $prefix, $allowed_type = 'gif|jpg|png|pdf', $max_size = '10240')
 	{
-		// doing attachment
-		$config['allowed_types'] = $allowed_type;
-		$config['max_size'] = $max_size; // max_size in kb
-		$config['upload_path'] = $path;
+		if (isset($_FILES['attachment']['name'])) {
+			// doing attachment
+			$config['allowed_types'] = $allowed_type;
+			$config['max_size'] = $max_size; // max_size in kb
+			$config['upload_path'] = $path;
 
-		$filename = $_FILES['attachment']['name'];
+			$filename = $_FILES['attachment']['name'];
 
-		// get extention
-		$extension = pathinfo($filename, PATHINFO_EXTENSION);
+			// get extention
+			$extension = pathinfo($filename, PATHINFO_EXTENSION);
 
-		$newName = date('YmdHis') . "_" . str_replace(" ", "_", $prefix) . '.' . $extension;
+			$newName = date('YmdHis') . "_" . str_replace(" ", "_", $prefix) . '.' . $extension;
 
-		$config['filename'] = $newName;
+			$config['filename'] = $newName;
 
-		//load upload class library
-		$this->load->library('upload', $config);
+			//load upload class library
+			$this->load->library('upload', $config);
 
-		// $upload
-		$up = $this->upload->do_upload('attachment');
+			// $upload
+			$up = $this->upload->do_upload('attachment');
 
-		if ($up) {
-			return $newName;
+			if ($up) {
+				return $newName;
+			} else {
+				return null;
+			}
 		} else {
-			return false;
+			return null;
 		}
 	}
 }

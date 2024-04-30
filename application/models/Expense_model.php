@@ -29,7 +29,7 @@ class Expense_model extends CI_Model
 	// get all expenses
 	public function all()
 	{
-		return $this->db->get("ms_finance_expenses");
+		return $this->db->order_by('trans_number', 'asc')->where('status !=', "draft")->get("ms_finance_expenses");
 	}
 
 	public function get($id)
@@ -63,10 +63,11 @@ class Expense_model extends CI_Model
 		}
 	}
 
-	public function update_with_items_and_files($id, $data, array $items = null, array $files = null)
+	public function update_with_items_and_files($id, $data, $trans, array $items = null, array $files = null)
 	{
 		$this->db->trans_start();
-		$this->db->update('ms_finance_expenses', $data, ['expense_id' => $id]);
+		$this->db->update('ms_finance_expenses', $data, ['trans_number' => $id]);
+		$this->db->insert_batch('ms_finance_account_transactions', $trans);
 
 		if (!is_null($items)) {
 			if (count($items) > 0) {
@@ -94,5 +95,72 @@ class Expense_model extends CI_Model
 		} else {
 			return null;
 		}
+	}
+
+	public function get_payment($account_trans_cat_id, $join_id)
+	{
+		// cari data tagihan di akun 34 trade payable
+		$record_tagihan = $this->db->where('account_id', 34)->where('account_trans_cat_id', $account_trans_cat_id)->where('join_id', $join_id)->where('type', 'credit')->get('ms_finance_account_transactions')->row();
+		$records_pembayaran = $this->db->select_sum('amount')->where('account_id', 34)->where('account_trans_cat_id', $account_trans_cat_id)->where('join_id', $join_id)->where('type', 'debit')->get('ms_finance_account_transactions')->row()->amount;
+
+		// log pembayaran dari akun
+		$log = $this->db->select(['ms_finance_account_transactions.*', 'COALESCE(ms_finance_accounts.account_code, "--") as account_code', 'COALESCE(ms_finance_accounts.account_name, "--") as account_name', 'ms_finance_accounts.category_id', 'xin_employees.first_name', 'xin_employees.last_name'])
+			->from('ms_finance_account_transactions')->join('ms_finance_accounts', 'ms_finance_account_transactions.account_id=ms_finance_accounts.account_id', 'LEFT')
+			->join('xin_employees', 'ms_finance_account_transactions.user_id=xin_employees.user_id', 'inner')
+			// ->where_not_in('ms_finance_accounts.account_id', [34])
+			->where('ms_finance_accounts.category_id', 1)
+			->where('ms_finance_account_transactions.account_trans_cat_id', $account_trans_cat_id)->where('ms_finance_account_transactions.join_id', $join_id)->where('ms_finance_account_transactions.type', 'credit')->get()->result();
+
+		$data = new stdClass;
+		$data->sisa_tagihan = $record_tagihan->amount - $records_pembayaran;
+		$data->jumlah_tagihan = $record_tagihan->amount;
+		$data->jumlah_dibayar = $records_pembayaran;
+		$data->log_payments = $log;
+
+		return $data;
+	}
+
+	public function get_sisa_tagihan($join_id)
+	{
+		// cari data tagihan di akun 34 trade payable
+		$record_tagihan = $this->db->where('account_id', 34)->where('account_trans_cat_id', 4)->where('join_id', $join_id)->where('type', 'credit')->get('ms_finance_account_transactions')->row();
+		$records_pembayaran = $this->db->select_sum('amount')->where('account_id', 34)->where('account_trans_cat_id', 4)->where('join_id', $join_id)->where('type', 'debit')->get('ms_finance_account_transactions')->row()->amount;
+
+		$records_pembayaran ?? 0;
+		return $record_tagihan->amount - $records_pembayaran;
+	}
+
+	public function update_by_trans_number($id, $data)
+	{
+		$this->db->where('trans_number', $id);
+		return $this->db->update('ms_finance_expenses', $data);
+	}
+
+	public function delete($id, $del_file = false)
+	{
+		// delete items
+		$this->db->trans_start();
+		$this->db->where('trans_number', $id)->delete('ms_finance_expenses');
+		$this->db->where('trans_number', $id)->delete('ms_finance_expense_trans');
+		$this->db->where('join_id', $id)->delete('ms_finance_account_transactions');
+
+		if ($del_file) {
+
+			// get data
+			$files = $this->db->where('access_id', $id)->get('ms_files')->result();
+
+			foreach ($files as $file) {
+				// check file in dir
+				if (file_exists("./uploads/finance/expense/" . $file->file_name)) {
+					// Delete the file
+					unlink("./uploads/finance/expense/" . $file->file_name);
+				}
+			}
+
+			$this->db->where('access_id', $id)->delete('ms_files');
+		}
+
+		$this->db->trans_complete();
+		return $this->db->trans_status();
 	}
 }

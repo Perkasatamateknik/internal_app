@@ -10,7 +10,9 @@ class Account_transactions_model extends CI_Model
 		$this->load->database();
 	}
 
-	public function store_peyment($data){
-		return 
+	public function store_peyment($data)
+	{
 	}
+
+	
 }

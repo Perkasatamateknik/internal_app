@@ -13,7 +13,6 @@ class Accounts extends MY_Controller
 		exit(json_encode($Return));
 	}
 
-	private $roles;
 	public function __construct()
 	{
 		parent::__construct();
@@ -32,7 +31,6 @@ class Accounts extends MY_Controller
 		$this->load->model('Employees_model');
 		$this->load->model('Finance_trans');
 		$this->load->model('Vendor_model');
-		$this->roles = $this->Xin_model->user_role_resource();
 	}
 
 	function checkPattern($input, $prefix)
@@ -82,7 +80,7 @@ class Accounts extends MY_Controller
 
 	public function index()
 	{
-
+		$role_resources_ids = $this->Xin_model->user_role_resource();
 		$data['title'] = $this->Xin_model->site_title();
 		$session = $this->session->userdata('username');
 		$data['breadcrumbs'] = $this->lang->line('ms_title_accounts');
@@ -93,7 +91,7 @@ class Accounts extends MY_Controller
 			redirect('admin/');
 		}
 
-		if (in_array('503', $this->roles)) {
+		if (in_array('503', $role_resources_ids)) {
 			$data['subview'] = $this->load->view("admin/finance/accounts/index", $data, TRUE);
 			$this->load->view('admin/layout/layout_main', $data); //page load
 		} else {
@@ -105,8 +103,10 @@ class Accounts extends MY_Controller
 	public function get_modal_add_account()
 	{
 		// $data['categories'] = $this->Account_categories_model->all()->result();
-		$this->load->view("admin/finance/accounts/parts/add_account");
+		return $this->load->view("admin/finance/accounts/parts/add_account");
 	}
+
+
 
 	public function insert()
 	{
@@ -126,6 +126,7 @@ class Accounts extends MY_Controller
 			'account_code' => $this->input->post('account_code'),
 			'account_number' => $this->input->post('account_number'),
 			'account_origin' => $this->input->post('account_origin'),
+			'expenditure_type' => $this->input->post('expenditure_type') ?? null,
 		);
 
 		if ($Return['error'] != '') {
@@ -199,6 +200,7 @@ class Accounts extends MY_Controller
 		} else {
 			$Return['error'] = $this->lang->line('xin_error_msg');
 		}
+
 		$this->output($Return);
 		exit;
 		// }
@@ -261,6 +263,7 @@ class Accounts extends MY_Controller
 
 	public function view($id)
 	{
+		$role_resources_ids = $this->Xin_model->user_role_resource();
 		$data['title'] = $this->Xin_model->site_title();
 		$session = $this->session->userdata('username');
 		$data['breadcrumbs'] = $this->lang->line('ms_title_accounts');
@@ -270,7 +273,7 @@ class Accounts extends MY_Controller
 			redirect('admin/');
 		}
 
-		if (in_array('503', $this->roles)) {
+		if (in_array('503', $role_resources_ids)) {
 			$data['subview'] = $this->load->view("admin/finance/accounts/view", $data, TRUE);
 			$this->load->view('admin/layout/layout_main', $data); //page load
 		} else {
@@ -280,6 +283,7 @@ class Accounts extends MY_Controller
 
 	public function close_book()
 	{
+		$role_resources_ids = $this->Xin_model->user_role_resource();
 		$data['title'] = $this->Xin_models->site_title();
 		$session = $this->session->userdata('username');
 		$data['breadcrumbs'] = $this->lang->line('ms_title_accounts');
@@ -288,7 +292,7 @@ class Accounts extends MY_Controller
 			redirect('admin/');
 		}
 
-		if (in_array('503', $this->roles)) {
+		if (in_array('503', $role_resources_ids)) {
 			$data['subview'] = $this->load->view("admin/finance/accounts/close_book", $data, TRUE);
 			$this->load->view('admin/layout/layout_main', $data); //page load
 		} else {
@@ -493,64 +497,101 @@ class Accounts extends MY_Controller
 			$to = $this->Accounts_model->get($this->input->post('target_account'))->row();
 
 			$desc = "Transfer from " . $from->account_name . " to " . $to->account_name;
-
+			$amount = $this->input->post('amount');
+			$trans_number = $this->input->post('trans_number');
 			$data = [
 				'user_id' => $user_id,
 				'account_id' => $this->input->post('account_id'),
 				'terget_account_id' => $this->input->post('target_account'),
-				'trans_number' => $this->input->post('trans_number'),
+				'trans_number' => $trans_number,
 				'date' => $this->input->post('date'),
-				'amount' => $this->input->post('amount'),
+				'amount' => $amount,
 				'ref' => $this->input->post('ref'),
 				'note' => $this->input->post('note'),
 				'status' => $action == 'save' ? 'draft' : 'unpaid',
 				'description' => $desc,
 			];
 
-			// upload file
-			$config['allowed_types'] = 'gif|jpg|png|pdf';
-			$config['max_size'] = '1024'; // max_size in kb
+			$trans = [];
 
-			$config['upload_path'] = './uploads/finance/account_transfer/';
+			// masukan semua total ke akun Trade Payble = credit
+			$trans[] =
+				[
+					'account_id' => 34, // account_id trade payable
+					'user_id' => $user_id,
+					'account_trans_cat_id' => 1, // transfer
+					'amount' => $amount,
+					'date' => date('Y-m-d'),
+					'type' => 'credit',
+					'join_id' => $trans_number, // po number
+					'ref' => "Dokumen Transfer",
+					'note' => "Begin Dokumen Transfer",
+					'attachment' => null,
+				];
 
-			//load upload class library
-			$this->load->library('upload', $config);
+			// masukan semua total ke akun penerima
+			$trans[] =
+				[
+					'account_id' => $this->input->post('target_account'),
+					'user_id' => $user_id,
+					'account_trans_cat_id' => 1, // transfer
+					'amount' => $amount,
+					'date' => date('Y-m-d'),
+					'type' => 'debit',
+					'join_id' => $trans_number, // po number
+					'ref' => "Dokumen Transfer",
+					'note' => "Transfer Dokumen Transfer",
+					'attachment' => null,
+				];
 
-			$files = $_FILES['attachments'];
-			$file_data = array();
+			if (!empty($_FILES["attachments"]["name"][0])) {
+				// upload file
+				$config['allowed_types'] = 'gif|jpg|png|pdf';
+				$config['max_size'] = '10240'; // max_size in kb
 
-			foreach ($files['name'] as $key => $filename) {
+				$config['upload_path'] = './uploads/finance/account_transfer/';
 
-				// Get the file extension
-				$extension = pathinfo($filename, PATHINFO_EXTENSION);
-				$newName = $this->input->post('trans_number') . "_" . time() . "_" . $key . "." . $extension;
+				//load upload class library
+				$this->load->library('upload', $config);
 
-				$_FILES['attachments'] = array(
-					'name'     => $newName,
-					'type'     => $files['type'][$key],
-					'tmp_name' => $files['tmp_name'][$key],
-					'error'    => $files['error'][$key],
-					'size'     => $files['size'][$key]
-				);
+				$files = $_FILES['attachments'];
+				$file_attachments = array();
 
-				if ($this->upload->do_upload('attachments')) {
-					$this->upload->data();
+				foreach ($files['name'] as $key => $filename) {
 
-					$file_data[] = array(
-						'file_name' => $newName,
-						'file_size' => $files['size'][$key],
-						'file_type' => $files['type'][$key],
-						'file_ext' => $extension,
-						'file_access' => 1, // transfer
-						'access_id' => $id
+					// Get the file extension
+					$extension = pathinfo($filename, PATHINFO_EXTENSION);
+					$newName = $this->input->post('trans_number') . "_" . time() . "_" . $key . "." . $extension;
+
+					$_FILES['attachments'] = array(
+						'name'     => $newName,
+						'type'     => $files['type'][$key],
+						'tmp_name' => $files['tmp_name'][$key],
+						'error'    => $files['error'][$key],
+						'size'     => $files['size'][$key]
 					);
-				} else {
-					$Return['error'] = $this->upload->display_errors();
-					$this->output($Return);
+
+					if ($this->upload->do_upload('attachments')) {
+						$this->upload->data();
+
+						$file_attachments[] = array(
+							'file_name' => $newName,
+							'file_size' => $files['size'][$key],
+							'file_type' => $files['type'][$key],
+							'file_ext' => $extension,
+							'file_access' => 2, // spend
+							'access_id' => $id
+						);
+					} else {
+						$Return['error'] = $this->upload->display_errors();
+						$this->output($Return);
+					}
 				}
+			} else {
+				$file_attachments = null;
 			}
 
-			$query = $this->Account_transfer_model->update_with_files($id, $data, $file_data);
+			$query = $this->Account_transfer_model->update_with_files($id, $data, $file_attachments, $trans);
 
 			if ($query) {
 				$Return['result'] = $this->lang->line('ms_title_success_added');
@@ -565,10 +606,11 @@ class Accounts extends MY_Controller
 		} else if ($type == 'spend') {
 			#
 			#
+			$trans_number = $this->input->post('trans_number');
 			$data = [
 				'user_id' => $user_id,
 				'account_id' => $this->input->post('account_id'),
-				'trans_number' => $this->input->post('trans_number'),
+				'trans_number' => $trans_number,
 				'beneficiary' => $this->input->post('beneficiary'),
 				'date' => $this->input->post('date'),
 				'reference' => $this->input->post('reference'),
@@ -578,19 +620,144 @@ class Accounts extends MY_Controller
 
 			// dd($data);
 			$items = [];
+			$tax_withholding = 0;
+			$tax_no_withholding = 0;
+			$amount_item = 0;
+
+			$trans = [];
+
 			for ($i = 0; $i < count($this->input->post('row_amount')); $i++) {
 
+				$amount_item += $this->input->post('row_amount')[$i];
+				$tax_id = $this->input->post('row_tax_id')[$i];
+
+				$check_tax = $this->Tax_model->read_tax_information($tax_id);
+				if ($check_tax) {
+					if ($check_tax[0]->is_withholding == 1) {
+						$tax_withholding += $this->input->post('row_tax_rate')[$i] ?? 0;
+						$set_withholding = 1;
+
+						// $trans[] = [
+						// 	'account_id' => $this->input->post('row_target_id')[$i], // account_id
+						// 	'user_id' => $user_id,
+						// 	'account_trans_cat_id' => 2,
+						// 	'amount' => $this->input->post('row_amount')[$i] - $this->input->post('row_tax_rate')[$i],
+						// 	'date' => date('Y-m-d'),
+						// 	'type' => 'debit',
+						// 	'join_id' => $trans_number,
+						// 	'ref' => "Dokumen Spend",
+						// 	'note' => "Payment Dokumen Spend",
+						// 	'attachment' => null,
+						// ];
+					} else {
+						$tax_no_withholding += $this->input->post('row_tax_rate')[$i] ?? 0;
+						$set_withholding = 0;
+
+						// $trans[] = [
+						// 	'account_id' => $this->input->post('row_target_id')[$i], // account_id
+						// 	'user_id' => $user_id,
+						// 	'account_trans_cat_id' => 2,
+						// 	'amount' => $this->input->post('row_amount')[$i] + $this->input->post('row_tax_rate')[$i],
+						// 	'date' => date('Y-m-d'),
+						// 	'type' => 'debit',
+						// 	'join_id' => $trans_number,
+						// 	'ref' => "Dokumen Spend",
+						// 	'note' => "Payment Dokumen Spend",
+						// 	'attachment' => null,
+						// ];
+					}
+					// } else {
+					// 	$trans[] =
+					// 		[
+					// 			'account_id' => $this->input->post('row_target_id')[$i],
+					// 			'user_id' => $user_id,
+					// 			'account_trans_cat_id' => 3, // = receive
+					// 			'amount' => $this->input->post('row_amount')[$i],
+					// 			'date' => date('Y-m-d'),
+					// 			'type' => 'credit',
+					// 			'join_id' => $trans_number,
+					// 			'ref' => "Dokumen Spend",
+					// 			'note' => "Dokumen Spend",
+					// 			'attachment' => null,
+					// 		];
+				}
+
+				$trans[] =
+					[
+						'account_id' => $this->input->post('row_target_id')[$i],
+						'user_id' => $user_id,
+						'account_trans_cat_id' => 2, // = receive
+						'amount' => $this->input->post('row_amount')[$i],
+						'date' => date('Y-m-d'),
+						'type' => 'debit',
+						'join_id' => $trans_number,
+						'ref' => "Dokumen Spend",
+						'note' => "Dokumen Spend",
+						'attachment' => null,
+					];
+
 				$items[] = [
-					'spend_id' => $id,
-					'account_id' => $this->input->post('row_target_id')[$i],
-					'tax_id' => $this->input->post('row_tax_id')[$i],
-					'tax_rate' => $this->input->post('row_tax_rate')[$i],
-					'amount' => $this->input->post('row_amount')[$i],
-					'note' => $this->input->post('row_note')[$i] ?? null,
+					'trans_number' 		=> $trans_number,
+					'account_id' 		=> $this->input->post('row_target_id')[$i],
+					'tax_id' 			=> $tax_id,
+					'tax_rate' 			=> $this->input->post('row_tax_rate')[$i],
+					'tax_type' 			=> $this->input->post('data_tax_type')[$i],
+					'tax_withholding' 	=> $set_withholding ?? 0,
+					'amount' 			=> $this->input->post('row_amount')[$i],
+					'note' 				=> $this->input->post('row_note')[$i] ?? null,
 				];
 			}
 
-			if (isset($_FILES["attachments"])) {
+			// masukan semua total ke akun Trade Payble = credit
+			$trans[] =
+				[
+					'account_id' => 34, // account_id trade payable
+					'user_id' => $user_id,
+					'account_trans_cat_id' => 2, // = spend
+					'amount' => $amount_item + ($tax_no_withholding - $tax_withholding),
+					'date' => date('Y-m-d'),
+					'type' => 'credit',
+					'join_id' => $trans_number, // po number
+					'ref' => "Dokumen Spend",
+					'note' => "Begin Dokumen Spend",
+					'attachment' => null,
+				];
+
+			if ($tax_withholding > 0) {
+				// masukan tax total ke akun VAT out - withholding
+				$trans[] =
+					[
+						'account_id' => 45,
+						'user_id' => $user_id,
+						'account_trans_cat_id' => 2, // = Dokumen Spend
+						'amount' => $tax_withholding,
+						'date' => date('Y-m-d'),
+						'type' => 'credit',
+						'join_id' => $trans_number, // pi number
+						'ref' => "Tax from",
+						'note' => "Tax from Dokumen Spend",
+						'attachment' => null,
+					];
+			}
+
+			if ($tax_no_withholding > 0) {
+				// masukan tax total ke akun VAT In - no withholding
+				$trans[] =
+					[
+						'account_id' => 14,
+						'user_id' => $user_id,
+						'account_trans_cat_id' => 2, // = Dokumen Spend
+						'amount' => $tax_no_withholding,
+						'date' => date('Y-m-d'),
+						'type' => 'debit',
+						'join_id' => $trans_number, // pi number
+						'ref' => "Tax from",
+						'note' => "Tax from Dokumen Spend",
+						'attachment' => null,
+					];
+			}
+
+			if (!empty($_FILES["attachments"]["name"][0])) {
 				// upload file
 				$config['allowed_types'] = 'gif|jpg|png|pdf';
 				$config['max_size'] = '10240'; // max_size in kb
@@ -637,7 +804,7 @@ class Accounts extends MY_Controller
 				$file_attachments = null;
 			}
 
-			$query = $this->Account_spend_model->update_with_items_and_files($id, $data, $items, $file_attachments);
+			$query = $this->Account_spend_model->update_with_items_and_files($id, $data, $trans, $items, $file_attachments);
 
 			if ($query) {
 				$Return['result'] = $this->lang->line('ms_title_success_added');
@@ -650,30 +817,159 @@ class Accounts extends MY_Controller
 			#
 			#
 			#
+
+			$trans_number = $this->input->post('trans_number');
 			$data = [
 				'user_id' => $user_id,
 				'vendor_id' => $this->input->post('vendor_id'),
 				'receive_account_id' => $this->input->post('receive_account_id'),
-				'trans_number' => $this->input->post('trans_number'),
+				'trans_number' => $trans_number,
 				'date' => $this->input->post('date'),
 				'reference' => $this->input->post('reference'),
-				'status' => $action == 'save' ? 'draft' : 'unpaid',
+				'status' => $action == 'save' ? 'draft' : 'paid',
 			];
+
+			$tax_withholding = 0;
+			$tax_no_withholding = 0;
+			$amount_item = 0;
+			$trans = [];
+
 
 			$items = [];
 			for ($i = 0; $i < count($this->input->post('row_amount')); $i++) {
 
+				$amount_item += $this->input->post('row_amount')[$i];
+				$tax_id = $this->input->post('row_tax_id')[$i];
+
+				$check_tax = $this->Tax_model->read_tax_information($tax_id);
+				if ($check_tax) {
+					if ($check_tax[0]->is_withholding == 1) {
+						$tax_withholding += $this->input->post('row_tax_rate')[$i] ?? 0;
+						$set_withholding = 1;
+
+						// $trans[] =
+						// 	[
+						// 		'account_id' => $this->input->post('row_target_id')[$i],
+						// 		'user_id' => $user_id,
+						// 		'account_trans_cat_id' => 3, // = receive
+						// 		'amount' => $this->input->post('row_amount')[$i] - $tax_withholding,
+						// 		'date' => date('Y-m-d'),
+						// 		'type' => 'credit',
+						// 		'join_id' => $trans_number,
+						// 		'ref' => "Dokumen Receive",
+						// 		'note' => "Dokumen Receive",
+						// 		'attachment' => null,
+						// 	];
+					} else {
+						$tax_no_withholding += $this->input->post('row_tax_rate')[$i] ?? 0;
+						$set_withholding = 0;
+
+						// $trans[] =
+						// 	[
+						// 		'account_id' => $this->input->post('row_target_id')[$i],
+						// 		'user_id' => $user_id,
+						// 		'account_trans_cat_id' => 3, // = receive
+						// 		'amount' => $this->input->post('row_amount')[$i] + $tax_no_withholding,
+						// 		'date' => date('Y-m-d'),
+						// 		'type' => 'credit',
+						// 		'join_id' => $trans_number,
+						// 		'ref' => "Dokumen Receive",
+						// 		'note' => "Dokumen Receive",
+						// 		'attachment' => null,
+						// 	];
+					}
+					// } else {
+					// 	$trans[] =
+					// 		[
+					// 			'account_id' => $this->input->post('row_target_id')[$i],
+					// 			'user_id' => $user_id,
+					// 			'account_trans_cat_id' => 3, // = receive
+					// 			'amount' => $this->input->post('row_amount')[$i] + $tax_no_withholding,
+					// 			'date' => date('Y-m-d'),
+					// 			'type' => 'credit',
+					// 			'join_id' => $trans_number,
+					// 			'ref' => "Dokumen Receive",
+					// 			'note' => "Dokumen Receive",
+					// 			'attachment' => null,
+					// 		];
+				}
+
+				$trans[] =
+					[
+						'account_id' => $this->input->post('row_target_id')[$i],
+						'user_id' => $user_id,
+						'account_trans_cat_id' => 3, // = receive
+						'amount' => $this->input->post('row_amount')[$i],
+						'date' => date('Y-m-d'),
+						'type' => 'credit',
+						'join_id' => $trans_number,
+						'ref' => "Dokumen Receive",
+						'note' => "Dokumen Receive",
+						'attachment' => null,
+					];
+
 				$items[] = [
-					'receive_id' => $id,
+					'trans_number' => $this->input->post('trans_number'),
 					'account_id' => $this->input->post('row_target_id')[$i],
 					'tax_id' => $this->input->post('row_tax_id')[$i],
 					'tax_rate' => $this->input->post('row_tax_rate')[$i],
+					'tax_type' => $this->input->post('data_tax_type')[$i],
+					'tax_withholding' => $set_withholding ?? 0,
 					'amount' => $this->input->post('row_amount')[$i],
 					'note' => $this->input->post('row_note')[$i] ?? null,
 				];
 			}
 
-			if (isset($_FILES["attachments"])) {
+			// masukan ke akun penerima
+			$trans[] =
+				[
+					'account_id' => $this->input->post('receive_account_id'),
+					'user_id' => $user_id,
+					'account_trans_cat_id' => 3, // = receive
+					'amount' => $amount_item + ($tax_no_withholding - $tax_withholding),
+					'date' => date('Y-m-d'),
+					'type' => 'debit',
+					'join_id' => $trans_number,
+					'ref' => "Dokumen Receive",
+					'note' => "Dokumen Receive",
+					'attachment' => null,
+				];
+
+			if ($tax_withholding > 0) {
+				// masukan tax total ke akun VAT out - withholding
+				$trans[] =
+					[
+						'account_id' => 45,
+						'user_id' => $user_id,
+						'account_trans_cat_id' => 3, // = Dokumen Receive
+						'amount' => $tax_withholding,
+						'date' => date('Y-m-d'),
+						'type' => 'credit',
+						'join_id' => $trans_number,
+						'ref' => "Tax from",
+						'note' => "Tax from Dokumen Receive",
+						'attachment' => null,
+					];
+			}
+
+			if ($tax_no_withholding > 0) {
+				// masukan tax total ke akun VAT In - no withholding
+				$trans[] =
+					[
+						'account_id' => 14,
+						'user_id' => $user_id,
+						'account_trans_cat_id' => 3, // = Dokumen Receive
+						'amount' => $tax_no_withholding,
+						'date' => date('Y-m-d'),
+						'type' => 'debit',
+						'join_id' => $trans_number,
+						'ref' => "Tax from",
+						'note' => "Tax from Dokumen Receive",
+						'attachment' => null,
+					];
+			}
+
+			if (!empty($_FILES["attachments"]["name"][0])) {
 				// upload file
 				$config['allowed_types'] = 'gif|jpg|png|pdf';
 				$config['max_size'] = '10240'; // max_size in kb
@@ -721,7 +1017,7 @@ class Accounts extends MY_Controller
 			}
 
 
-			$query = $this->Account_receive_model->update_with_items_and_files($id, $data, $items, $file_attachments);
+			$query = $this->Account_receive_model->update_with_items_and_files($id, $data, $trans, $items, $file_attachments);
 
 			if ($query) {
 				$Return['result'] = $this->lang->line('ms_title_success_added');
@@ -876,19 +1172,14 @@ class Accounts extends MY_Controller
 			$to = $this->Employees_model->read_employee_information($record->beneficiary);
 			$record->source_account = $from->account_name;
 			$record->beneficiary = $to[0]->first_name ?? "" . " " . $to[0]->last_name ?? "";
+			$data['payment'] = $this->Account_spend_model->get_payment(2, $record->trans_number);
 
 			//
 			$attachments = $this->Files_ms_model->get_by_access_id(2, $record->spend_id)->result();
 			$data['attachments'] = $attachments;
 
 			//
-			$items = $this->Account_spend_items_model->get($record->spend_id);
-
-			//
-			$get_trans_payment = $this->Account_spend_model->get_trans_payment($record->spend_id);
-			$record->jumlah_dibayar = $get_trans_payment->jumlah_dibayar;
-			$record->sisa_tagihan = $get_trans_payment->sisa_tagihan;
-			$record->log_payments = $get_trans_payment->log_payments;
+			$items = $this->Account_spend_items_model->get($record->trans_number);
 
 			// dd($record);
 			if (!is_null($items)) {
@@ -898,7 +1189,6 @@ class Accounts extends MY_Controller
 
 					if ($tax) {
 						$item->tax_name = $tax[0]->name;
-						$item->tax_rate = $tax[0]->rate;
 					} else {
 						$item->tax_name = "--";
 						$item->tax_rate = 0;
@@ -940,17 +1230,13 @@ class Accounts extends MY_Controller
 		if (!is_null($record)) {
 			$from = $this->Accounts_model->get($record->account_id)->row();
 			$to = $this->Accounts_model->get($record->terget_account_id)->row();
-			// dd($record);
+
 			$record->source_account = $from->account_name;
 			$record->target_account = $to->account_name;
 
-			//
 			$make_payment = $this->Account_trans_model->open_payment($id, $record->account_id);
 
-			$get_trans_payment = $this->Account_transfer_model->get_trans_payment($record->transfer_id);
-			$record->jumlah_dibayar = $get_trans_payment->jumlah_dibayar;
-			$record->sisa_tagihan = $get_trans_payment->sisa_tagihan;
-			$record->log_payments = $get_trans_payment->log_payments;
+			$data['payment'] = $this->Account_transfer_model->get_payment(1, $record->trans_number);
 
 			$attachments = $this->Files_ms_model->get_by_access_id(1, $record->transfer_id)->result();
 			$data['attachments'] = $attachments;
@@ -999,17 +1285,8 @@ class Accounts extends MY_Controller
 
 			$attachments = $this->Files_ms_model->get_by_access_id(3, $record->receive_id)->result();
 			$data['attachments'] = $attachments;
-
-
 			//
-			$get_trans_payment = $this->Account_receive_model->get_trans_payment($record->receive_id);
-			$record->jumlah_dibayar = $get_trans_payment->jumlah_dibayar;
-			$record->sisa_tagihan = $get_trans_payment->sisa_tagihan;
-			$record->log_payments = $get_trans_payment->log_payments;
-
-			// dd($get_trans_payment);
-			//
-			$items = $this->Account_receive_items_model->get($record->receive_id);
+			$items = $this->Account_receive_items_model->get($record->trans_number);
 			if (!is_null($items)) {
 				foreach ($items as $item) {
 					$item->account_name = $this->Accounts_model->get($item->account_id)->row()->account_name;
@@ -1017,7 +1294,7 @@ class Accounts extends MY_Controller
 
 					if ($tax) {
 						$item->tax_name = $tax[0]->name;
-						$item->tax_rate = $tax[0]->rate;
+						$item->tax_rate = $item->tax_rate;
 					} else {
 						$item->tax_name = "--";
 						$item->tax_rate = 0;
@@ -1117,12 +1394,19 @@ class Accounts extends MY_Controller
 				$debit = $r->amount;
 				$balance += $r->amount;
 			}
+
+			if ($r->account_trans_cat_id == 6) {
+				$ref = $r->ref . ' <a href="' . site_url() . 'admin/purchase_orders/view/' . $r->join_id . '/">' . $r->join_id . '</a>';
+			} else {
+				$ref = $r->ref;
+			}
+
 			$data[] = array(
 				"<a href='" . base_url('admin/finance/accounts/transaction_view?id=' . $r->account_trans_id . '&back_id=' . $r->account_id) . "' class='text-dark'><i class='fa fa-eye fa-fw' aria-hidden='true'></i></a>",
 				$this->Xin_model->set_date_format($r->created_at),
 				$r->trans_type,
 				$r->note,
-				$r->ref,
+				$ref,
 				$this->Xin_model->currency_sign($debit),
 				$this->Xin_model->currency_sign($credit),
 				$this->Xin_model->currency_sign($balance),
@@ -1209,12 +1493,7 @@ class Accounts extends MY_Controller
 			}
 
 
-			$amount = $this->Account_spend_items_model->get_total_amount($r->spend_id);
-			if (!is_null($amount)) {
-				$amount = $amount;
-			} else {
-				$amount = 0;
-			}
+			$amount = $this->Account_spend_items_model->get_total_amount($r->trans_number);
 
 			$data[] = array(
 				"<a href='" . base_url('admin/finance/accounts/spend_view?id=' . $r->trans_number) . "' class='text-secondary'><i class='fa fa-eye fa-fw' aria-hidden='true'></i></a>",
@@ -1228,7 +1507,7 @@ class Accounts extends MY_Controller
 		}
 
 		foreach ($record_3->result() as $i => $r) {
-			$receives = $this->Account_receive_items_model->get_account_from_receive($r->receive_id);
+			$receives = $this->Account_receive_items_model->get_account_from_receive($r->trans_number);
 			$result_receives = "";
 			foreach ($receives as $key => $rev) {
 				$titik_kome = $key == array_key_last($receives) ? ". " : ", ";
@@ -1243,7 +1522,7 @@ class Accounts extends MY_Controller
 			}
 
 
-			$amount = $this->Account_receive_items_model->get_total_amount($r->receive_id);
+			$amount = $this->Account_receive_items_model->get_total_amount($r->trans_number);
 			if (!is_null($amount)) {
 				$amount = $amount;
 			} else {
@@ -1484,12 +1763,12 @@ class Accounts extends MY_Controller
 			}
 
 			if (in_array('99999', $role_resources_ids)) { //edit
-				$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" href="' . site_url() . 'admin/purchase_requisitions/edit/' . $r->transfer_id  . '"><span class="fas fa-pencil-alt"></span></a></span>';
+				$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" href="' . site_url() . 'admin/finance/accounts/transfer_edit?id=' . $r->trans_number  . '"><span class="fas fa-pencil-alt"></span></a></span>';
 			} else {
 				$edit = '';
 			}
 			if (in_array('99999', $role_resources_ids)) { // delete
-				$delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '"><button type="button" class="btn icon-btn btn-sm btn-outline-danger waves-effect waves-light delete" data-toggle="modal" data-target=".delete-modal" data-record-id="' . $r->transfer_id . '" data-token_type="purchase_requisitions"><span class="fas fa-trash-restore"></span></button></span>';
+				$delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '"><button type="button" class="btn icon-btn btn-sm btn-outline-danger waves-effect waves-light delete" data-toggle="modal" data-target=".delete-modal" data-record-id="' . $r->trans_number . '" data-token_type="account_transfer"><span class="fas fa-trash-restore"></span></button></span>';
 			} else {
 				$delete = '';
 			}
@@ -1558,7 +1837,7 @@ class Accounts extends MY_Controller
 				$to = "--";
 			}
 
-			$amount = $this->Account_spend_items_model->get_total_amount($r->spend_id);
+			$amount = $this->Account_spend_items_model->get_total_amount($r->trans_number);
 			if (!is_null($amount)) {
 				$amount = $amount;
 			} else {
@@ -1571,8 +1850,10 @@ class Accounts extends MY_Controller
 			} else {
 				$edit = '';
 			}
+
+			// jgn pake petik
 			if (in_array('99999', $role_resources_ids)) { // delete
-				$delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '"><button type="button" class="btn icon-btn btn-sm btn-outline-danger waves-effect waves-light delete" data-toggle="modal" data-target=".delete-modal" data-record-id="' . $r->spend_id . '" data-token_type="purchase_requisitions"><span class="fas fa-trash-restore"></span></button></span>';
+				$delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '"><button type="button" class="btn icon-btn btn-sm btn-outline-danger waves-effect waves-light delete" data-toggle="modal" data-target=".delete-modal" data-record-id="' . $r->trans_number . '" data-token_type="account_spend"><span class="fas fa-trash-restore"></span></button></span>';
 			} else {
 				$delete = '';
 			}
@@ -1620,7 +1901,7 @@ class Accounts extends MY_Controller
 		$data = array();
 		$balance = 0;
 		foreach ($record->result() as $i => $r) {
-			$receives = $this->Account_receive_items_model->get_account_from_receive($r->receive_id);
+			$receives = $this->Account_receive_items_model->get_account_from_receive($r->trans_number);
 			$result_receives = "";
 			foreach ($receives as $key => $rev) {
 				$titik_kome = $key == array_key_last($receives) ? ". " : ",<br>";
@@ -1635,7 +1916,7 @@ class Accounts extends MY_Controller
 			}
 
 
-			$amount = $this->Account_receive_items_model->get_total_amount($r->receive_id);
+			$amount = $this->Account_receive_items_model->get_total_amount($r->trans_number);
 			if (!is_null($amount)) {
 				$amount = $amount;
 			} else {
@@ -1648,7 +1929,7 @@ class Accounts extends MY_Controller
 				$edit = '';
 			}
 			if (in_array('99999', $role_resources_ids)) { // delete
-				$delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '"><button type="button" class="btn icon-btn btn-sm btn-outline-danger waves-effect waves-light delete" data-toggle="modal" data-target=".delete-modal" data-record-id="' . $r->receive_id . '" data-token_type="purchase_requisitions"><span class="fas fa-trash-restore"></span></button></span>';
+				$delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '"><button type="button" class="btn icon-btn btn-sm btn-outline-danger waves-effect waves-light delete" data-toggle="modal" data-target=".delete-modal" data-record-id="' . $r->trans_number . '" data-token_type="account_receive"><span class="fas fa-trash-restore"></span></button></span>';
 			} else {
 				$delete = '';
 			}
@@ -2087,21 +2368,14 @@ class Accounts extends MY_Controller
 
 		// transfer_id
 		$id = $this->input->post('_token');
+		$trans_number = $this->input->post('trans_number');
 		$date = $this->input->post('date');
 		$payment_ref = $this->input->post('payment_ref');
 		$source_payment_account = $this->input->post('source_payment_account');
 		$amount_paid = $this->input->post('amount_paid');
 
-
-		// get record
-		$record = $this->Account_transfer_model->get($id);
-
-		$Return['record'] = $record;
 		// get user id
 		$user_id = $this->session->userdata('username')['user_id'];
-
-		// penerima debit
-		$target_account_id = $this->input->post('target_account_id');
 
 		$file_attachment = $this->upload_attachment('./uploads/finance/account_trans/', 'TRANS');
 
@@ -2113,19 +2387,19 @@ class Accounts extends MY_Controller
 				'amount' => $amount_paid,
 				'date' => $date,
 				'type' => 'credit',
-				'join_id' => $id, // transfer_id
+				'join_id' => $trans_number,
 				'ref' => $payment_ref,
 				'note' => "Kredit Pembayaran Transfer",
 				'attachment' => $file_attachment,
 			],
 			[
-				'account_id' => $target_account_id,
+				'account_id' => 34, // update debit akun trade payable
 				'user_id' => $user_id,
 				'account_trans_cat_id' => 1,
 				'amount' => $amount_paid,
 				'date' => $date,
 				'type' => 'debit',
-				'join_id' => $id, // transfer_id
+				'join_id' => $trans_number,
 				'ref' => $payment_ref,
 				'note' => "Debit Pembayaran Transfer",
 				'attachment' => $file_attachment,
@@ -2135,7 +2409,7 @@ class Accounts extends MY_Controller
 		$insert = $this->Account_trans_model->insert_payment($data);
 
 		// check if all tagihan is paid or partially paid
-		$check_tagihan = $this->Account_transfer_model->get_trans_payment($id);
+		$check_tagihan = $this->Account_transfer_model->get_payment(1, $trans_number);
 
 		if ($check_tagihan->sisa_tagihan == 0) {
 			// update status transfer
@@ -2145,7 +2419,6 @@ class Accounts extends MY_Controller
 			$this->Account_transfer_model->update($id, ['status' => 'partially_paid']);
 		}
 
-		$Return['trans_number'] = $record->trans_number;
 		if ($insert) {
 			$Return['result'] = $this->lang->line('ms_title_payment_success');
 			$this->output($Return);
@@ -2157,108 +2430,67 @@ class Accounts extends MY_Controller
 
 	public function store_spend_payment()
 	{
+		/* Define return | here result is used to return user data and error for error message */
+		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
+		$Return['csrf_hash'] = $this->security->get_csrf_hash();
+
+
 		// spend id
-		$id = $this->input->post('_token');
+		$trans_number = $this->input->post('_token');
 		$date = $this->input->post('date');
 		$payment_ref = $this->input->post('payment_ref');
-		$source_payment_account = $this->input->post('source_payment_account'); // vendor id
+		$source_payment_account = $this->input->post('source_payment_account');
 
 		// get user id
 		$user_id = $this->session->userdata('username')['user_id'];
 
-		// doing attachment
-		$config['allowed_types'] = 'gif|jpg|png|pdf';
-		$config['max_size'] = '10240'; // max_size in kb
-		$config['upload_path'] = './uploads/finance/account_trans/';
-
-		$filename = $_FILES['attachment']['name'];
-
-		// get extention
-		$extension = pathinfo($filename, PATHINFO_EXTENSION);
-
-		$newName = date('YmdHis') . '_TRANS.' . $extension;
-
-		$config['filename'] = $newName;
-
-		//load upload class library
-		$this->load->library('upload', $config);
-
-		// $upload
-		$this->upload->do_upload('attachment');
-
-		// ambil tagihan
-		$list_tagihan = $this->Account_spend_model->get_list_tagihan($id);
+		$file_attachment = $this->upload_attachment('./uploads/finance/account_trans/', 'TRANS');
 
 		// uang yang dibayar
 		$amount_paid = $this->input->post('amount_paid');
+		$trans = [];
 
-		$data = [];
-		foreach ($list_tagihan as $bill) {
+		// kredit pengirim
+		$trans[] =
+			[
+				'account_id' => $source_payment_account,
+				'user_id' => $user_id,
+				'account_trans_cat_id' => 2, // 2= spend
+				'amount' => $amount_paid,
+				'date' => $date,
+				'type' => 'credit',
+				'join_id' => $trans_number,
+				'ref' => $payment_ref,
+				'note' => "Kredit Pembayaran Receive",
+				'attachment' => $file_attachment,
+			];
 
-			// filter jika sudah paid
-			if (true) {
-				// $totalBillAmount = floatval($bill->tax_rate) + floatval($bill->amount) - floatval($bill->bill_paid);
-				$totalBillAmount = $bill->bill_remaining;
+		// debit trade payable
+		$trans[] =
+			[
+				'account_id' => 34,
+				'user_id' => $user_id,
+				'account_trans_cat_id' => 2, // 2= spend
+				'amount' => $amount_paid,
+				'date' => $date,
+				'type' => 'debit',
+				'join_id' => $trans_number,
+				'ref' => $payment_ref,
+				'note' => "Kredit Pembayaran Spend",
+				'attachment' => $file_attachment,
+			];
 
-				if ($amount_paid >= $totalBillAmount) {
-					// Jika pembayaran cukup untuk tagihan saat ini
-					$make_bill = $totalBillAmount;
-					$amount_paid -= $totalBillAmount;
-				} else {
-					// Jika pembayaran tidak cukup untuk tagihan saat ini
-					$make_bill = $amount_paid;
-					$amount_paid = 0;
-				}
+		$insert = $this->Account_trans_model->insert_payment($trans);
 
-				//
-				$data[] =
-					[
-						'account_id' => $source_payment_account,
-						'user_id' => $user_id,
-						'account_trans_cat_id' => 2,
-						'amount' => $make_bill,
-						'date' => $date,
-						'type' => 'credit',
-						'join_id' => $id, // spend_id
-						'ref_trans_id' => $bill->spend_trans_id,
-						'ref' => $payment_ref,
-						'note' => "Kredit Pembayaran Spend",
-						'attachment' => $newName,
-					];
-				$data[] = [
-					'account_id' => $bill->account_id,
-					'user_id' => $user_id,
-					'account_trans_cat_id' => 2,
-					'amount' => $make_bill,
-					'date' => $date,
-					'type' => 'debit',
-					'join_id' => $id, // Spend_id
-					'ref_trans_id' => $bill->spend_trans_id,
-					'ref' => $payment_ref,
-					'note' => "Debit Pembayaran Spend",
-					'attachment' => $newName,
-				];
+		// // check if all tagihan is paid or partially paid
+		$check_tagihan = $this->Account_spend_model->get_payment(2, $trans_number);
 
-				if ($amount_paid <= 0) {
-					// Jika pembayaran sudah habis
-					break;
-				}
-			}
-		}
-
-		// dd($data);
-		$insert = $this->Account_trans_model->insert_payment($data);
-
-		// check if all tagihan is paid or partially paid
-		$check_tagihan = $this->Account_spend_model->get_trans_payment($id);
-
-		// dd($check_tagihan);
 		if ($check_tagihan->sisa_tagihan == 0) {
 			// update status spend
-			$this->Account_spend_model->update($id, ['status' => 'paid']);
+			$this->Account_spend_model->update_by_trans_number($trans_number, ['status' => 'paid']);
 		} else {
 			// update status spend
-			$this->Account_spend_model->update($id, ['status' => 'partially_paid']);
+			$this->Account_spend_model->update_by_trans_number($trans_number, ['status' => 'partially_paid']);
 		}
 
 		if ($insert) {
@@ -2270,120 +2502,120 @@ class Accounts extends MY_Controller
 		}
 	}
 
-	public function store_receive_payment()
-	{
-		// receive id
-		$id = $this->input->post('_token');
-		$date = $this->input->post('date');
-		$payment_ref = $this->input->post('payment_ref');
-		$receive_account_id = $this->input->post('receive_account_id');
+	// public function store_receive_payment()
+	// {
+	// 	// receive id
+	// 	$id = $this->input->post('_token');
+	// 	$date = $this->input->post('date');
+	// 	$payment_ref = $this->input->post('payment_ref');
+	// 	$receive_account_id = $this->input->post('receive_account_id');
 
-		// get user id
-		$user_id = $this->session->userdata('username')['user_id'];
+	// 	// get user id
+	// 	$user_id = $this->session->userdata('username')['user_id'];
 
-		// doing attachment
-		$config['allowed_types'] = 'gif|jpg|png|pdf';
-		$config['max_size'] = '10240'; // max_size in kb
-		$config['upload_path'] = './uploads/finance/account_trans/';
+	// 	// doing attachment
+	// 	$config['allowed_types'] = 'gif|jpg|png|pdf';
+	// 	$config['max_size'] = '10240'; // max_size in kb
+	// 	$config['upload_path'] = './uploads/finance/account_trans/';
 
-		$filename = $_FILES['attachment']['name'];
+	// 	$filename = $_FILES['attachment']['name'];
 
-		// get extention
-		$extension = pathinfo($filename, PATHINFO_EXTENSION);
+	// 	// get extention
+	// 	$extension = pathinfo($filename, PATHINFO_EXTENSION);
 
-		$newName = date('YmdHis') . '_TRANS.' . $extension;
+	// 	$newName = date('YmdHis') . '_TRANS.' . $extension;
 
-		$config['filename'] = $newName;
+	// 	$config['filename'] = $newName;
 
-		//load upload class library
-		$this->load->library('upload', $config);
+	// 	//load upload class library
+	// 	$this->load->library('upload', $config);
 
-		// $upload
-		$this->upload->do_upload('attachment');
+	// 	// $upload
+	// 	$this->upload->do_upload('attachment');
 
-		// ambil tagihan
-		$list_tagihan = $this->Account_receive_model->get_list_tagihan($id);
+	// 	// ambil tagihan
+	// 	$list_tagihan = $this->Account_receive_model->get_list_tagihan($id);
 
-		// dd($list_tagihan);
-		// uang yang dibayar
-		$amount_paid = $this->input->post('amount_paid');
+	// 	// dd($list_tagihan);
+	// 	// uang yang dibayar
+	// 	$amount_paid = $this->input->post('amount_paid');
 
-		$data = [];
-		foreach ($list_tagihan as $bill) {
+	// 	$data = [];
+	// 	foreach ($list_tagihan as $bill) {
 
-			// filter jika sudah paid
-			if (true) {
-				// $totalBillAmount = floatval($bill->tax_rate) + floatval($bill->amount) - floatval($bill->bill_paid);
-				$totalBillAmount = $bill->bill_remaining;
+	// 		// filter jika sudah paid
+	// 		if (true) {
+	// 			// $totalBillAmount = floatval($bill->tax_rate) + floatval($bill->amount) - floatval($bill->bill_paid);
+	// 			$totalBillAmount = $bill->bill_remaining;
 
-				if ($amount_paid >= $totalBillAmount) {
-					// Jika pembayaran cukup untuk tagihan saat ini
-					$make_bill = $totalBillAmount;
-					$amount_paid -= $totalBillAmount;
-				} else {
-					// Jika pembayaran tidak cukup untuk tagihan saat ini
-					$make_bill = $amount_paid;
-					$amount_paid = 0;
-				}
+	// 			if ($amount_paid >= $totalBillAmount) {
+	// 				// Jika pembayaran cukup untuk tagihan saat ini
+	// 				$make_bill = $totalBillAmount;
+	// 				$amount_paid -= $totalBillAmount;
+	// 			} else {
+	// 				// Jika pembayaran tidak cukup untuk tagihan saat ini
+	// 				$make_bill = $amount_paid;
+	// 				$amount_paid = 0;
+	// 			}
 
-				//
-				$data[] =
-					[
-						'account_id' => $bill->account_id,
-						'user_id' => $user_id,
-						'account_trans_cat_id' => 3, //receive
-						'amount' => $make_bill,
-						'date' => $date,
-						'type' => 'credit',
-						'join_id' => $id, // receive_id
-						'ref_trans_id' => $bill->receive_trans_id,
-						'ref' => $payment_ref,
-						'note' => "Kredit Pembayaran receive",
-						'attachment' => $newName,
-					];
-				$data[] = [
-					'account_id' => $receive_account_id,
-					'user_id' => $user_id,
-					'account_trans_cat_id' => 3, // receive
-					'amount' => $make_bill,
-					'date' => $date,
-					'type' => 'debit',
-					'join_id' => $id, // receive_id
-					'ref_trans_id' => $bill->receive_trans_id,
-					'ref' => $payment_ref,
-					'note' => "Debit Pembayaran receive",
-					'attachment' => $newName,
-				];
+	// 			//
+	// 			$data[] =
+	// 				[
+	// 					'account_id' => $bill->account_id,
+	// 					'user_id' => $user_id,
+	// 					'account_trans_cat_id' => 3, //receive
+	// 					'amount' => $make_bill,
+	// 					'date' => $date,
+	// 					'type' => 'credit',
+	// 					'join_id' => $id, // receive_id
+	// 					'ref_trans_id' => $bill->receive_trans_id,
+	// 					'ref' => $payment_ref,
+	// 					'note' => "Kredit Pembayaran receive",
+	// 					'attachment' => $newName,
+	// 				];
+	// 			$data[] = [
+	// 				'account_id' => $receive_account_id,
+	// 				'user_id' => $user_id,
+	// 				'account_trans_cat_id' => 3, // receive
+	// 				'amount' => $make_bill,
+	// 				'date' => $date,
+	// 				'type' => 'debit',
+	// 				'join_id' => $id, // receive_id
+	// 				'ref_trans_id' => $bill->receive_trans_id,
+	// 				'ref' => $payment_ref,
+	// 				'note' => "Debit Pembayaran receive",
+	// 				'attachment' => $newName,
+	// 			];
 
-				if ($amount_paid <= 0) {
-					// Jika pembayaran sudah habis
-					break;
-				}
-			}
-		}
+	// 			if ($amount_paid <= 0) {
+	// 				// Jika pembayaran sudah habis
+	// 				break;
+	// 			}
+	// 		}
+	// 	}
 
-		// dd($data);
-		$insert = $this->Account_trans_model->insert_payment($data);
+	// 	// dd($data);
+	// 	$insert = $this->Account_trans_model->insert_payment($data);
 
-		// check if all tagihan is paid or partially paid
-		$check_tagihan = $this->Account_receive_model->get_trans_payment($id);
+	// 	// check if all tagihan is paid or partially paid
+	// 	$check_tagihan = $this->Account_receive_model->get_trans_payment($id);
 
-		if ($check_tagihan->sisa_tagihan == 0) {
-			// update status receive
-			$this->Account_receive_model->update($id, ['status' => 'paid']);
-		} else {
-			// update status receive
-			$this->Account_receive_model->update($id, ['status' => 'partially_paid']);
-		}
+	// 	if ($check_tagihan->sisa_tagihan == 0) {
+	// 		// update status receive
+	// 		$this->Account_receive_model->update($id, ['status' => 'paid']);
+	// 	} else {
+	// 		// update status receive
+	// 		$this->Account_receive_model->update($id, ['status' => 'partially_paid']);
+	// 	}
 
-		if ($insert) {
-			$Return['result'] = $this->lang->line('ms_title_payment_success');
-			$this->output($Return);
-		} else {
-			$Return['error'] = $this->lang->line('ms_title_peyment_error');
-			$this->output($Return);
-		}
-	}
+	// 	if ($insert) {
+	// 		$Return['result'] = $this->lang->line('ms_title_payment_success');
+	// 		$this->output($Return);
+	// 	} else {
+	// 		$Return['error'] = $this->lang->line('ms_title_peyment_error');
+	// 		$this->output($Return);
+	// 	}
+	// }
 
 	public function get_list_tagihan($id)
 	{
@@ -2473,27 +2705,6 @@ class Accounts extends MY_Controller
 				'attachment' => $newName,
 			]
 		];
-
-
-		// dd($data);
-		// $debit = [];
-		// if (is_array($target_account_id)) {
-		// 	foreach ($target_account_id as $key => $val) {
-		// 		$debit[] = [
-		// 			'account_id' => $source_payment_account,
-		// 			'account_trans_cat_id' => 1,
-		// 			'amount' => $amount_paid,
-		// 			'date' => $date,
-		// 			'type' => 'debit',
-		// 			'join_id' => $id, // transfer_id
-		// 			'ref' => $payment_ref,
-		// 			'note' => "--",
-		// 			'attachment' => $attachment,
-		// 		];
-		// 	}
-		// }
-
-
 
 		$insert = $this->Account_trans_model->insert_payment($data);
 		if ($insert) {
@@ -2640,9 +2851,82 @@ class Accounts extends MY_Controller
 		} else if ($type == 'spend') {
 			$this->store_spend_payment();
 		} else if ($type == 'receive') {
-			$this->store_receive_payment();
+			// $this->store_receive_payment();
 		} else {
 			$this->output(['error' => 'Tipe tidak ditemukan']);
+		}
+	}
+
+
+	public function delete_transfer()
+	{
+		$role_resources_ids = $this->Xin_model->user_role_resource();
+
+		/* Define return | here result is used to return user data and error for error message */
+		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
+		$Return['csrf_hash'] = $this->security->get_csrf_hash();
+
+		// if (in_array(505, $role_resources_ids)) {
+		if (true) {
+			$id = $this->input->post('_token');
+
+			$del_attachment = $this->input->post('del_attachment') ?? false; // bool
+
+			$result = $this->Account_transfer_model->delete($id, $del_attachment);
+			if ($result) {
+				$Return['result'] = $this->lang->line('ms_success_pr_deleted');
+			} else {
+				$Return['error'] = $this->lang->line('xin_error_msg');
+			}
+			$this->output($Return);
+		}
+	}
+
+	public function delete_spend()
+	{
+		$role_resources_ids = $this->Xin_model->user_role_resource();
+
+		/* Define return | here result is used to return user data and error for error message */
+		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
+		$Return['csrf_hash'] = $this->security->get_csrf_hash();
+
+		// if (in_array(505, $role_resources_ids)) {
+		if (true) {
+			$id = $this->input->post('_token');
+
+			$del_attachment = $this->input->post('del_attachment') ?? false; // bool
+
+			$result = $this->Account_spend_model->delete($id, $del_attachment);
+			if ($result) {
+				$Return['result'] = $this->lang->line('ms_success_pr_deleted');
+			} else {
+				$Return['error'] = $this->lang->line('xin_error_msg');
+			}
+			$this->output($Return);
+		}
+	}
+
+	public function delete_receive()
+	{
+		$role_resources_ids = $this->Xin_model->user_role_resource();
+
+		/* Define return | here result is used to return user data and error for error message */
+		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
+		$Return['csrf_hash'] = $this->security->get_csrf_hash();
+
+		// if (in_array(505, $role_resources_ids)) {
+		if (true) {
+			$id = $this->input->post('_token');
+
+			$del_attachment = $this->input->post('del_attachment') ?? false; // bool
+
+			$result = $this->Account_receive_model->delete($id, $del_attachment);
+			if ($result) {
+				$Return['result'] = $this->lang->line('ms_success_pr_deleted');
+			} else {
+				$Return['error'] = $this->lang->line('xin_error_msg');
+			}
+			$this->output($Return);
 		}
 	}
 }

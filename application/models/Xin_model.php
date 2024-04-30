@@ -97,6 +97,7 @@ class Xin_model extends CI_Model
 	{
 		return 'btn btn-primary';
 	}
+
 	public function validate_date($dateStr, $format)
 	{
 		date_default_timezone_set('UTC');
@@ -3143,6 +3144,7 @@ class Xin_model extends CI_Model
 		$role_user = $this->read_user_role_info($user[0]->user_role_id);
 
 		$role_resources_ids = explode(',', $role_user[0]->role_resources);
+		// dd($role_resources_ids);
 		// var_dump($role_resources_ids);
 
 		return $role_resources_ids;

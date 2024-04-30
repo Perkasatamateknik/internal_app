@@ -44,7 +44,7 @@
 					<div class="col-md-6">
 						<div class="form-group">
 							<label for="date"><?= $this->lang->line('ms_title_transfer_date'); ?></label>
-							<input type="datetime-local" name="date" id="date" class="form-control">
+							<input type="date" name="date" id="date" class="form-control">
 						</div>
 					</div>
 				</div>

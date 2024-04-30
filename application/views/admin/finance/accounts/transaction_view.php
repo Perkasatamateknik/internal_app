@@ -21,24 +21,6 @@ if ($id == '' or $back_id == '') {
 					<div class="col-md-auto">
 						<a href="<?= base_url('/admin/finance/accounts/transactions?id=' . $back_id) ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
 					</div>
-					<!-- <div class="col-md-auto">
-						<div class="row">
-							<div class="col-md-auto px-0">
-								<a href="<?= base_url('/admin/finance/accounts/receive_print?id=' . $record->account_trans_id) ?>" target="_blank" class=" btn btn-primary btn-sm"><i class="fa fa-print fa-fw" aria-hidden="true"></i><?= $this->lang->line('xin_print'); ?> </a>
-							</div>
-							<div class="col-md-auto">
-								<div class="dropdown d-flex">
-									<button class="btn btn-transparent btn-sm" type="button" id="triggerId" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-										<i class="fa fa-ellipsis-v" aria-hidden="true"></i>
-									</button>
-									<div class="dropdown-menu" aria-labelledby="triggerId">
-										<a class="dropdown-item" href="#">Export PDF</a>
-										<a class="dropdown-item" href="#">Export Excell</a>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div> -->
 				</div>
 				<hr>
 				<div class="row">
@@ -85,20 +67,20 @@ if ($id == '' or $back_id == '') {
 			<div class="card">
 				<div class="card-header">
 					<strong><?php echo $this->lang->line('xin_attachment'); ?></strong><br>
-
 				</div>
 				<div class="card-body">
 					<div class="row">
 						<?php
 
 						$attachment = $record->attachment;
-
-						// $image = ['png', 'jpg', 'jpeg', 'gif'];
-						// if (!in_array($attachment, $image)) {
-						// 	$attachment = 'pdf.png';
-						// } else {
-						// 	$attachment = $attachment;
-						// }
+						$explode = explode(".", $attachment);
+						$image = ['png', 'jpg', 'jpeg', 'gif'];
+						var_dump($explode[1]);
+						if (!in_array($explode[1], $image)) {
+							$attachment = 'pdf.png';
+						} else {
+							$attachment = $attachment;
+						}
 						?>
 						<div class="col-md-2 col-sm-6 mb-sm-3">
 							<div class="card border-secondary">
@@ -110,7 +92,7 @@ if ($id == '' or $back_id == '') {
 										<small>
 
 											<?php
-											// $fileSize = filesize('./uploads/finance/account_trans/' . $attachment);
+											$fileSize = filesize('./uploads/finance/account_trans/' . $attachment);
 											$formattedSize = 78;
 											echo $formattedSize; ?></small>
 										<a href="<?= base_url('/uploads/finance/account_trans/' . $attachment) ?>" target="_blank" class="btn btn-default btn-sm float-right"><i class="fas fa-cloud-download-alt"></i></a>

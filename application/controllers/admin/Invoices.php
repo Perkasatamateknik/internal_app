@@ -266,17 +266,18 @@ class Invoices extends MY_Controller
 			}
 
 			if ($r->is_active == 1) {
-				$active = $this->lang->line('ms_title_yes');
+				$active = '<span class="badge badge-success">' . $this->lang->line('ms_title_yes') . '</span>';
 			} else {
-				$active = $this->lang->line('ms_title_no');
+				$active = '<span class="badge badge-danger">' . $this->lang->line('ms_title_no') . '</span>';
 			}
+
 			$combhr = $edit . $delete;
 			$data[] = array(
 				$combhr,
 				$r->name,
 				$r->rate,
-				$active,
 				$withholding,
+				$active,
 				$type
 			);
 		}

@@ -2,7 +2,7 @@ $(function () {
 	$('[data-plugin="select_account"]').select2({
 		ajax: {
 			delay: 250,
-			url: site_url + "ajax_request/get_accounts",
+			url: site_url + "ajax_request/get_bank_account",
 			data: function (params) {
 				var queryParameters = {
 					query: params.term,
@@ -92,7 +92,7 @@ $(function () {
 						onHidden: function () {
 							window.location.href =
 								site_url +
-								"finance/expense/view?id=" +
+								"finance/expenses/view?id=" +
 								$("input[name='trans_number']").val();
 						},
 					};
@@ -156,8 +156,9 @@ $(document).ready(function () {
 });
 
 $(document).ready(function () {
-	var id = getUrlParameter("id");
-	$("#ms_table").DataTable({
+	// On page load:
+	var otable = $("#ms_table").dataTable({
+		bDestroy: true,
 		ajax: {
 			url: site_url + "finance/expenses/get_ajax_expenses/",
 			type: "GET",
@@ -165,6 +166,46 @@ $(document).ready(function () {
 		fnDrawCallback: function (settings) {
 			$('[data-toggle="tooltip"]').tooltip();
 		},
+	});
+
+	$("#ms_table_filter").hide();
+	$("#cari_data").keyup(function () {
+		otable.search($(this).val()).draw();
+	});
+
+	$("#delete_record").submit(function (e) {
+		/*Form Submit*/
+
+		e.preventDefault();
+		var obj = $(this),
+			action = obj.attr("name");
+		$.ajax({
+			type: "POST",
+			url: e.target.action,
+			data: obj.serialize() + "&is_ajax=2&form=" + action,
+			cache: false,
+			success: function (JSON) {
+				if (JSON.error != "") {
+					toastr.error(JSON.error);
+					$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
+					Ladda.stopAll();
+				} else {
+					$(".delete-modal").modal("toggle");
+					otable.api().ajax.reload(function () {
+						toastr.success(JSON.result);
+					}, true);
+					$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
+					Ladda.stopAll();
+				}
+			},
+			error: function (xhr, status, error) {
+				toastr.error("Error: " + status + " | " + error);
+				$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
+				$(".icon-spinner3").hide();
+				$(".save").prop("disabled", false);
+				Ladda.stopAll();
+			},
+		});
 	});
 });
 
@@ -195,11 +236,11 @@ function addRow() {
 	// Create a new row element with a unique id attribute
 	var newRow = `<tr class="item-row" id="item-row-${rowCount}" data-id="${rowCount}">
 		<td>
-			<select class="form-control row_target_id" data-plugin="select_target_account" name="row_target_id[]" id="row_target_id_${rowCount}"value="0" data-placeholder="Select Account" required>
+			<select class="form-control row_target_id" data-plugin="select_target_account" name="row_target_id[]" id="row_target_id_${rowCount}" value="0" data-placeholder="Select Account" required>
 			</select>
 		</td>
 		<td>
-			<input type="text" name="row_note" id="row_note" class="form-control">
+			<input type="text" name="row_note[]" id="row_note" class="form-control row_note">
 		</td>
 		<td>
 			<select class="form-control row_tax_id" id="row_tax_id_${rowCount}" data-plugin="select_tax" name="row_tax_id[]" onchange="select_tax(this)">
@@ -207,7 +248,7 @@ function addRow() {
 			</select>
 			<input type="hidden" class="row_tax_rate" name="row_tax_rate[]" id="row_tax_rate_${rowCount}" value="0">
 			<input type="hidden" class="data_tax_rate" value="0">
-			<input type="hidden" class="data_tax_type" value="fixed"><br>
+			<input type="hidden" class="data_tax_type" value="fixed" name="data_tax_type[]"><br>
 			<strong class="row_tax_rate_show currency" style="font-size:10px"></strong>
 		</td>
 
@@ -226,7 +267,7 @@ function addRow() {
 	$('[data-plugin="select_target_account"]').select2({
 		ajax: {
 			delay: 250,
-			url: site_url + "ajax_request/get_bank_account",
+			url: site_url + "ajax_request/get_expenses_account",
 			data: function (params) {
 				var queryParameters = {
 					query: params.term,
@@ -312,7 +353,7 @@ $(document).on("click", ".remove-item", function () {
 });
 
 // Fungsi edit otomatic kaluasi saat load
-addRow();
+// addRow();
 
 function select_tax(x) {
 	var selectedRow = $("#" + x.id).closest("tr");
@@ -384,3 +425,260 @@ function update_row_amount(id) {
 	row.find(".row_tax_rate").val(row_tax_rate);
 	row.find(".row_tax_rate_show").text(formatCurrency(row_tax_rate));
 }
+
+$(document).ready(function () {
+	$("#payment_form").submit(function (e) {
+		e.preventDefault();
+		var obj = $(this),
+			action = obj.attr("name");
+		var formData = new FormData(obj[0]);
+		formData.append("form", action);
+		jQuery(".save").prop("disabled", true);
+		$(".icon-spinner3").show();
+
+		$.ajax({
+			type: "POST",
+			enctype: "multipart/form-data",
+			url: e.target.action,
+			data: formData,
+			cache: false,
+			processData: false, // Important for FormData
+			contentType: false, // Important for FormData
+			success: function (JSON) {
+				// jika ada error
+				if (JSON.error != "") {
+					toastr.error(JSON.error);
+					$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
+					$(".save").prop("disabled", false);
+					$(".icon-spinner3").hide();
+					Ladda.stopAll();
+				} else {
+					toastr.options = {
+						timeOut: 500,
+						onHidden: function () {
+							window.location.reload();
+						},
+					};
+					toastr.success(JSON.result);
+
+					$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
+					$(".icon-spinner3").hide();
+					$(".save").prop("disabled", false);
+					Ladda.stopAll();
+				}
+			},
+			error: function (xhr, status, error) {
+				toastr.error("Error: " + status + " | " + error);
+				$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
+				$(".icon-spinner3").hide();
+				$(".save").prop("disabled", false);
+				Ladda.stopAll();
+			},
+		});
+	});
+});
+
+// delete expense all
+$(document).on("click", ".delete", function () {
+	$("input[name=_token]").val($(this).data("record-id"));
+	$("#data-message").addClass("pt-3 font-weight-bold");
+
+	let del_file = $(this).data("record-id");
+	// let del_file =
+	// 	$(this).data("record-id") +
+	// 	`<br><br>
+	// 	<div class="alert alert-primary" role="alert">
+	// 		<div class="form-check">
+	// 			<label class="form-check-label">
+	// 				<input type="checkbox" class="form-check-input" name="delete_file" value="1">
+	// 				Hapus File
+	// 			</label>
+	// 		</div>
+	// 	</div>`;
+	$("#data-message").html(del_file);
+
+	$("#delete_record").attr("action", site_url + "finance/expenses/delete/");
+});
+
+// edit data
+$(window).on("load", function () {
+	let type = $("input[name='expense']").val() ?? "";
+	if (type == "UPDATE") {
+		let token = $("input[name='_token']").val();
+		$.ajax({
+			type: "GET",
+			url: site_url + "/finance/expenses/get_ajax_items_expense",
+			data: "_token=" + token,
+			dataType: "JSON",
+			success: function (response) {
+				console.table(response.items);
+				if (response) {
+					$.each(response.items, function (key, value) {
+						addRow();
+						var row = $("#item-row-" + key).closest("tr");
+						var selectedOptionId = value.account_id;
+						var selectedOptionText =
+							value.account_code + " | " + value.account_name;
+
+						var option = new Option(
+							selectedOptionText,
+							selectedOptionId,
+							true,
+							true
+						);
+						$("#row_target_id_" + key)
+							.append(option)
+							.trigger("change");
+						// row.find(".row_target_id").val(value.item_name);
+
+						if (value.tax_name != null) {
+							$("#row_tax_id_" + key).append(
+								new Option(value.tax_name, value.tax_id, true, true)
+							);
+							// row.find(".row_target_id").val(value.item_name);
+						}
+						row.find(".row_note").val(value.note);
+						row.find(".row_amount").val(value.amount);
+						row.find(".row_amount_show").text(formatCurrency(value.amount));
+
+						// set tombol delete to ajax
+						row.find(".remove-item").attr("data-record-id", value.trans_number); // set id trans_number
+						row.find(".remove-item").attr("data-toggle", "modal"); // set button remove to ajax delete item
+						row.find(".remove-item").attr("data-target", ".delete-modal");
+						row.find(".remove-item").addClass("remove_ajax");
+						row.find(".remove_ajax").removeClass("remove-item");
+
+						row.find(".fa").removeClass("fa-minus"); // remove class btn danger
+						row.find(".fa").addClass("fa-trash"); // remove class btn danger
+
+						row.find(".row_type").val("UPDATE"); // set the type of item (UPDATE)
+					});
+
+					// // set another
+					// $("#ref_delivery_fee").val(response.data.ref_delivery_fee);
+					// $("#amount").val(response.data.amount);
+					// $("#amount_show").text(formatCurrency(response.data.amount));
+					// update_total();
+				}
+			},
+		});
+	} else {
+		addRow();
+	}
+});
+
+// function select_tax(x) {
+// 	var selectedRow = $("#" + x.id).closest("tr");
+// 	var query = x.value;
+// 	var rowId = selectedRow.attr("data-id");
+// 	$.get({
+// 		url: site_url + "ajax_request/find_tax_by_id",
+// 		data: { query: query },
+// 		success: function (result) {
+// 			data_tax_rate = result.rate;
+// 			data_tax_type = result.type;
+
+// 			// var row_amount = parseFloat(selectedRow.find(".row_amount").val());
+// 			var discount = parseFloat(selectedRow.find(".row_discount_rate").val());
+// 			var item_qty = parseFloat(selectedRow.find(".row_qty").val());
+// 			var item_price = parseFloat(selectedRow.find(".row_item_price").val());
+
+// 			// // tipe 0 adalah flat
+// 			var proses_1 = item_price * item_qty;
+// 			var proses_2 = proses_1 - discount;
+
+// 			if (data_tax_type == "fixed") {
+// 				var tax = parseFloat(data_tax_rate);
+// 			} else {
+// 				var tax = (data_tax_rate / 100) * proses_2; // get nilai tax
+// 			}
+
+// 			selectedRow.find(".data_tax_rate").val(data_tax_rate);
+// 			selectedRow.find(".data_tax_type").val(data_tax_type);
+
+// 			selectedRow.find(".row_tax_rate").val(tax);
+// 			selectedRow.find(".row_tax_rate_show").text(formatCurrency(tax));
+
+// 			//update
+// 			update_row_amount(rowId);
+// 			update_total();
+// 		},
+// 	});
+// }
+
+// function select_tax(x) {
+// 	var selectedRow = $("#" + x.id).closest("tr");
+// 	var query = x.value;
+// 	var rowId = selectedRow.attr("data-id");
+// 	$.get({
+// 		url: site_url + "ajax_request/find_tax_by_id",
+// 		data: { query: query },
+// 		success: function (result) {
+// 			data_tax_rate = result.rate;
+// 			data_tax_type = result.type;
+
+// 			// var row_amount = parseFloat(selectedRow.find(".row_amount").val());
+// 			var discount = parseFloat(selectedRow.find(".row_discount_rate").val());
+// 			var item_qty = parseFloat(selectedRow.find(".row_qty").val());
+// 			var item_price = parseFloat(selectedRow.find(".row_item_price").val());
+
+// 			// // tipe 0 adalah flat
+// 			var proses_1 = item_price * item_qty;
+// 			var proses_2 = proses_1 - discount;
+
+// 			if (data_tax_type == "fixed") {
+// 				var tax = parseFloat(data_tax_rate);
+// 			} else {
+// 				var tax = (data_tax_rate / 100) * proses_2; // get nilai tax
+// 			}
+
+// 			selectedRow.find(".data_tax_rate").val(data_tax_rate);
+// 			selectedRow.find(".data_tax_type").val(data_tax_type);
+
+// 			selectedRow.find(".row_tax_rate").val(tax);
+// 			selectedRow.find(".row_tax_rate_show").text(formatCurrency(tax));
+
+// 			//update
+// 			update_row_amount(rowId);
+// 			update_total();
+// 		},
+// 	});
+// }
+
+// remove item
+$(document).on("click", ".remove-item", function () {
+	if ($(this).data("ajax")) {
+		var conf = confirm("Are you sure you want to delete this item?");
+		if (conf == true) {
+			var id = $(this).data("id");
+			var row = $(this).closest("tr");
+			$.ajax({
+				url: site_url + "ajax_request/delete_item_po",
+				type: "POST",
+				data: {
+					csrf_hrsale: $('input[name="csrf_hrsale"]').val(),
+					id: id,
+				},
+				success: function (JSON) {
+					row.fadeOut(300, function () {
+						$(this).remove();
+						update_total();
+					});
+					toastr.success(JSON.result);
+					$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
+				},
+				error: function (jqXHR, textStatus, errorThrown) {
+					toastr.error("Error: " + textStatus + " | " + error);
+					$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
+				},
+			});
+		}
+	} else {
+		$(this)
+			.closest(".item-row")
+			.fadeOut(300, function () {
+				$(this).remove();
+				update_total();
+			});
+	}
+});

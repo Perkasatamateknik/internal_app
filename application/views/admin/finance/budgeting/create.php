@@ -1,37 +1,37 @@
 <div class="row">
-    <div class="col-md-6">
-        <div class="form-group">
-            <h4><?= $breadcrumbs; ?></h4>
-        </div>
-    </div>
+	<div class="col-md-6">
+		<div class="form-group">
+			<h4><?= $breadcrumbs; ?></h4>
+		</div>
+	</div>
 </div>
 
-<div class="row">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label for=""><?= $this->lang->line('ms_year'); ?></label>
-                            <select name="" id="" class="form-control" data-plugin="select_hrm" data-placeholder="<?= $this->lang->line('ms_title_select_year'); ?>">
-                                <?php
-                                $usedYear = ['2022', '2024'];
-
-                                for ($i = 2020; $i <= date('Y'); $i++) {
-                                    $selected = '';
-                                    if ($i == date('Y') and !in_array($i, $usedYear)) {
-                                        $selected = 'selected';
-                                    }
-                                    if (!in_array($i, $usedYear)) {
-                                        echo '<option value="' . $i . '" ' . $selected . '>' . $i . '</option>';
-                                    }
-                                } ?>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="row mb-3">
+	<div class="col-md-12">
+		<div class="card">
+			<div class="card-body">
+				<div class="row">
+					
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
+<div class="row mb-3">
+	<div class="col-md-12">
+		<button class="btn btn-primary" onclick="addCardBudget()">
+			<i class="fa fa-plus" aria-hidden="true"></i>
+			<?= $this->lang->line('xin_add_new'); ?>
+			<?= $this->lang->line('xin_departments'); ?>
+		</button>
+	</div>
+</div>
+
+<script>
+	var ms_title_select_department = "<?= $this->lang->line('ms_title_select_department'); ?>";
+	var ms_title_budget_name = "<?= $this->lang->line('ms_title_budget_name'); ?>";
+	var ms_title_account = "<?= $this->lang->line('ms_title_account'); ?>";
+	var ms_select_account = "<?= $this->lang->line('ms_select_account'); ?>";
+	var ms_title_amount = "<?= $this->lang->line('ms_title_amount'); ?>";
+	var xin_title_add_item = "<?= $this->lang->line('xin_title_add_item'); ?>";
+</script>

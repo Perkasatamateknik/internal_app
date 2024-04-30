@@ -125,6 +125,20 @@ class Accounts_model extends CI_Model
 		return $this->db->get("ms_finance_accounts");
 	}
 
+	public function get_expenses_account($query = false)
+	{
+		$this->db->where_in('category_id', [14, 16]);
+		if ($query) {
+			$this->db->like('account_name', $query);
+			$this->db->or_like('account_code', $query);
+		}
+
+		// $this->db->limit(10);
+
+		$this->db->order_by('account_name', 'ASC');
+		return $this->db->get("ms_finance_accounts");
+	}
+
 	public function get_tax_account($query = false)
 	{
 		$this->db->where('category_id', 12);

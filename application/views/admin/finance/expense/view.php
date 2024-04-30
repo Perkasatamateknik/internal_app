@@ -1,7 +1,7 @@
 <?php $id = $this->input->get('id');
 
 if ($id == '') {
-	redirect('admin/expense');
+	redirect('admin/expenses');
 }
 ?>
 
@@ -16,12 +16,12 @@ if ($id == '') {
 			<div class="card-body">
 				<div class="row justify-content-between">
 					<div class="col-md-auto">
-						<a href="<?= base_url('/admin/finance/expense') ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
+						<a href="<?= base_url('/admin/finance/expenses') ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
 					</div>
 					<div class="col-md-auto">
 						<div class="row">
 							<div class="col-md-auto px-0">
-								<a href="<?= base_url('/admin/finance/expense/print?id=' . $record->trans_number) ?>" target="_blank" class=" btn btn-primary btn-sm"><i class="fa fa-print fa-fw" aria-hidden="true"></i><?= $this->lang->line('xin_print'); ?> </a>
+								<a href="<?= base_url('/admin/finance/expenses/print?id=' . $record->trans_number) ?>" target="_blank" class=" btn btn-primary btn-sm"><i class="fa fa-print fa-fw" aria-hidden="true"></i><?= $this->lang->line('xin_print'); ?> </a>
 							</div>
 							<div class="col-md-auto">
 								<div class="dropdown d-flex">
@@ -103,7 +103,11 @@ if ($id == '') {
 								$amount = 0;
 								if (!is_null($items)) {
 									foreach ($items as $r) {
-										$amount = ($r->amount + $r->tax_rate) + $amount;
+										if ($r->tax_withholding) {
+											$amount += ($r->amount - $r->tax_rate);
+										} else {
+											$amount += ($r->amount + $r->tax_rate);
+										}
 								?>
 										<tr>
 											<td><?= $r->account_name; ?></td>
@@ -118,8 +122,22 @@ if ($id == '') {
 							</tbody>
 							<tfoot>
 								<tr style="border-top: 1px solid black;">
-									<td colspan="3" align="center"><strong><?= $this->lang->line('xin_amount'); ?></strong></td>
+									<td></td>
+									<td><strong><?= $this->lang->line('xin_amount'); ?></strong></td>
+									<td></td>
 									<td><strong><?= $this->Xin_model->currency_sign($amount); ?></strong></td>
+								</tr>
+								<tr>
+									<td></td>
+									<td><strong><?= $this->lang->line('ms_title_amount_paid'); ?></strong></td>
+									<td></td>
+									<td><strong><?= $this->Xin_model->currency_sign($payment->jumlah_dibayar); ?></strong></td>
+								</tr>
+								<tr>
+									<td></td>
+									<td><strong><?= $this->lang->line('ms_title_remaining_bill'); ?></strong></td>
+									<td></td>
+									<td><strong class="text-danger"><?= $this->Xin_model->currency_sign($payment->sisa_tagihan); ?></strong></td>
 								</tr>
 							</tfoot>
 						</table>
@@ -172,7 +190,7 @@ if ($id == '') {
 		</div>
 	<?php }; ?>
 
-	<?php if ($record->sisa_tagihan != 0) {; ?>
+	<?php if ($payment->sisa_tagihan != 0) {; ?>
 		<div class="col-md-12">
 			<div class="card mb-3">
 				<div class="card-header">
@@ -180,8 +198,8 @@ if ($id == '') {
 				</div>
 				<div class="card-body">
 					<?php $attributes = array('name' => 'payment_form', 'id' => 'payment_form', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
-					<?php $hidden = array('type' => 'transfer', '_token' => $record->spend_id); ?>
-					<?php echo form_open('admin/finance/accounts/store_spend_payment', $attributes, $hidden); ?>
+					<?php $hidden = array('type' => 'transfer', '_token' => $record->trans_number); ?>
+					<?php echo form_open('admin/finance/expenses/store_payment', $attributes, $hidden); ?>
 					<div class="row">
 						<div class="col-md-4">
 							<div class="form-group">
@@ -192,13 +210,13 @@ if ($id == '') {
 						<div class="col-md-4">
 							<div class="form-group">
 								<label for="payment_ref"><?php echo $this->lang->line('ms_payment_ref'); ?></label>
-								<input type="text" name="payment_ref" id="payment_ref" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_ref'); ?>" required>
+								<input type="text" name="payment_ref" id="payment_ref" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_ref'); ?>">
 							</div>
 						</div>
 						<div class="col-md-4">
 							<div class="form-group">
 								<label for="attachment"><?php echo $this->lang->line('xin_attachment'); ?></label>
-								<input type="file" class="form-control" name="attachment" id="attachment" required>
+								<input type="file" class="form-control" name="attachment" id="attachment">
 							</div>
 						</div>
 						<div class="col-md-4">
@@ -211,13 +229,13 @@ if ($id == '') {
 						<div class="col-md-4">
 							<div class="form-group">
 								<label for="amount_paid"><?php echo $this->lang->line('ms_payment_amount_paid'); ?></label>
-								<input type="number" min="0" max="<?= $record->sisa_tagihan; ?>" value="<?= $record->sisa_tagihan; ?>" name="amount_paid" id="amount_paid" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_amount_paid'); ?>" required>
+								<input type="number" min="0" max="<?= $payment->sisa_tagihan; ?>" value="<?= $payment->sisa_tagihan; ?>" name="amount_paid" id="amount_paid" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_amount_paid'); ?>" required>
 							</div>
 						</div>
 						<div class="col-md-4">
 							<div class="form-group">
 								<label for="amount_paid">&nbsp;</label>
-								<button type="submit" class="btn btn-primary btn-block"> <i class="far fa-check-square"></i> <?php echo $this->lang->line('xin_save'); ?> </button>
+								<button type="submit" class="btn btn-primary btn-block save"> <i class="far fa-check-square"></i> <?php echo $this->lang->line('xin_save'); ?> </button>
 							</div>
 						</div>
 					</div>
@@ -227,7 +245,7 @@ if ($id == '') {
 		</div>
 	<?php }; ?>
 
-	<?php if ($record->jumlah_dibayar != 0) {; ?>
+	<?php if ($payment->jumlah_dibayar != 0) {; ?>
 		<div class="col-12">
 			<div class="card">
 				<div class="card-header">
@@ -250,7 +268,7 @@ if ($id == '') {
 									<tbody>
 										<?php
 										// dd($record->log_payments);
-										foreach ($record->log_payments as $key => $value) {
+										foreach ($payment->log_payments as $key => $value) {
 											if (empty($value->first_name) or empty($value->last_name)) {
 												$pic = "--";
 											} else {

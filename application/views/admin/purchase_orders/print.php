@@ -3551,16 +3551,15 @@
 							<label><?php echo $this->lang->line('ms_order_number'); ?></label><br>
 							<strong><?= $record->po_number; ?></strong>
 						</td>
-
 					</tr>
 					<tr>
-						<td>
-							<label><?php echo $this->lang->line('ms_purchase_faktur_number'); ?></label><br>
-							<strong><?= $record->faktur_number; ?></strong>
-						</td>
-						<td colspan="2">
+						<td colspan="1">
 							<label><?php echo $this->lang->line('ms_warehouse_assign'); ?></label><br>
 							<strong><?= $record->warehouse_assign; ?></strong>
+						</td>
+						<td colspan="2">
+							<label><?php echo $this->lang->line('ms_reference'); ?></label><br />
+							<strong><?= $record->reference ?? "--"; ?></strong>
 						</td>
 					</tr>
 					<tr>
@@ -3577,12 +3576,9 @@
 							<strong><?= dateDiff($record->date, $record->due_date); ?></strong>
 						</td>
 					</tr>
-					<tr>
-						<td colspan="3">
-							<label><?php echo $this->lang->line('ms_reference'); ?></label><br />
-							<strong><?= $record->reference ?? "--"; ?></strong>
-						</td>
-					</tr>
+					<!-- <tr>
+						
+					</tr> -->
 					<tr>
 						<td colspan="3">
 							<label><?php echo $this->lang->line('ms_purchase_delivery_name'); ?></label><br>

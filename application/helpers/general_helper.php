@@ -2317,7 +2317,7 @@ if (!function_exists('size')) {
 
 
 if (!function_exists('status_trans')) {
-	function status_trans($status)
+	function status_trans($status, $ucfirst = false)
 	{
 		$CI = &get_instance();
 		if ($status == 'draft') {
@@ -2332,7 +2332,12 @@ if (!function_exists('status_trans')) {
 			$type = "badge-secondary";
 		}
 
-		return "<span class='badge " . $type . "'>" . $status . "</span>";
+		$status = str_replace("_", " ", $status);
+		if ($ucfirst) {
+			return "<span class='badge " . $type . "'>" . ucfirst($status) . "</span>";
+		} else {
+			return "<span class='badge " . $type . "'>" . $status . "</span>";
+		}
 	}
 }
 
@@ -2351,6 +2356,8 @@ if (!function_exists('text_status_trans')) {
 		} else {
 			$type = "text-secondary";
 		}
+
+		$status = str_replace("_", " ", $status);
 		if ($ucfirst) {
 			return "<span class='" . $type . "'>" . ucfirst($status) . "</span>";
 		} else {

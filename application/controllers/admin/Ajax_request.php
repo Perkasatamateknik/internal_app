@@ -20,7 +20,10 @@ class Ajax_request extends MY_Controller
 		$this->load->model("Project_costs_model");
 		$this->load->model("Purchase_items_model");
 		$this->load->model("Accounts_model");
+		$this->load->model("department_model");
 		$this->load->model("Account_categories_model");
+
+		$this->load->model("Expense_model");
 
 		// if (!$this->input->is_ajax_request()) {
 		// 	$this->output([
@@ -152,6 +155,26 @@ class Ajax_request extends MY_Controller
 			$query = false;
 		}
 		$res = $this->Accounts_model->get_bank_account($query)->result();
+
+		$data = [];
+		foreach ($res as $key => $r) {
+			$data[] = array(
+				'id' => $r->account_id,
+				'text' => $r->account_code . " | " . $r->account_name
+			);
+		}
+		echo $this->output($data);
+		exit();
+	}
+
+	public function get_expenses_account()
+	{
+		if ($this->input->get('query')) {
+			$query = $this->input->get('query');
+		} else {
+			$query = false;
+		}
+		$res = $this->Accounts_model->get_expenses_account($query)->result();
 
 		$data = [];
 		foreach ($res as $key => $r) {
@@ -307,9 +330,10 @@ class Ajax_request extends MY_Controller
 				$text = $r->rate . "%";
 			}
 
+			$wth = $r->is_withholding ? "-" : "";
 			$data[] = array(
 				'id' => $r->tax_id,
-				'text' => $r->name . " ($text)",
+				'text' => $wth . $r->name . " ($text)",
 				'rate' => $r->rate,
 			);
 		}
@@ -338,6 +362,22 @@ class Ajax_request extends MY_Controller
 	{
 		$query = $this->input->get('query');
 		$res = $this->Account_categories_model->all($query)->result();
+		$data = [];
+
+		foreach ($res as $key => $r) {
+
+			$data[] = array(
+				'id' => $r->category_id,
+				'text' => $r->category_name
+			);
+		}
+		echo $this->output($data);
+		exit();
+	}
+	public function find_account_category_cash_bank()
+	{
+		$query = $this->input->get('query');
+		$res = $this->Account_categories_model->get_cash_bank($query)->result();
 		$data = [];
 
 		foreach ($res as $key => $r) {
@@ -537,5 +577,45 @@ class Ajax_request extends MY_Controller
 		}
 		echo $this->output($data);
 		exit();
+	}
+
+	public function find_department()
+	{
+		$query = $this->input->get('query');
+		$res = $this->department_model->find_department($query);
+		$data = [];
+		foreach ($res as $key => $r) {
+			$data[] = array(
+				'id' => $r->department_id,
+				'text' => $r->department_name,
+			);
+		}
+		echo $this->output($data);
+		exit();
+	}
+
+
+	public function delete_item_expense()
+	{
+		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
+		$Return['csrf_hash'] = $this->security->get_csrf_hash();
+
+		$id = $this->input->post('id');
+		$type = $this->input->post('type') ?? "";
+
+		if ($type == 'po_number') {
+			$del = $this->Expense_items_model->delete_item_by_trans_number($id);
+		} else {
+			$del = $this->Expense_items_model->delete_item_by_id($id);
+		}
+
+		if ($del) {
+			$Return['result'] = $this->lang->line('ms_item_deleted');
+		} else {
+			$Return['error'] = $this->lang->line('xin_error_msg');
+		}
+
+		$this->output($Return);
+		exit;
 	}
 }

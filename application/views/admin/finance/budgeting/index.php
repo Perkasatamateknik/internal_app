@@ -6,13 +6,11 @@
 					<div class="col-md-auto">
 						<div class="d-flex h-100">
 							<h4 class="p-0 m-0"><?= $breadcrumbs; ?></h4>
-							<a href="<?= base_url('admin/finance/budgeting/create'); ?>" target="" class="btn btn-primary">
-								<i class="fa fa-plus" aria-hidden="true"></i> <?= $this->lang->line('xin_insert'); ?>
-							</a>
+
 						</div>
 					</div>
 					<div class="col-md-auto">
-						<a href="<?= base_url('admin/finance/budgeting/create'); ?>" target="" class="btn btn-primary">
+						<a href="#" target="" class="btn btn-primary" data-toggle="modal" data-target="#add-modal-data" data-id="<?= $this->input->get('id'); ?>">
 							<i class="fa fa-plus" aria-hidden="true"></i> <?= $this->lang->line('xin_insert'); ?>
 						</a>
 					</div>
@@ -32,7 +30,7 @@
 							<h4><?= $r->year; ?> <?= $this->lang->line('ms_title_budget'); ?></h4>
 						</div>
 						<div class="col-md-auto">
-							<a href="<?= base_url('admin/finance/budgeting/create'); ?>" target="" class="btn btn-white"><i class="fa fa-chevron-right" aria-hidden="true"></i> <?= $this->lang->line('ms_title_add_budget'); ?></a>
+							<a href="<?= base_url('admin/finance/budgeting/view?id=') . $r->budget_id; ?>" target="" class="btn btn-white"><i class="fa fa-chevron-right" aria-hidden="true"></i> <?= $this->lang->line('ms_title_add_budget'); ?></a>
 						</div>
 					</div>
 				</div>

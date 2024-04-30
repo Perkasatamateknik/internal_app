@@ -14,6 +14,7 @@
 <script src="<?php echo base_url(); ?>skin/hrsale_vendor/assets/vendor/js/bootstrap.js"></script>
 <script src="<?php echo base_url(); ?>skin/hrsale_vendor/assets/vendor/js/sidenav.js"></script>
 <script src="<?php echo base_url(); ?>skin/hrsale_vendor/assets/vendor/js/money_format.js"></script>
+<script src="<?php echo base_url(); ?>skin/hrsale_vendor/assets/vendor/js/number-separator.js"></script>
 <!-- <script src="<?php echo base_url(); ?>skin/hrsale_vendor/assets/vendor/js/autocomplete.js"></script> -->
 
 <script src="<?php echo base_url(); ?>skin/hrsale_vendor/assets/vendor/js/dropdown-hover.js"></script>
@@ -268,7 +269,7 @@
 
 <script type="text/javascript" src="<?php echo base_url() . 'skin/vendor/inputmask/jquery.inputmask.js'; ?>"></script>
 <script type="text/javascript" src="<?php echo base_url() . 'skin/vendor/inputmask/bindings/inputmask.binding.js'; ?>"></script>
-<script type="text/javascript" src="<?php echo base_url() . 'skin/hrsale_vendor/hrsale_scripts/' . $path_url . '.js'; ?>"></script>
+<script type="text/javascript" src="<?php echo base_url() . 'skin/hrsale_vendor/hrsale_scripts/' . $path_url . '.js?v=' . time(); ?>"></script>
 
 
 <script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
@@ -616,4 +617,37 @@
 	$(function() {
 		$("#fileUpload").fileUpload();
 	});
+</script>
+
+<script>
+	// Mendapatkan tanggal saat ini
+	var currentDate = new Date();
+
+	// Mendapatkan tahun saat ini
+	var currentYear = currentDate.getFullYear();
+
+	// Mendapatkan bulan saat ini (dalam format MM)
+	var currentMonth = ('0' + (currentDate.getMonth() + 1)).slice(-2);
+
+	// Mendapatkan tanggal saat ini (dalam format DD)
+	var currentDay = ('0' + currentDate.getDate()).slice(-2);
+
+	// Menggabungkan tahun, bulan, dan tanggal dalam format YYYY-MM-DD
+	var currentDateFormatted = currentYear + '-' + currentMonth + '-' + currentDay;
+
+	// Mengatur nilai awal input tanggal
+	document.getElementById('date').value = currentDateFormatted;
+	document.getElementById('delivery_date').value = currentDateFormatted;
+</script>
+
+<script>
+	$(document).ready(function() {
+		$('.collapse').on('show.bs.collapse', function() {
+			$(this).prev().find('.fa').removeClass('fa-plus').addClass('fa-minus');
+		});
+		$('.collapse').on('hide.bs.collapse', function() {
+			$(this).prev().find('.fa').removeClass('fa-minus').addClass('fa-plus');
+		});
+	});
+	// $('input[type="number"]').addClass('number-separator');
 </script>

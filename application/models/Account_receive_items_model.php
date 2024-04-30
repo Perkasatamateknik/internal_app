@@ -18,10 +18,7 @@ class Account_receive_items_model extends CI_Model
 
 	public function get($id = false)
 	{
-		if ($id) {
-			$this->db->where("receive_id", $id);
-		}
-
+		$this->db->where("trans_number", $id);
 		$res = $this->db->get("ms_finance_account_receive_trans");
 
 
@@ -32,22 +29,32 @@ class Account_receive_items_model extends CI_Model
 		}
 	}
 
-	public function get_total_amount($id)
+	public function get_total_amount($trans_number)
 	{
-		return $this->db->select_sum('amount')
-			->where('receive_id', $id)
-			->get('ms_finance_account_receive_trans')->row()->amount;
+		$res = $this->db->where('trans_number', $trans_number)
+			->get('ms_finance_account_receive_trans')->result();
+
+		$amount = 0;
+		foreach ($res as $r) {
+			if ($r->tax_withholding == 1) {
+				$amount += $r->amount - $r->tax_rate;
+			} else {
+				$amount += $r->amount + $r->tax_rate;
+			}
+		}
+
+		return $amount;
 	}
 
-	public function get_account_from_receive($id)
+	public function get_account_from_receive($trans_number)
 	{
 
-		// $item = $this->db->where('receive_id', $id)->get()->result();
+		// $item = $this->db->where('receive_trans_number', $id)->get()->result();
 
 		// join tabel ms_finance_account_receive_trans and ms_finnace_accounts
 		return $this->db->select(["ms_finance_account_receive_trans.*", "ms_finance_accounts.account_name", "ms_finance_accounts.account_code"])->from('ms_finance_account_receive_trans')
 			->join('ms_finance_accounts', 'ms_finance_account_receive_trans.account_id=ms_finance_accounts.account_id', 'LEFT')
-			->where('receive_id', $id)->get()->result();
+			->where('trans_number', $trans_number)->get()->result();
 
 		// dd($result);
 		// foreach ($item as $key => $value) {

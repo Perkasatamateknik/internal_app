@@ -4,7 +4,7 @@
 	</div>
 </div>
 
-<?php $attributes = array('name' => 'spend_form', 'id' => 'spend_form', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
+<?php $attributes = array('name' => 'spend_form', 'id' => 'spend_ford', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
 <?php $hidden = array('type' => 'spend', '_token' => $record->spend_id); ?>
 <?php echo form_open('admin/finance/accounts/store_trans', $attributes, $hidden); ?>
 <div class="row">
@@ -44,7 +44,7 @@
 					<div class="col-md-6">
 						<div class="form-group">
 							<label for="date"><?= $this->lang->line('ms_title_transfer_date'); ?></label>
-							<input type="datetime-local" name="date" id="date" class="form-control">
+							<input type="date" name="date" id="date" class="form-control">
 						</div>
 					</div>
 				</div>

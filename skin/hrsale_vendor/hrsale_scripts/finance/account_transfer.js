@@ -122,7 +122,7 @@ $(document).ready(function () {
 
 $(document).ready(function () {
 	var id = getUrlParameter("id");
-	$("#ms_table").DataTable({
+	var otable = $("#ms_table").dataTable({
 		ajax: {
 			url: site_url + "finance/accounts/get_ajax_account_transfer/",
 			data: {
@@ -133,6 +133,41 @@ $(document).ready(function () {
 		fnDrawCallback: function (settings) {
 			$('[data-toggle="tooltip"]').tooltip();
 		},
+	});
+
+	$("#delete_record").submit(function (e) {
+		/*Form Submit*/
+
+		e.preventDefault();
+		var obj = $(this),
+			action = obj.attr("name");
+		$.ajax({
+			type: "POST",
+			url: e.target.action,
+			data: obj.serialize() + "&is_ajax=2&form=" + action,
+			cache: false,
+			success: function (JSON) {
+				if (JSON.error != "") {
+					toastr.error(JSON.error);
+					$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
+					Ladda.stopAll();
+				} else {
+					$(".delete-modal").modal("toggle");
+					otable.api().ajax.reload(function () {
+						toastr.success(JSON.result);
+					}, true);
+					$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
+					Ladda.stopAll();
+				}
+			},
+			error: function (xhr, status, error) {
+				toastr.error("Error: " + status + " | " + error);
+				$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
+				$(".icon-spinner3").hide();
+				$(".save").prop("disabled", false);
+				Ladda.stopAll();
+			},
+		});
 	});
 });
 
@@ -170,7 +205,6 @@ $(document).ready(function () {
 			processData: false, // Important for FormData
 			contentType: false, // Important for FormData
 			success: function (JSON) {
-				console.log(JSON);
 				// jika ada error
 				if (JSON.error != "") {
 					toastr.error(JSON.error);
@@ -179,19 +213,12 @@ $(document).ready(function () {
 					$(".icon-spinner3").hide();
 					Ladda.stopAll();
 				} else {
-					console.log(
-						site_url + "finance/accounts/transfer_view?id=" + JSON.trans_number
-					);
-
-					// toastr.options = {
-					// 	timeOut: 500,
-					// 	onHidden: function () {
-					// 		window.location.href =
-					// 			site_url +
-					// 			"finance/accounts/transfer_view?id=" +
-					// 			+JSON.trans_number;
-					// 	},
-					// };
+					toastr.options = {
+						timeOut: 500,
+						onHidden: function () {
+							window.location.reload();
+						},
+					};
 
 					toastr.success(JSON.result);
 					$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
@@ -209,4 +236,18 @@ $(document).ready(function () {
 			},
 		});
 	});
+});
+
+$(document).on("click", ".delete", function () {
+	$("input[name=_token]").val($(this).data("record-id"));
+	$("input[name=token_type]").val($(this).data("token_type"));
+	$("#data-message").addClass("pt-3 font-weight-bold");
+
+	let del_file = $(this).data("record-id");
+	$("#data-message").html(del_file);
+
+	$("#delete_record").attr(
+		"action",
+		site_url + "finance/accounts/delete_transfer/"
+	);
 });

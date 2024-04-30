@@ -118,7 +118,7 @@ $reports_to = get_reports_team_data($session['user_id']);
 	<?php } ?>
 
 
-	<?php if ($session['user_id'] = 1) {; ?>
+	<?php if ($session['user_id'] == 1) {; ?>
 		<!-- // fitur keuangan  -->
 		<li class="<?php if (!empty($arr_mod['cost_open'])) echo $arr_mod['cost_open']; ?> sidenav-item"> <a href="#" class="sidenav-link sidenav-toggle"> <i class="sidenav-icon ion ion-md-cash"></i>
 				<div><?php echo $this->lang->line('ms_title_finance'); ?></div>

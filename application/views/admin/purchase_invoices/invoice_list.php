@@ -153,7 +153,7 @@
 									</div>
 								</div>
 								<hr>
-								<div class="row">
+								<div class="row justify-content-between">
 									<div class="col-md-6">
 										<div class="form-group">
 											<label for="notes"><?php echo $this->lang->line('ms_notes'); ?></label>
@@ -164,23 +164,63 @@
 											<input type="file" class="form-control" name="attachment" id="attachment">
 										</div>
 									</div>
-									<div class="col-md-6">
+									<div class="col-md-5">
 										<table class="table table-borderless">
 											<tr>
-												<td class="text-right"><strong><?php echo $this->lang->line('ms_delivery_fee'); ?></strong></td>
-												<td class="text-right">
-													<input type="number" min="0" class="form-control delivery_fee" value="<?= $record->delivery_fee ?? 0; ?>" id="delivery_fee" name="delivery_fee" required>
-											</tr>
-											<tr>
-												<td class=" text-right"><strong><?php echo $this->lang->line('xin_amount'); ?></strong>
-												</td>
-												<td class="text-right">
-													<input type="hidden" name="amount" value="0" id="amount">
-													<strong id="amount_show" class="currency">0</strong>
+												<td class="text-right pt-0">
+													<a href="#" class="btn-transpernt" data-toggle="collapse" data-target="#delivery_fee_toggle" aria-expanded="false">
+														<i class="fa fa-plus" aria-hidden="true"></i> <?php echo $this->lang->line('xin_add'); ?> <?php echo $this->lang->line('ms_delivery_fee'); ?>
+													</a>
+													<div class="collapse mt-2" id="delivery_fee_toggle">
+														<input type="number" min="0" class="form-control delivery_fee" name="delivery_fee" value="0" id="delivery_fee">
+													</div>
 												</td>
 											</tr>
 											<tr>
-												<td></td>
+												<td class="text-right pt-0">
+													<a href="#" class="btn-transpernt" data-toggle="collapse" data-target="#service_fee_toggle" aria-expanded="false">
+														<i class="fa fa-plus" aria-hidden="true"></i> <?php echo $this->lang->line('xin_add'); ?> <?php echo $this->lang->line('ms_title_service_fee'); ?>
+													</a>
+													<div class="collapse mt-2" id="service_fee_toggle">
+														<input type="number" min="0" class="form-control service_fee" name="service_fee" value="0" id="service_fee">
+													</div>
+												</td>
+											</tr>
+											<tr>
+												<td class="text-right pt-0">
+													<a href="#" class="btn-transpernt" data-toggle="collapse" data-target="#dp_toggle" aria-expanded="false">
+														<i class="fa fa-plus" aria-hidden="true"></i> <?php echo $this->lang->line('xin_add'); ?> <?php echo $this->lang->line('ms_title_down_payment'); ?>
+													</a>
+													<div class="collapse mt-2" id="dp_toggle">
+														<div class="row">
+															<div class="col-6">
+																<div class="form-group">
+																	<select class="form-control" name="down_payment_account" data-plugin="select_account" data-placeholder="<?php echo $this->lang->line('xin_acc_select_account'); ?>">
+																	</select>
+																</div>
+															</div>
+															<div class="col-6">
+																<input type="number" min="0" class="form-control down_payment number-separator" name="down_payment" value="0" id="down_payment">
+															</div>
+														</div>
+													</div>
+												</td>
+											</tr>
+											<tr>
+												<td class="text-right">
+													<div class="row justify-content-between">
+														<div class="col-auto">
+															<strong class="pr-3"><?php echo $this->lang->line('xin_amount'); ?></strong>
+														</div>
+														<div class="col-auto">
+															<input type="hidden" name="amount" value="0" id="amount">
+															<strong id="amount_show" class="currency">0</strong>
+														</div>
+													</div>
+												</td>
+											</tr>
+
+											<tr>
 												<td>
 													<button type="submit" class="btn btn-primary btn-block"> <i class="far fa-check-square"></i> <?php echo $this->lang->line('xin_save'); ?> </button>
 												</td>

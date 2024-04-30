@@ -15,6 +15,13 @@ class Account_categories_model extends CI_Model
 		return $this->db->get("ms_finance_account_categories");
 	}
 
+
+	public function get_cash_bank()
+	{
+		$this->db->where('category_id', 1);
+		return $this->db->get("ms_finance_account_categories");
+	}
+
 	public function get($id = false)
 	{
 

@@ -12,33 +12,56 @@ defined('BASEPATH') or exit('No direct script access allowed');
 <?php $attributes = array('name' => 'accounts', 'id' => 'add_account', 'autocomplete' => 'off', 'class' => 'form'); ?>
 <?php echo form_open('admin/finance/accounts/insert', $attributes); ?>
 <div class="modal-body">
-	<div class="form-group">
-		<label for="account_name">Nama Akun</label>
-		<input type="text" name="account_name" id="account_name" class="form-control" required>
-	</div>
-	<div class="form-group">
-		<label for="account_code">Code</label>
-		<input type="text" name="account_code" id="account_code" class="form-control" required>
-	</div>
-	<div class="form-group">
-		<label for="account_number">Account Number</label>
-		<input type="text" name="account_number" id="account_number" class="form-control" required>
-	</div>
-	<div class="form-group">
-		<label for="category_id">Select Category</label>
-		<select class="form-control" name="category_id" id="category_id" data-plugin="select_cat" data-placeholder="Pilih">
+	<div class="row">
+		<div class="col-md-6">
+			<div class="form-group">
+				<label for="account_name">Nama Akun</label>
+				<input type="text" name="account_name" id="account_name" class="form-control" required>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="form-group">
+				<label for="account_code">Code</label>
+				<input type="text" name="account_code" id="account_code" class="form-control" required>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="form-group">
+				<label for="account_number">Account Number</label>
+				<input type="text" name="account_number" id="account_number" class="form-control" required>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="form-group">
+				<label for="expenditure_type">Tipe Pengeluaran</label>
+				<select class="form-control" name="expenditure_type" id="expenditure_type" data-plugin="select_hrm" data-placeholder="Pilih">
+					<option value="capex">CapEx</option>
+					<option value="opex">OpEx</option>
+				</select>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="form-group">
+				<label for="category_id">Select Category</label>
+				<select class="form-control" name="category_id" id="category_id" data-plugin="select_cat" data-placeholder="Pilih">
 
-		</select>
-	</div>
-	<div class="form-group">
-		<label for="account_origin">Account Origin</label>
-		<select class="form-control" name="account_origin" id="account_origin" data-plugin="select_account" data-placeholder="Pilih Akun">
+				</select>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="form-group">
+				<label for="account_origin">Account Origin</label>
+				<select class="form-control" name="account_origin" id="account_origin" data-plugin="select_account" data-placeholder="Pilih Akun">
 
-		</select>
-	</div>
-	<div class="form-group">
-		<label for="saldo_awal">Saldo Awal</label>
-		<input type="number" min="0" name="saldo_awal" id="saldo_awal" class="form-control">
+				</select>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="form-group">
+				<label for="saldo_awal">Saldo Awal</label>
+				<input type="number" min="0" name="saldo_awal" id="saldo_awal" class="form-control">
+			</div>
+		</div>
 	</div>
 </div>
 <div class="modal-footer">
@@ -133,6 +156,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 					// On page load: datatable
 					var xin_table = $("#xin_table").dataTable({
 						bDestroy: true,
+						bPaginate: false,
 						ajax: {
 							url: site_url + "finance/accounts/get_ajax_table/",
 							type: "GET",

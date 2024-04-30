@@ -21,9 +21,35 @@
 		* {
 			font-family: 'Plus Jakarta Sans', sans-serif;
 		}
+
+		.fa {
+			transition: transform 0.5s ease-in-out;
+		}
+
+		/* Custom CSS to disable button hover for btn-transparent class */
+		.btn-transparent {
+			pointer-events: none;
+			/* Disable pointer events */
+			background-color: transparent !important;
+			/* Transparent background */
+			border-color: transparent !important;
+			/* Transparent border */
+			color: inherit !important;
+			/* Inherit text color */
+		}
+
+		.btn-transparent:hover {
+			background-color: transparent !important;
+			/* Transparent background on hover */
+			border-color: transparent !important;
+			/* Transparent border on hover */
+			color: inherit !important;
+			/* Inherit text color on hover */
+		}
 	</style>
 	<!-- Icon fonts -->
-	<link rel="stylesheet" href="<?php echo base_url(); ?>skin/hrsale_vendor/assets/vendor/fonts/fontawesome.css">
+	<!-- <link rel="stylesheet" href="<?php echo base_url(); ?>skin/hrsale_vendor/assets/vendor/fonts/fontawesome.css"> -->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 	<link rel="stylesheet" href="<?php echo base_url(); ?>skin/hrsale_vendor/assets/vendor/fonts/ionicons.css">
 	<link rel="stylesheet" href="<?php echo base_url(); ?>skin/hrsale_vendor/assets/vendor/fonts/linearicons.css">
 	<link rel="stylesheet" href="<?php echo base_url(); ?>skin/hrsale_vendor/assets/vendor/fonts/open-iconic.css">

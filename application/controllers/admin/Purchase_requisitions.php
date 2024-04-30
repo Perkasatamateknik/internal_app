@@ -152,7 +152,8 @@ class Purchase_requisitions extends Purchasing
 			$insert_pr = $this->Purchase_model->insert_pr($data_pr, $item_insert);
 
 			# add logs
-			$this->Purchase_model->insert_pl(['pr_number' => $pr_number, 'created_at' => $this->input->post('issue_date')]);
+			$payment_number = strtoupper(uniqid());
+			$this->Purchase_model->insert_pl(['pr_number' => $pr_number, 'created_at' => $this->input->post('issue_date'), 'payment_number' => $payment_number]);
 
 			if ($insert_pr) {
 				$Return['result'] = $this->lang->line('ms_trans_added');
@@ -218,8 +219,8 @@ class Purchase_requisitions extends Purchasing
 				$item[] = array(
 					$item_name,
 					$project_name,
-					$this->Xin_model->currency_sign($r->ref_price),
 					$r->quantity,
+					$this->Xin_model->currency_sign($r->ref_price),
 					$this->Xin_model->currency_sign($r->amount),
 				);
 			}
@@ -266,7 +267,7 @@ class Purchase_requisitions extends Purchasing
 			} else {
 				$edit = '';
 			}
-			
+
 			if (in_array('505', $role_resources_ids)) { // delete
 				$delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '"><button type="button" class="btn icon-btn btn-sm btn-outline-danger waves-effect waves-light delete" data-toggle="modal" data-target=".delete-modal" data-record-id="' . $r->pr_number . '" data-token_type="purchase_requisitions"><span class="fas fa-trash-restore"></span></button></span>';
 			} else {
@@ -484,7 +485,7 @@ class Purchase_requisitions extends Purchasing
 			}
 		}
 
-		dd($item);
+		// dd($item);
 		if ($record) {
 			$data['record'] = $record;
 			$data['records'] = $item;

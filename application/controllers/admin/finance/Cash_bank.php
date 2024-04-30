@@ -30,7 +30,7 @@ class Cash_bank extends MY_Controller
 		$data['title'] = $this->Xin_model->site_title();
 		$session = $this->session->userdata('username');
 		$data['breadcrumbs'] = $this->lang->line('ms_title_cash_bank');
-		$data['path_url'] = 'finance/cashbank';
+		$data['path_url'] = 'finance/cash_bank';
 		if (empty($session)) {
 			redirect('admin/');
 		}
@@ -44,5 +44,44 @@ class Cash_bank extends MY_Controller
 		} else {
 			redirect('admin/dashboard');
 		}
+	}
+
+	public function get_modal_add_cash_bank()
+	{
+		// $data['categories'] = $this->Account_categories_model->all()->result();
+		return $this->load->view("admin/finance/cash_bank/add_cash_bank");
+	}
+
+	public function get_modal_edit_cash_bank()
+	{
+		$id = $this->input->get('id');
+		$data['record'] = $this->Accounts_model->get_account_by_id($id);
+		// dd($data);
+		return $this->load->view("admin/finance/cash_bank/edit_cash_bank", $data);
+	}
+
+	public function update()
+	{
+		/* Define return | here result is used to return user data and error for error message */
+		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
+		$Return['csrf_hash'] = $this->security->get_csrf_hash();
+
+		$data = array(
+			'account_id' => $this->input->post('account_id'),
+			'account_name' => $this->input->post('account_name'),
+			'account_code' => $this->input->post('account_code'),
+			'account_number' => $this->input->post('account_number'),
+			'account_origin' => $this->input->post('account_origin'),
+		);
+
+		$result = $this->Accounts_model->update($data);
+		if ($result) {
+			$Return['result'] = $this->lang->line('ms_title_success_added');
+		} else {
+			$Return['error'] = $this->lang->line('xin_error_msg');
+		}
+
+		$this->output($Return);
+		exit;
 	}
 }

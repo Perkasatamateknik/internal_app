@@ -31,7 +31,7 @@ $(function () {
 	$('[data-plugin="select_account"]').select2({
 		ajax: {
 			delay: 250,
-			url: site_url + "ajax_request/get_accounts",
+			url: site_url + "ajax_request/get_bank_account",
 			data: function (params) {
 				var queryParameters = {
 					query: params.term,
@@ -121,7 +121,7 @@ $(document).ready(function () {
 
 $(document).ready(function () {
 	var id = getUrlParameter("id");
-	$("#ms_table").DataTable({
+	var otable = $("#ms_table").dataTable({
 		ajax: {
 			url: site_url + "finance/accounts/get_ajax_account_receives/",
 			data: {
@@ -132,6 +132,41 @@ $(document).ready(function () {
 		fnDrawCallback: function (settings) {
 			$('[data-toggle="tooltip"]').tooltip();
 		},
+	});
+
+	$("#delete_record").submit(function (e) {
+		/*Form Submit*/
+
+		e.preventDefault();
+		var obj = $(this),
+			action = obj.attr("name");
+		$.ajax({
+			type: "POST",
+			url: e.target.action,
+			data: obj.serialize() + "&is_ajax=2&form=" + action,
+			cache: false,
+			success: function (JSON) {
+				if (JSON.error != "") {
+					toastr.error(JSON.error);
+					$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
+					Ladda.stopAll();
+				} else {
+					$(".delete-modal").modal("toggle");
+					otable.api().ajax.reload(function () {
+						toastr.success(JSON.result);
+					}, true);
+					$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
+					Ladda.stopAll();
+				}
+			},
+			error: function (xhr, status, error) {
+				toastr.error("Error: " + status + " | " + error);
+				$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
+				$(".icon-spinner3").hide();
+				$(".save").prop("disabled", false);
+				Ladda.stopAll();
+			},
+		});
 	});
 });
 
@@ -166,7 +201,7 @@ function addRow() {
 			</select>
 		</td>
 		<td>
-			<input type="text" name="row_note" id="row_note" class="form-control">
+			<input type="text" name="row_note[]" id="row_note" class="form-control">
 		</td>
 		<td>
 			<select class="form-control row_tax_id" id="row_tax_id_${rowCount}" data-plugin="select_tax" name="row_tax_id[]" onchange="select_tax(this)">
@@ -174,7 +209,7 @@ function addRow() {
 			</select>
 			<input type="hidden" class="row_tax_rate" name="row_tax_rate[]" id="row_tax_rate_${rowCount}" value="0">
 			<input type="hidden" class="data_tax_rate" value="0">
-			<input type="hidden" class="data_tax_type" value="fixed"><br>
+			<input type="hidden" class="data_tax_type" value="fixed" name="data_tax_type[]"><br>
 			<strong class="row_tax_rate_show currency" style="font-size:10px"></strong>
 		</td>
 
@@ -379,3 +414,17 @@ function update_row_amount(id) {
 	row.find(".row_tax_rate").val(row_tax_rate);
 	row.find(".row_tax_rate_show").text(formatCurrency(row_tax_rate));
 }
+
+$(document).on("click", ".delete", function () {
+	$("input[name=_token]").val($(this).data("record-id"));
+	$("input[name=token_type]").val($(this).data("token_type"));
+	$("#data-message").addClass("pt-3 font-weight-bold");
+
+	let del_file = $(this).data("record-id");
+	$("#data-message").html(del_file);
+
+	$("#delete_record").attr(
+		"action",
+		site_url + "finance/accounts/delete_receive/"
+	);
+});

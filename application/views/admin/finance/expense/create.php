@@ -5,13 +5,13 @@
 </div>
 
 <?php $attributes = array('name' => 'expense_form', 'id' => 'expense_form', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
-<?php $hidden = array('type' => 'expense', '_token' => $record->expense_id); ?>
-<?php echo form_open('admin/finance/expense/store', $attributes, $hidden); ?>
+<?php $hidden = array('type' => 'expense', '_token' => $record->trans_number); ?>
+<?php echo form_open('admin/finance/expenses/store', $attributes, $hidden); ?>
 <div class="row">
 	<div class="col-md-12">
 		<div class="card mb-3">
 			<div class="card-header">
-				<a href="<?= base_url('admin/finance/expense') ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
+				<a href="<?= base_url('admin/finance/expenses') ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
 			</div>
 			<div class="card-body">
 				<div class="row">
@@ -44,7 +44,7 @@
 					<div class="col-md-4">
 						<div class="form-group">
 							<label for="date"><?= $this->lang->line('ms_title_transfer_date'); ?></label>
-							<input type="date" name="date" id="date" class="form-control">
+							<input type="date" name="date" id="date" class="form-control" value="">
 						</div>
 					</div>
 					<div class="col-md-4">

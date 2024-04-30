@@ -73,11 +73,15 @@ class Account_receive_model extends CI_Model
 
 	public function get_by_number_doc($id = false)
 	{
+		$this->db->select(['ms_finance_account_receives.*', 'COALESCE(ms_finance_accounts.account_code, "--") as account_code', 'COALESCE(ms_finance_accounts.account_name, "--") as account_name'])
+			->from('ms_finance_account_receives')
+			->join('ms_finance_accounts', 'ms_finance_account_receives.receive_account_id=ms_finance_accounts.account_id');
+
 		if ($id) {
-			$this->db->where("trans_number", $id);
+			$this->db->where("ms_finance_account_receives.trans_number", $id);
 		}
 
-		$res = $this->db->get("ms_finance_account_receives");
+		$res = $this->db->get();
 
 		if ($res->num_rows() > 0) {
 			return $res->row();
@@ -137,10 +141,11 @@ class Account_receive_model extends CI_Model
 		return $this->db->update('ms_finance_account_receives', $data);
 	}
 
-	public function update_with_items_and_files($id, $data, array $items = null, array $files = null)
+	public function update_with_items_and_files($id, $data, $trans, array $items = null, array $files = null)
 	{
 		$this->db->trans_start();
 		$this->db->update('ms_finance_account_receives', $data, ['receive_id' => $id]);
+		$this->db->insert_batch('ms_finance_account_transactions', $trans);
 
 		if (!is_null($items)) {
 			if (count($items) > 0) {
@@ -217,5 +222,58 @@ class Account_receive_model extends CI_Model
 		}
 
 		return $data;
+	}
+
+	public function get_payment($account_trans_cat_id, $join_id, $account_id_tagihan = false)
+	{
+		// cari data tagihan di akun 34 trade payable
+		$record = $this->db->where('account_id', $account_id_tagihan)->where('account_trans_cat_id', $account_trans_cat_id)->where('join_id', $join_id)->where('type', 'credit')->get('ms_finance_account_transactions')->row();
+
+		// cari akun pembayaran dari akun cash an bank
+		$records = $this->db->select(['ms_finance_account_transactions.*', 'COALESCE(ms_finance_accounts.account_code, "--") as account_code', 'COALESCE(ms_finance_accounts.account_name, "--") as account_name', 'ms_finance_accounts.category_id', 'xin_employees.first_name', 'xin_employees.last_name'])
+			->from('ms_finance_account_transactions')->join('ms_finance_accounts', 'ms_finance_account_transactions.account_id=ms_finance_accounts.account_id', 'LEFT')
+			->join('xin_employees', 'ms_finance_account_transactions.user_id=xin_employees.user_id', 'inner')
+			->where('ms_finance_accounts.category_id', 1)
+			->where('ms_finance_account_transactions.account_trans_cat_id', $account_trans_cat_id)->where('ms_finance_account_transactions.join_id', $join_id)->where('ms_finance_account_transactions.type', 'credit')->get()->result();
+
+		$tagihan_dibayar = 0;
+		foreach ($records as $val) {
+			$tagihan_dibayar += $val->amount;
+		}
+
+		$data = new stdClass;
+		$data->sisa_tagihan = $record->amount - $tagihan_dibayar;
+		$data->jumlah_tagihan = $record->amount;
+		$data->jumlah_dibayar = $tagihan_dibayar;
+		$data->log_payments = $records;
+
+		return $data;
+	}
+
+	public function delete($id, $del_file = false)
+	{
+		// delete items
+		$this->db->trans_start();
+		$this->db->where('trans_number', $id)->delete('ms_finance_account_receives');
+		$this->db->where('trans_number', $id)->delete('ms_finance_account_receive_trans');
+		// $this->db->where('join_id', $id)->delete('ms_finance_account_transactions');
+
+		if ($del_file) {
+
+			// get data
+			$files = $this->db->where('access_id', $id)->get('ms_files')->result();
+
+			foreach ($files as $file) {
+				// check file in dir
+				if (file_exists("./uploads/finance/account_receive/" . $file->file_name)) {
+					// Delete the file
+					unlink("./uploads/finance/account_receive/" . $file->file_name);
+				}
+			}
+
+			$this->db->where('access_id', $id)->delete('ms_files');
+		}
+		$this->db->trans_complete();
+		return $this->db->trans_status();
 	}
 }

@@ -14,7 +14,7 @@ class Purchase_model extends CI_Model
 	//! Role Purchase Requisition 
 	public function get_all_pr()
 	{
-		return $this->db->get("ms_purchase_requisitions");
+		return $this->db->order_by('pr_number', 'DESC')->get("ms_purchase_requisitions");
 	}
 
 	public function read_pr($id, $field = false)
@@ -137,7 +137,7 @@ class Purchase_model extends CI_Model
 	//! Role Pyrchase Orders
 	public function get_all_po()
 	{
-		return $this->db->get("ms_purchase_orders");
+		return $this->db->order_by('po_number', 'DESC')->get("ms_purchase_orders");
 	}
 
 	public function get_last_po_number()
@@ -149,17 +149,31 @@ class Purchase_model extends CI_Model
 	}
 
 
-	public function insert_po($data, $item)
+	public function insert_po($data, $item, $trans, $pr_number = false)
 	{
 		$this->db->trans_start();
 		$this->db->insert('ms_purchase_orders', $data);
 		$this->db->insert_batch('ms_items_purchase_order', $item);
+
+		// jika ada dp
+		if (count($trans) > 0) {
+			$this->db->insert_batch('ms_finance_account_transactions', $trans);
+		}
+
 		$this->db->trans_complete();
-		return $this->db->trans_status();
+		$res = $this->db->trans_status();
+
+		if ($pr_number) {
+			// tutup status jadi closed
+			$this->closed_pr($pr_number);
+		}
+
+		return $res;
 	}
 
 	public function read_po_by_po_number($id)
 	{
+		// return object or null
 		$res = $this->db->select("*")
 			->from("ms_purchase_orders")
 			->where('po_number', $id)
@@ -222,13 +236,26 @@ class Purchase_model extends CI_Model
 
 
 	//! Role Purchase Deliveriies
-	public function insert_pd($data, $item)
+	public function insert_pd($data, $item, $trans)
 	{
 		$this->db->trans_start();
 		$this->db->insert('ms_purchase_deliveries', $data);
 		$this->db->insert_batch('ms_items_purchase_delivery', $item);
+		$this->db->insert_batch('ms_finance_account_transactions', $trans);
 		$this->db->trans_complete();
 		return $this->db->trans_status();
+	}
+
+	public function closed_pd($id)
+	{
+		$this->db->set('status', 2);
+		$this->db->where('pd_number', $id);
+		$this->db->update('ms_purchase_deliveries');
+		if ($this->db->affected_rows() > 0) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	public function read_pd_by_pd_number($id)
@@ -250,7 +277,7 @@ class Purchase_model extends CI_Model
 
 	public function get_all_pd()
 	{
-		return $this->db->get("ms_purchase_deliveries");
+		return $this->db->order_by('pd_number', 'DESC')->get("ms_purchase_deliveries");
 	}
 
 	public function get_amount_pd($id)
@@ -293,11 +320,12 @@ class Purchase_model extends CI_Model
 
 
 	//! Role Purchase Invoices
-	public function insert_pi($data, $item)
+	public function insert_pi($data, $item, $trans)
 	{
 		$this->db->trans_start();
 		$this->db->insert('ms_purchase_invoices', $data);
 		$this->db->insert_batch('ms_items_purchase_invoice', $item);
+		$this->db->insert_batch('ms_finance_account_transactions', $trans);
 		$this->db->trans_complete();
 		return $this->db->trans_status();
 	}
@@ -330,7 +358,7 @@ class Purchase_model extends CI_Model
 
 	public function get_all_pi()
 	{
-		return $this->db->get("ms_purchase_invoices");
+		return $this->db->order_by('pi_number', 'DESC')->get("ms_purchase_invoices");
 	}
 
 	public function get_all_pi_unpaid()
@@ -378,12 +406,15 @@ class Purchase_model extends CI_Model
 	//! Role Purchase Log
 	public function insert_pl($data)
 	{
+		$this->db->trans_start();
 		$this->db->insert('ms_purchase_logs', $data);
-		if ($this->db->affected_rows() > 0) {
-			return true;
-		} else {
-			return false;
-		}
+
+		// if ($trans) {
+		// 	$this->db->insert_batch('ms_finance_account_transactions', $trans);
+		// }
+
+		$this->db->trans_complete();
+		return $this->db->trans_status();
 	}
 
 

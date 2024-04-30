@@ -89,16 +89,16 @@
 		<div class="card-body">
 			<div class="row">
 				<div class="col-md-12">
-					<table class="table table-striped table" id="ms_table_items">
+					<table class="table table-striped table w-100" id="ms_table_items">
 						<thead>
 							<tr>
 								<th><?php echo $this->lang->line('xin_id_no'); ?></th>
-								<th><?php echo $this->lang->line('xin_title_item'); ?></th>
-								<th><?php echo $this->lang->line('xin_project'); ?></th>
+								<th style="min-width: 20%;"><?php echo $this->lang->line('xin_title_item'); ?></th>
+								<th style="min-width: 20%;"><?php echo $this->lang->line('xin_project'); ?></th>
+								<th><?php echo $this->lang->line('xin_title_qty'); ?></th>
 								<th>
 									<?php echo $this->lang->line('ms_ref_title_unit_price'); ?>
 								</th>
-								<th><?php echo $this->lang->line('xin_title_qty'); ?></th>
 								<th style="min-width: 150px">
 									<?php echo $this->lang->line('xin_title_sub_total'); ?>
 								</th>

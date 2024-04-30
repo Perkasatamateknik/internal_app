@@ -32,14 +32,14 @@
 							</div>
 							<div class="col-md-6">
 								<div class="form-group">
-									<label for="faktur_number"><?php echo $this->lang->line('xin_invoice_number'); ?></label>
-									<input class="form-control" placeholder="<?php echo $this->lang->line('xin_invoice_number'); ?>" id="faktur_number" name="faktur_number" type="text" value="<?= $record->faktur_number; ?>" required>
+									<label for="warehouse_assign"><?php echo $this->lang->line('ms_warehouse_assign'); ?></label>
+									<input class="form-control" placeholder="<?php echo $this->lang->line('ms_warehouse_assign'); ?>" id="warehouse_assign" name="warehouse_assign" type="text" value="<?= $record->warehouse_assign; ?>" required>
 								</div>
 							</div>
 							<div class="col-md-6">
 								<div class="form-group">
-									<label for="warehouse_assign"><?php echo $this->lang->line('ms_warehouse_assign'); ?></label>
-									<input class="form-control" placeholder="<?php echo $this->lang->line('ms_warehouse_assign'); ?>" id="warehouse_assign" name="warehouse_assign" type="text" value="<?= $record->warehouse_assign; ?>" required>
+									<label for="reference"><?php echo $this->lang->line('ms_reference'); ?></label>
+									<input class="form-control" placeholder="<?php echo $this->lang->line('ms_reference'); ?>" id="reference" name="reference" type="text" value="<?= $record->reference; ?>">
 								</div>
 							</div>
 							<div class="col-md-4">

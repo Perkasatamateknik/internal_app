@@ -18,6 +18,7 @@ class Purchase_deliveries extends Purchasing
 		$this->load->model("Department_model");
 		$this->load->model("Purchase_items_model");
 		$this->load->model("Purchase_model");
+		$this->load->model("Account_trans_model");
 	}
 
 	/*Function to set JSON output*/
@@ -112,26 +113,29 @@ class Purchase_deliveries extends Purchasing
 		}
 	}
 
-	public function get_ajax_pr()
-	{
-		$po_number = $this->input->get('pr_number');
-		$pr_data = $this->Purchase_model->read_pr_by_pr_number($pr_number);
-		$pr_items = $this->Purchase_items_model->read_items_pr_by_pr_number($pr_number)->result();
+	// public function get_ajax_pr()
+	// {
+	// 	$po_number = $this->input->get('pr_number');
+	// 	$pr_data = $this->Purchase_model->read_pr_by_pr_number($pr_number);
+	// 	$pr_items = $this->Purchase_items_model->read_items_pr_by_pr_number($pr_number)->result();
 
-		// dd($pr_data);
-		if (!is_null($pr_data) && !is_null($pr_items)) {
-			$output = [
-				'data' => $pr_data,
-				'items' => $pr_items
-			];
-		} else {
-			$output = false;
-		}
-		echo json_encode($output);
-		exit();
-	}
+	// 	// dd($pr_data);
+	// 	if (!is_null($pr_data) && !is_null($pr_items)) {
+	// 		$output = [
+	// 			'data' => $pr_data,
+	// 			'items' => $pr_items
+	// 		];
+	// 	} else {
+	// 		$output = false;
+	// 	}
+	// 	echo json_encode($output);
+	// 	exit();
+	// }
+
 	public function insert()
 	{
+		$user_id = $this->session->userdata()['username']['user_id'] ?? 0;
+
 		// if ($this->input->is_ajax_request()) {
 		if (true) {
 			$po_number = $this->input->post('po_number');
@@ -157,9 +161,20 @@ class Purchase_deliveries extends Purchasing
 				exit();
 			}
 
+			$read_pl = $this->Purchase_model->read_pl($po_number, 'po_number');
+			if (!is_null($read_pl)) {
+				$payment_number = $read_pl->payment_number;
+			} else {
+				$payment_number = strtoupper(uniqid());
+			}
+
+			// inisialisai var trans
+			$trans = [];
+
 			$user_id = $this->session->userdata()['username']['user_id'] ?? 0;
 			$department_id = $this->session->userdata()['username']['department_id'] ?? 0;
 
+			$delivery_fee = $this->input->post('delivery_fee');
 			$data_pd = array(
 				'vendor_id'			=> $this->input->post('vendor'),
 				'po_number'			=> $po_number,
@@ -172,7 +187,7 @@ class Purchase_deliveries extends Purchasing
 				'delivery_date'		=> $this->input->post('delivery_date'),
 				'delivery_name'		=> $this->input->post('delivery_name'),
 				'delivery_number'	=> $this->input->post('delivery_number'),
-				'delivery_fee'		=> $this->input->post('delivery_fee'),
+				'delivery_fee'		=> $delivery_fee,
 				'status'			=> 1,
 				'reference'			=> $this->input->post('reference'),
 				'attachment'		=> $this->upload_file('delivery'),
@@ -180,7 +195,11 @@ class Purchase_deliveries extends Purchasing
 			);
 
 			$item_insert = [];
+
 			for ($i = 0; $i < count($this->input->post('row_product_id')); $i++) {
+				// cari selisih di item product
+				// $quantity_reject = $this->input->post('row_original_quantity')[$i] - $this->input->post('row_quantity')[$i];
+
 				$item_insert[] = [
 					'pd_number' 		=> $pd_number,
 					'product_id' 		=> $this->input->post('row_product_id')[$i],
@@ -191,11 +210,77 @@ class Purchase_deliveries extends Purchasing
 					'quantity'			=> $this->input->post('row_quantity')[$i],
 					'uom_id'			=> $this->input->post('row_uom_id')[$i],
 					'uom_name'			=> $this->input->post('row_uom_name')[$i] ?? null,
+					// 'quantity_reject'	=> $quantity_reject,
 				];
+
+				// $price_total = $this->input->post('row_price')[$i] * $this->input->post('row_quantity')[$i];
+
+				// $tax_type = $this->input->post('row_tax_type')[$i];
+				// if ($tax_type == 'percentage') {
+				// 	$tax_rate = $tax_type 
+				// }
+
+				// $tax_rate = $this->input->post('row_tax_rate')[$i];
+
+				// $discount_type = $this->input->post('row_discount_type')[$i];
+				// $discount_rate = $this->input->post('row_discount_rate')[$i];
+
+
+				// hitung keseluruhan total dan masuk ke inventory
+				// $total = $this->input->post('row_uom_name')[$i] * $this->input->post('row_uom_name')[$i];
 			}
 
+			$data_po = $this->Purchase_model->read_po_by_po_number($po_number);
+			$dp = $this->Account_trans_model->get_purchasing_dp_by_log($read_pl);
+
+			// masukan total item price ke akun inventory
+			$trans[] =
+				[
+					'account_id' => 7, // inventory
+					'user_id' => $user_id,
+					'account_trans_cat_id' => 6, // = purchase_order
+					'amount' => $data_po->amount, //
+					'date' => date('Y-m-d'),
+					'type' => 'debit',
+					'join_id' => $payment_number,
+					'ref' => "--",
+					'note' => "--",
+					'attachment' => null,
+				];
+
+			// masukan sisa tagihan ke akun 
+			$trans[] =
+				[
+					'account_id' => 35, // unbiled account payable
+					'user_id' => $user_id,
+					'account_trans_cat_id' => 6,
+					'amount' => $data_po->amount - $dp,
+					'date' => date('Y-m-d'),
+					'type' => 'credit',
+					'join_id' => $payment_number,
+					'ref' => "--",
+					'note' => "--",
+					'attachment' => null,
+				];
+
+			// if ($delivery_fee > 0) {
+			// 	$trans[] =
+			// 		[
+			// 			'account_id' => 67,
+			// 			'user_id' => $user_id,
+			// 			'account_trans_cat_id' => 6, // = purchase_order
+			// 			'amount' => $delivery_fee,
+			// 			'date' => date('Y-m-d'),
+			// 			'type' => 'credit',
+			// 			'join_id' => $payment_number,
+			// 			'ref' => "Delivery fee",
+			// 			'note' => "Delivery fee from Purchase Delivery",
+			// 			'attachment' => null,
+			// 		];
+			// }
+
 			// insert data pd
-			$insert_pd = $this->Purchase_model->insert_pd($data_pd, $item_insert);
+			$insert_pd = $this->Purchase_model->insert_pd($data_pd, $item_insert, $trans);
 
 			// tutup status jadi end
 			$this->Purchase_model->update_status_po($po_number, 2);

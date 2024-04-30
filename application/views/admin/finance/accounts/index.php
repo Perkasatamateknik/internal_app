@@ -34,43 +34,6 @@
 							<th><?= $this->lang->line('ms_title_account_balance'); ?></th>
 						</tr>
 					</thead>
-					<!-- <tbody>
-						<tr>
-							<td>2023-09-01</td>
-							<td>Opening Balance</td>
-							<td></td>
-							<td></td>
-							<td>10,000.00</td>
-						</tr>
-						<tr>
-							<td>2023-09-05</td>
-							<td>Salary Payment</td>
-							<td>5,000.00</td>
-							<td></td>
-							<td>15,000.00</td>
-						</tr>
-						<tr>
-							<td>2023-09-10</td>
-							<td>Office Supplies</td>
-							<td>200.00</td>
-							<td></td>
-							<td>14,800.00</td>
-						</tr>
-						<tr>
-							<td>2023-09-15</td>
-							<td>Rent Payment</td>
-							<td>2,000.00</td>
-							<td></td>
-							<td>12,800.00</td>
-						</tr>
-						<tr>
-							<td>2023-09-30</td>
-							<td>Utilities</td>
-							<td>500.00</td>
-							<td></td>
-							<td>12,300.00</td>
-						</tr>
-					</tbody> -->
 				</table>
 			</div>
 		</div>

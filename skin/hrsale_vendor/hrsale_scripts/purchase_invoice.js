@@ -100,6 +100,55 @@ $(document).ready(function () {
 		});
 	});
 
+	$("#payment_form").submit(function (e) {
+		/*Form Submit*/
+		e.preventDefault();
+		var obj = $(this),
+			action = obj.attr("name");
+		var formData = new FormData(obj[0]);
+		formData.append("form", action);
+		jQuery(".save").prop("disabled", true);
+		$(".icon-spinner3").show();
+		jQuery.ajax({
+			type: "POST",
+			enctype: "multipart/form-data",
+			url: e.target.action,
+			data: formData,
+			cache: false,
+			processData: false, // Important for FormData
+			contentType: false, // Important for FormData
+			success: function (JSON) {
+				if (JSON.error != "") {
+					toastr.error(JSON.error);
+					$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
+					$(".save").prop("disabled", false);
+					$(".icon-spinner3").hide();
+					Ladda.stopAll();
+				} else {
+					toastr.options = {
+						timeOut: 500,
+						onHidden: function () {
+							window.location.href = "";
+						},
+					};
+					toastr.success(JSON.result);
+					$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
+					$(".icon-spinner3").hide();
+					$("#payment_form")[0].reset(); // To reset form fields
+					$(".save").prop("disabled", false);
+					Ladda.stopAll();
+				}
+			},
+			error: function (xhr, status, error) {
+				toastr.error("Error: " + status + " | " + error);
+				$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
+				$(".icon-spinner3").hide();
+				$(".save").prop("disabled", false);
+				Ladda.stopAll();
+			},
+		});
+	});
+
 	$("#select_due_date").on("change", function () {
 		var duration = parseInt($("#select_due_date").val());
 		var startDate = new Date($("#date").val());
@@ -199,7 +248,9 @@ function update_total() {
 	});
 
 	var delivery_fee = $("#delivery_fee").val();
-	total = parseFloat(total) + parseFloat(delivery_fee);
+	var service_fee = $("#service_fee").val();
+	total =
+		parseFloat(total) + parseFloat(delivery_fee) + parseFloat(service_fee);
 
 	$("#amount").val(total);
 	$("#amount_show").text(formatCurrency(total));
@@ -213,7 +264,7 @@ $(document).on("load", function () {
 // Calculate subtotal whenever row_qty or row_item_price is changed
 $(document).on(
 	"change click keyup load",
-	".row_qty, .row_item_price, .delivery_fee, .row_tax_price, .row_discount_price, [data-plugin='select_item'], .row_discount_rate_show, .row_discount_tax_show",
+	".row_qty, .row_item_price, .delivery_fee, .service_fee, .row_tax_price, .row_discount_price, [data-plugin='select_item'], .row_discount_rate_show, .row_discount_tax_show",
 	function () {
 		var row = $(this).closest("tr");
 		var id = row.attr("data-id");
@@ -387,7 +438,7 @@ function addRow() {
 			</select>
 			<input type="hidden" class="row_tax_rate" name="row_tax_rate[]" id="row_tax_rate_${rowCount}" value="0">
 			<input type="hidden" class="data_tax_rate" value="0">
-			<input type="hidden" class="data_tax_type" value="fixed"><br>
+			<input type="hidden" class="data_tax_type" value="fixed" name="data_tax_type[]"><br>
 			<strong class="row_tax_rate_show currency" style="font-size:10px"></strong>
 		</td>
 
@@ -396,7 +447,7 @@ function addRow() {
 				<option value="">${ms_select_discount}</option>
 			</select>
 			<input type="hidden" class="row_discount_rate" name="row_discount_rate[]" id="row_discount_rate_${rowCount}" value="0">
-			<input type="hidden" class="data_discount_type" value="0">
+			<input type="hidden" class="data_discount_type" value="0" name="data_discount_type[]">
 			<input type="hidden" class="data_discount_rate" value="0"><br>
 			<strong class='row_discount_rate_show currency' style='font-size:10px'></strong>
 		</td>
@@ -1058,6 +1109,7 @@ $(window).on("load", function () {
 					$("#delivery_name").val(response.data.delivery_name);
 					$("#delivery_number").val(response.data.delivery_number);
 					$("#delivery_fee").val(response.data.delivery_fee);
+					$("#service_fee").val(response.data.service_fee);
 					$("#reference").val(response.data.reference);
 					$("#notes").val(response.data.notes);
 

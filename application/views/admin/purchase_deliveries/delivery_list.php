@@ -42,7 +42,7 @@
 										<div class="col-md-6">
 											<div class="form-group">
 												<label for="faktur_number"><?php echo $this->lang->line('xin_invoice_number'); ?></label>
-												<input class="form-control" placeholder="<?php echo $this->lang->line('xin_invoice_number'); ?>" id="faktur_number" name="faktur_number" type="text" required>
+												<input class="form-control" placeholder="<?php echo $this->lang->line('xin_invoice_number'); ?>" id="faktur_number" name="faktur_number" type="text" value="<?= $record->faktur_number; ?>" required>
 											</div>
 										</div>
 										<div class="col-md-6">
@@ -106,7 +106,7 @@
 					</div>
 					<div class="col-md-12">
 						<div class="table-responsive">
-							<table class="table table-striped table-hover table-cell-input" id="ms_table_itemss">
+							<table class="table table-striped table-hover table-cell-input w-100" id="ms_table_itemss">
 								<thead class="thead-light">
 									<tr>
 										<th><?php echo $this->lang->line('xin_title_item'); ?></th>
@@ -122,23 +122,25 @@
 										$count += $r->quantity;
 									?>
 										<tr>
-											<td>
+											<td style="width: 30%;">
 												<?= $r->product_name ?? "--"; ?>
 												<input type="hidden" name="row_product_id[]" value="<?= $r->product_id; ?>">
 												<input type="hidden" name="row_product_name[]" value="<?= $r->product_name; ?>">
 												<input type="hidden" name="row_product_number[]" value="<?= $r->product_number; ?>">
 											</td>
-											<td>
+											<td style="width: 40%;">
 												<?= $r->project_name ?? "--"; ?>
 												<input type="hidden" name="row_project_id[]" value="<?= $r->project_id; ?>">
 												<input type="hidden" name="row_project_name[]" value="<?= $r->project_name; ?>">
 
 											</td>
-											<td>
-												<?= $r->quantity; ?>
-												<input type="hidden" name="row_quantity[]" value="<?= $r->quantity; ?>">
+											<td style="width: 10%;">
+												<input type="number" name="row_quantity[]" value="<?= $r->quantity; ?>" max="<?= $r->quantity; ?>" min="0" class="form-control" readonly>
+												<input type="hidden" name="row_original_quantity[]" value="<?= $r->quantity; ?>">
+
+												<!-- <input type="hidden" name="row_tax[]" value="<?= $r->quantity; ?>"> -->
 											</td>
-											<td>
+											<td style="width: 20%;">
 												<?= $r->uom_name ?? "--"; ?>
 												<input type="hidden" name="row_uom_id[]" value="<?= $r->uom_id; ?>">
 												<input type="hidden" name="row_uom_name[]" value="<?= $r->uom_name; ?>">

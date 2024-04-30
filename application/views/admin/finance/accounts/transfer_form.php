@@ -37,13 +37,13 @@
 					<div class="col-md-6">
 						<div class="form-group">
 							<label for="amount"><?= $this->lang->line('ms_title_amount'); ?></label>
-							<input type="number" name="amount" id="amount" min="0" class="form-control" required value="0">
+							<input type="number" name="amount" id="amount" min="0" class="form-control number-separator" required value="0">
 						</div>
 					</div>
 					<div class="col-md-6">
 						<div class="form-group">
 							<label for="date"><?= $this->lang->line('ms_title_transfer_date'); ?></label>
-							<input type="datetime-local" name="date" id="date" class="form-control" value="<?= date('d/m/Y H:i'); ?>" required>
+							<input type="date" name="date" id="date" class="form-control" value="<?= date('d/m/Y H:i'); ?>" required>
 						</div>
 					</div>
 					<div class="col-md-6">

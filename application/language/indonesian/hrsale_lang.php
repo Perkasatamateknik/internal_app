@@ -256,7 +256,7 @@ $lang['xin_view_gtonext'] = 'Pergi ke bulan berikutnya';
 $lang['xin_gtopre'] = 'Pergi ke bulan sebelumnya';
 $lang['xin_view_pamonth'] = 'Pilih satu bulan dari dropdown';
 $lang['xin_view_payear'] = 'Pilih satu tahun dari dropdown';
-$lang['xin_delete_confirm'] = 'Apakah Anda yakin ingin menghapus catatan ini?';
+$lang['xin_delete_confirm'] = 'Yakin ingin menghapus data ini?';
 $lang['xin_d_not_restored'] = "Rekaman yang dihapus tidak dapat dipulihkan kembali !!!";
 $lang['xin_confirm_del'] = 'Konfirmasi';
 
@@ -1033,6 +1033,7 @@ $lang['xin_error_msg'] = 'Bug. Ada yang salah, silakan coba lagi. ';
 $lang['xin_added_msg'] = 'Selamat!. Data ditambahkan. ';
 $lang['xin_edited_msg'] = 'Selamat!. Data diperbarui. ';
 $lang['xin_add_new'] = 'Tambah Baru';
+$lang['xin_add'] = 'Tambah';
 $lang['xin_hide'] = 'Sembunyikan';
 $lang['xin_search'] = 'Cari';
 $lang['xin_close'] = 'Tutup';
@@ -3127,7 +3128,8 @@ $lang['ms_purchasing'] = "Pembelian";
 $lang['ms_purchase_number'] = "Number";
 $lang['ms_purchase_origin'] = "Tipe Purchase";
 $lang['ms_purchase_pic'] = "PIC";
-$lang['ms_purchase_log'] = "Log Documents";
+$lang['ms_purchase_log'] = "Log Pembayaran";
+$lang['ms_document_log'] = "Log Documents";
 
 
 
@@ -3190,6 +3192,7 @@ $lang['ms_payment_date'] = "Tanggal Transaksi";
 $lang['ms_payment_ref'] = "Ref Transaksi";
 $lang['ms_payment_account_source'] = "Akun Pembayaran";
 $lang['ms_payment_amount_paid'] = "Jumlah Dibayarkan";
+$lang['ms_payment_i'] = "Pembayaran ke-";
 
 $lang['ms_purchase_by_vendors'] = "Purchase Per Vendor";
 $lang['ms_notes'] = "Catatan";
@@ -3265,6 +3268,8 @@ $lang['ms_title_note'] = "Catatan";
 $lang['ms_title_beneficiary'] = "Penerima";
 $lang['ms_title_select_options'] = "-- Pilih Data --";
 $lang['ms_title_select_year'] = "-- Pilih Tahun --";
+$lang['ms_title_select'] = "-- Pilih Data --";
+$lang['ms_title_select_department'] = "-- Pilih Departemen --";
 
 
 $lang['ms_title_paid_expenses'] = "Beban Dibayar";
@@ -3326,6 +3331,7 @@ $lang['ms_title_yes'] = "Ya";
 $lang['ms_title_yes'] = "Ya";
 $lang['ms_title_payment_paid'] = "Terbayar";
 $lang['ms_title_payment_unpaid'] = "Belum Dibayar";
+$lang['ms_title_down_payment'] = "Uang Muka";
 
 $lang['ms_title_form_last_month'] = "Dari Bulan Terakhir";
 $lang['ms_title_amount_expense'] = "Total Expense";
@@ -3344,6 +3350,9 @@ $lang['ms_title_trans_overview'] = "Overview Transaksi";
 
 
 
+$lang['ms_title_budget_name'] = "Nama Anggaran";
+$lang['ms_title_add_year_budgeting'] = "Tambah Tahun Anggaran";
+$lang['ms_title_add_budget_data'] = "Tambah Data Anggaran";
 
 
 /////////////////////////////////////////////////// akhir hrsale v2.0.1

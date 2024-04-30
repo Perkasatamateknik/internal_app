@@ -16,17 +16,22 @@
 	}
 </style>
 <div class="modal fadeInLeft delete-modal animated " role="dialog" aria-hidden="true">
-	<div class="modal-dialog">
+	<div class="modal-dialog modal-sm">
 		<div class="modal-content">
 			<div class="modal-header"> <?php echo form_button(array('aria-label' => 'Close', 'data-dismiss' => 'modal', 'type' => 'button', 'class' => 'close', 'content' => '<span aria-hidden="true">×</span>')); ?> <strong class="modal-title"><?php echo $this->lang->line('xin_delete_confirm'); ?></strong> </div>
-			<div class="alert alert-danger">
-				<strong><?php echo $this->lang->line('xin_d_not_restored'); ?></strong>
-			</div>
 			<?php $attributes = array('name' => 'delete_record', 'id' => 'delete_record', 'autocomplete' => 'off', 'role' => 'form'); ?>
 			<?php $hidden = array('_method' => 'DELETE', '_token' => '000'); ?>
 			<?php echo form_open('', $attributes, $hidden); ?>
+			<div class="modal-body">
+				<center>
+					<i class="fa fa-exclamation-triangle text-danger fa-5x pb-3" style="font-size: 5em;" aria-hidden="true"></i>
+					<br>
+					<span class="text-danger py-3"><?php echo $this->lang->line('xin_d_not_restored'); ?></span>
+					<br>
+					<div id="data-message" class="data-message"></div>
+				</center>
+			</div>
 			<div class="modal-footer">
-
 				<?php
 				$del_token = array(
 					'type'  => 'hidden',
@@ -37,8 +42,8 @@
 				echo form_input($del_token);
 				?>
 
-				<?php echo form_button(array('data-dismiss' => 'modal', 'type' => 'button', 'class' => 'btn btn-secondary', 'content' => '<i class="fa far fa-check-square"></i> ' . $this->lang->line('xin_close'))); ?>
-				<?php echo form_button(array('name' => 'hrsale_form', 'type' => 'submit', 'class' => $this->Xin_model->form_button_class(), 'content' => '<i class="fa far fa-check-square"></i> ' . $this->lang->line('xin_confirm_del'))); ?> <?php echo form_close(); ?> </div>
+				<?php echo form_button(array('data-dismiss' => 'modal', 'type' => 'button', 'class' => 'btn btn-secondary', 'content' => $this->lang->line('xin_close'))); ?>
+				<?php echo form_button(array('name' => 'hrsale_form', 'type' => 'submit', 'class' => $this->Xin_model->form_button_class(), 'content' => $this->lang->line('xin_confirm_del'))); ?> <?php echo form_close(); ?> </div>
 		</div>
 	</div>
 </div>
@@ -52,7 +57,7 @@
 		<div class="modal-content" id="ajax_modal_views"></div>
 	</div>
 </div>
-<div class="modal fadeInRight edit-modal-data animated " id="edit-modal-data" role="dialog" aria-labelledby="edit-modal-data" aria-hidden="true">
+<div class="modal fadeInRight edit-modal-data animated" id="edit-modal-data" role="dialog" aria-labelledby="edit-modal-data" aria-hidden="true">
 	<div class="modal-dialog modal-lg">
 		<div class="modal-content" id="ajax_modal"></div>
 	</div>
@@ -114,7 +119,7 @@
 	</div>
 </div>
 <div class="modal fadeInLeft delete-modal-file animated " role="dialog" aria-hidden="true">
-	<div class="modal-dialog">
+	<div class="modal-dialog modal-sm">
 		<div class="modal-content">
 			<div class="modal-header"> <?php echo form_button(array('aria-label' => 'Close', 'data-dismiss' => 'modal', 'type' => 'button', 'class' => 'close', 'content' => '<span aria-hidden="true">×</span>')); ?> <strong class="modal-title"><?php echo $this->lang->line('xin_delete_confirm'); ?></strong> </div>
 			<div class="alert alert-danger">
@@ -135,6 +140,11 @@
 <div class="modal fadeInRight add-modal-data animated " id="add-modal-data" role="dialog" aria-labelledby="add-modal-data" aria-hidden="true">
 	<div class="modal-dialog">
 		<div class="modal-content" id="add_ajax_modal"></div>
+	</div>
+</div>
+<div class="modal fadeInRight show_modal animated" id="show_modal" role="dialog" aria-labelledby="show_modal" aria-hidden="true">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content" id="show_modal_data"></div>
 	</div>
 </div>
 <div class="modal fadeInLeft delete-modal-task animated " role="dialog" aria-hidden="true">

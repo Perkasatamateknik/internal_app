@@ -34,65 +34,78 @@ class Budgeting_model extends CI_Model
 
 	public function get($id)
 	{
-		$this->db->where('expense_id', $id);
-		return $this->db->get("ms_finance_expenses");
+		$this->db->where('budget_id', $id);
+		return $this->db->get("ms_finance_budgeting")->row();
 	}
 
-	public function get_last_spend()
+	public function get_items_budget($id) //id budgeting
 	{
-		return $this->db->select('*')
-			->from('ms_finance_expenses')
-			->order_by('trans_number', 'desc')
-			->limit(1)->get()->row();
-	}
+		$this->db->where('budget_id', $id);
+		$budget_dep = $this->db->get("ms_finance_budgeting_department")->result();
+		foreach ($budget_dep as $key => $r) {
 
-	public function init_trans()
-	{
-		$last = $this->get_last_spend();
+			$dep = $this->db->where('department_id', $r->department_id)->get('xin_departments')->row();
+			if (!is_null($dep)) {
+				$budget_dep[$key]->department_name = $dep->department_name;
+			} else {
+				$budget_dep[$key]->department_name = "--";
+			}
 
-		if (is_null($last) or !in_array(null, [$last->beneficiary], true)) {
-			$trans_number = $this->trans_number();
-			$this->db->insert('ms_finance_expenses', [
-				'trans_number' => $trans_number
-			]);
-			$last_id = $this->db->insert_id();
+			$budget_data = $this->db->where('budget_dep_id', $r->budget_dep_id)->get('ms_finance_budgeting_data')->result();
+			foreach ($budget_data as $i => $bd) {
+				$account = $this->db->where('account_id', $bd->account_id)->get('ms_finance_accounts')->row();
+				if (!is_null($account)) {
+					$budget_data[$i]->account_name = "<b>$account->account_name</b>" . "  " . $account->account_code;
+				} else {
+					$budget_data[$i]->account_name = "--";
+				}
+			}
 
-			return $this->get($last_id)->row();
-		} else {
-			return $last;
+			$budget_dep[$key]->budget_data = $budget_data;
 		}
+
+		return $budget_dep;
 	}
 
-	public function update_with_items_and_files($id, $data, array $items = null, array $files = null)
+	public function add_budget($data)
 	{
 		$this->db->trans_start();
-		$this->db->update('ms_finance_expenses', $data, ['expense_id' => $id]);
-
-		if (!is_null($items)) {
-			if (count($items) > 0) {
-				$this->db->insert_batch('ms_finance_expense_trans', $items);
-			}
-		}
-
-		if (!is_null($files)) {
-			if (count($files) > 0) {
-				$this->db->insert_batch('ms_files', $files);
-			}
-		}
-
+		$this->db->update("ms_finance_budgeting", ['status' => 0, 'updated_at' => date("y-m-d H:i:s")]);
+		$this->db->insert("ms_finance_budgeting", $data);
 		$this->db->trans_complete();
 		return $this->db->trans_status();
 	}
 
-	public function get_by_number_doc($id)
+	public function add_budget_data($department, $data)
 	{
-		$this->db->where("trans_number", $id);
-		$res = $this->db->get("ms_finance_expenses");
+		$this->db->trans_start();
+		$this->db->insert("ms_finance_budgeting_department", $department);
 
-		if ($res->num_rows() > 0) {
-			return $res->row();
-		} else {
-			return null;
+		// Get the last insert ID
+		$department_id = $this->db->insert_id();
+		foreach ($data as $key => $val) {
+			$data[$key]['budget_dep_id'] = $department_id;
 		}
+
+		$this->db->insert_batch("ms_finance_budgeting_data", $data);
+		$this->db->trans_complete();
+		return $this->db->trans_status();
+	}
+
+
+
+	public function get_used_year()
+	{
+		$query = $this->db->select('year')
+			->from('ms_finance_budgeting')
+			->order_by('year', 'desc')
+			->get();
+
+		$year = [];
+		foreach ($query->result() as $q) {
+			$year[] = $q->year;
+		}
+
+		return $year;
 	}
 }

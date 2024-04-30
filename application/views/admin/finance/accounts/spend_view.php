@@ -103,7 +103,12 @@ if ($id == '') {
 								$amount = 0;
 								if (!is_null($items)) {
 									foreach ($items as $r) {
-										$amount = ($r->amount + $r->tax_rate) + $amount;
+
+										if ($r->tax_withholding) {
+											$amount += ($r->amount - $r->tax_rate);
+										} else {
+											$amount += ($r->amount + $r->tax_rate);
+										}
 								?>
 										<tr>
 											<td><?= $r->account_name; ?></td>
@@ -127,13 +132,13 @@ if ($id == '') {
 									<td></td>
 									<td><strong><?= $this->lang->line('ms_title_amount_paid'); ?></strong></td>
 									<td></td>
-									<td><strong><?= $this->Xin_model->currency_sign($record->jumlah_dibayar); ?></strong></td>
+									<td><strong><?= $this->Xin_model->currency_sign($payment->jumlah_dibayar); ?></strong></td>
 								</tr>
 								<tr>
 									<td></td>
 									<td><strong><?= $this->lang->line('ms_title_remaining_bill'); ?></strong></td>
 									<td></td>
-									<td><strong class="text-danger"><?= $this->Xin_model->currency_sign($record->sisa_tagihan); ?></strong></td>
+									<td><strong class="text-danger"><?= $this->Xin_model->currency_sign($payment->sisa_tagihan); ?></strong></td>
 								</tr>
 							</tfoot>
 						</table>
@@ -186,7 +191,7 @@ if ($id == '') {
 		</div>
 	<?php }; ?>
 
-	<?php if ($record->sisa_tagihan != 0) {; ?>
+	<?php if ($payment->sisa_tagihan != 0) {; ?>
 		<div class="col-md-12">
 			<div class="card mb-3">
 				<div class="card-header">
@@ -194,8 +199,8 @@ if ($id == '') {
 				</div>
 				<div class="card-body">
 					<?php $attributes = array('name' => 'payment_form', 'id' => 'payment_form', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
-					<?php $hidden = array('type' => 'transfer', '_token' => $record->spend_id); ?>
-					<?php echo form_open('admin/finance/accounts/store_spend_payment', $attributes, $hidden); ?>
+					<?php $hidden = array('type' => 'spend', '_token' => $record->trans_number); ?>
+					<?php echo form_open('admin/finance/accounts/store_payment', $attributes, $hidden); ?>
 					<div class="row">
 						<div class="col-md-4">
 							<div class="form-group">
@@ -206,13 +211,13 @@ if ($id == '') {
 						<div class="col-md-4">
 							<div class="form-group">
 								<label for="payment_ref"><?php echo $this->lang->line('ms_payment_ref'); ?></label>
-								<input type="text" name="payment_ref" id="payment_ref" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_ref'); ?>" required>
+								<input type="text" name="payment_ref" id="payment_ref" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_ref'); ?>">
 							</div>
 						</div>
 						<div class="col-md-4">
 							<div class="form-group">
 								<label for="attachment"><?php echo $this->lang->line('xin_attachment'); ?></label>
-								<input type="file" class="form-control" name="attachment" id="attachment" required>
+								<input type="file" class="form-control" name="attachment" id="attachment">
 							</div>
 						</div>
 						<div class="col-md-4">
@@ -225,7 +230,7 @@ if ($id == '') {
 						<div class="col-md-4">
 							<div class="form-group">
 								<label for="amount_paid"><?php echo $this->lang->line('ms_payment_amount_paid'); ?></label>
-								<input type="number" min="0" max="<?= $record->sisa_tagihan; ?>" value="<?= $record->sisa_tagihan; ?>" name="amount_paid" id="amount_paid" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_amount_paid'); ?>" required>
+								<input type="number" min="0" max="<?= $payment->sisa_tagihan; ?>" value="<?= $payment->sisa_tagihan; ?>" name="amount_paid" id="amount_paid" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_amount_paid'); ?>" required>
 							</div>
 						</div>
 						<div class="col-md-4">
@@ -241,7 +246,7 @@ if ($id == '') {
 		</div>
 	<?php }; ?>
 
-	<?php if ($record->jumlah_dibayar != 0) {; ?>
+	<?php if ($payment->jumlah_dibayar != 0) {; ?>
 		<div class="col-12">
 			<div class="card">
 				<div class="card-header">
@@ -263,8 +268,7 @@ if ($id == '') {
 									</thead>
 									<tbody>
 										<?php
-										// dd($record->log_payments);
-										foreach ($record->log_payments as $key => $value) {
+										foreach ($payment->log_payments as $key => $value) {
 											if (empty($value->first_name) or empty($value->last_name)) {
 												$pic = "--";
 											} else {
