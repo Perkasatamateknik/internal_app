@@ -21,6 +21,7 @@ class Ajax_request extends MY_Controller
 		$this->load->model("Purchase_items_model");
 		$this->load->model("Accounts_model");
 		$this->load->model("department_model");
+		$this->load->model("Expense_items_model");
 		$this->load->model("Account_categories_model");
 
 		$this->load->model("Expense_model");
@@ -597,25 +598,28 @@ class Ajax_request extends MY_Controller
 
 	public function delete_item_expense()
 	{
-		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
-		$Return['csrf_hash'] = $this->security->get_csrf_hash();
+		// if ($this->input->is_ajax_request()) {
+		if (true) {
+			$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
+			$Return['csrf_hash'] = $this->security->get_csrf_hash();
 
-		$id = $this->input->post('id');
-		$type = $this->input->post('type') ?? "";
+			$id = $this->input->post('id') ?? 30;
+			$type = $this->input->post('type') ?? "";
 
-		if ($type == 'po_number') {
-			$del = $this->Expense_items_model->delete_item_by_trans_number($id);
-		} else {
-			$del = $this->Expense_items_model->delete_item_by_id($id);
+			try {
+				$del = $this->Expense_items_model->delete_item_by_id($id);
+
+				if ($del) {
+					$Return['result'] = $this->lang->line('ms_item_deleted');
+				} else {
+					$Return['error'] = $this->lang->line('xin_error_msg');
+				}
+			} catch (Throwable $e) {
+				$Return['error'] = $e->getMessage();
+			}
+
+			$this->output($Return);
+			exit;
 		}
-
-		if ($del) {
-			$Return['result'] = $this->lang->line('ms_item_deleted');
-		} else {
-			$Return['error'] = $this->lang->line('xin_error_msg');
-		}
-
-		$this->output($Return);
-		exit;
 	}
 }

@@ -125,6 +125,7 @@
 <!-- <script src="https://cdn.jsdelivr.net/npm/jquery-autocomplete@1.2.8/jquery.autocomplete.min.js"></script> -->
 
 <script type="text/javascript" src="<?php echo base_url(); ?>skin/hrsale_vendor/assets/vendor/toastr/toastr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script type="text/javascript">
 	$(document).ready(function() {
@@ -283,14 +284,14 @@
 
 
 
-<script>
+<!-- <script>
 	$(document).ready(function() {
 		$(".select").select2({
 			tags: true,
 			width: "100%",
 		});
 	});
-</script>
+</script> -->
 
 <?php if ($this->router->fetch_class() == 'dashboard') { ?>
 	<?php if ($user[0]->user_role_id != 1) : ?>

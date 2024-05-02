@@ -380,6 +380,14 @@ class Expenses extends MY_Controller
 
 	public function view()
 	{
+		$data['title'] = $this->Xin_model->site_title();
+		$session = $this->session->userdata('username');
+		$data['breadcrumbs'] = $this->lang->line('ms_title_expense');
+		$data['path_url'] = 'finance/expense';
+		if (empty($session)) {
+			redirect('admin/');
+		}
+
 		$id = $this->input->get('id');
 
 		$role_resources_ids = $this->Xin_model->user_role_resource();
@@ -421,13 +429,6 @@ class Expenses extends MY_Controller
 			redirect('admin/finance/expense');
 		}
 
-		$data['title'] = $this->Xin_model->site_title();
-		$session = $this->session->userdata('username');
-		$data['breadcrumbs'] = $this->lang->line('ms_title_expense');
-		$data['path_url'] = 'finance/expense';
-		if (empty($session)) {
-			redirect('admin/');
-		}
 
 		$data['record'] = $record;
 		if (in_array('503', $role_resources_ids)) {
@@ -440,6 +441,14 @@ class Expenses extends MY_Controller
 
 	public function edit()
 	{
+		$data['title'] = $this->Xin_model->site_title();
+		$session = $this->session->userdata('username');
+		$data['breadcrumbs'] = $this->lang->line('ms_title_expense');
+		$data['path_url'] = 'finance/expense';
+		if (empty($session)) {
+			redirect('admin/');
+		}
+
 		$id = $this->input->get('id');
 
 		$role_resources_ids = $this->Xin_model->user_role_resource();
@@ -479,14 +488,6 @@ class Expenses extends MY_Controller
 			$data['items'] = $items;
 		} else {
 			redirect('admin/finance/expense');
-		}
-
-		$data['title'] = $this->Xin_model->site_title();
-		$session = $this->session->userdata('username');
-		$data['breadcrumbs'] = $this->lang->line('ms_title_expense');
-		$data['path_url'] = 'finance/expense';
-		if (empty($session)) {
-			redirect('admin/');
 		}
 
 		$data['record'] = $record;

@@ -15,7 +15,7 @@
 		z-index: 1100 !important;
 	}
 </style>
-<div class="modal fadeInLeft delete-modal animated " role="dialog" aria-hidden="true">
+<div class="modal fadeInLeft delete-modal animated" role="dialog" aria-hidden="true" tabindex="-1">
 	<div class="modal-dialog modal-sm">
 		<div class="modal-content">
 			<div class="modal-header"> <?php echo form_button(array('aria-label' => 'Close', 'data-dismiss' => 'modal', 'type' => 'button', 'class' => 'close', 'content' => '<span aria-hidden="true">×</span>')); ?> <strong class="modal-title"><?php echo $this->lang->line('xin_delete_confirm'); ?></strong> </div>

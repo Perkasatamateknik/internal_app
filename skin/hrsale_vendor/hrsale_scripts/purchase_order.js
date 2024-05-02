@@ -600,7 +600,7 @@ $(document).on("click", ".remove-item", function () {
 					$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
 				},
 				error: function (jqXHR, textStatus, errorThrown) {
-					toastr.error("Error: " + textStatus + " | " + error);
+					toastr.error("Error: " + textStatus + " | " + jqXHR);
 					$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
 				},
 			});

@@ -343,14 +343,14 @@ function addRow() {
 }
 
 // remove item
-$(document).on("click", ".remove-item", function () {
-	$(this)
-		.closest(".item-row")
-		.fadeOut(300, function () {
-			$(this).remove();
-			update_total();
-		});
-});
+// $(document).on("click", ".remove-item", function () {
+// 	$(this)
+// 		.closest(".item-row")
+// 		.fadeOut(300, function () {
+// 			$(this).remove();
+// 			update_total();
+// 		});
+// });
 
 // Fungsi edit otomatic kaluasi saat load
 // addRow();
@@ -398,7 +398,6 @@ $(document).on(
 		var row = $(this).closest("tr");
 		var id = row.attr("data-id");
 		update_row_amount(id);
-		// update_total();
 	}
 );
 
@@ -529,24 +528,24 @@ $(window).on("load", function () {
 						$("#row_target_id_" + key)
 							.append(option)
 							.trigger("change");
-						// row.find(".row_target_id").val(value.item_name);
 
 						if (value.tax_name != null) {
 							$("#row_tax_id_" + key).append(
 								new Option(value.tax_name, value.tax_id, true, true)
 							);
-							// row.find(".row_target_id").val(value.item_name);
+
+							row.find(".row_tax_rate").val(value.tax_rate);
+							row
+								.find(".row_tax_rate_show")
+								.text(formatCurrency(value.tax_rate));
 						}
 						row.find(".row_note").val(value.note);
 						row.find(".row_amount").val(value.amount);
 						row.find(".row_amount_show").text(formatCurrency(value.amount));
 
 						// set tombol delete to ajax
-						row.find(".remove-item").attr("data-record-id", value.trans_number); // set id trans_number
-						row.find(".remove-item").attr("data-toggle", "modal"); // set button remove to ajax delete item
-						row.find(".remove-item").attr("data-target", ".delete-modal");
-						row.find(".remove-item").addClass("remove_ajax");
-						row.find(".remove_ajax").removeClass("remove-item");
+						row.find(".remove-item").attr("data-ajax", "true");
+						row.find(".remove-item").attr("data-id", value.expense_trans_id); // set id item expense
 
 						row.find(".fa").removeClass("fa-minus"); // remove class btn danger
 						row.find(".fa").addClass("fa-trash"); // remove class btn danger
@@ -653,22 +652,28 @@ $(document).on("click", ".remove-item", function () {
 			var id = $(this).data("id");
 			var row = $(this).closest("tr");
 			$.ajax({
-				url: site_url + "ajax_request/delete_item_po",
+				url: site_url + "ajax_request/delete_item_expense",
 				type: "POST",
 				data: {
 					csrf_hrsale: $('input[name="csrf_hrsale"]').val(),
 					id: id,
 				},
 				success: function (JSON) {
-					row.fadeOut(300, function () {
-						$(this).remove();
-						update_total();
-					});
-					toastr.success(JSON.result);
-					$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
+					// jika ada error
+					if (JSON.error != "") {
+						toastr.error(JSON.error);
+						$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
+					} else {
+						row.fadeOut(300, function () {
+							$(this).remove();
+							// update_total();
+						});
+						toastr.success(JSON.result);
+						$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
+					}
 				},
 				error: function (jqXHR, textStatus, errorThrown) {
-					toastr.error("Error: " + textStatus + " | " + error);
+					toastr.error("Error: " + textStatus + " | " + jqXHR);
 					$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
 				},
 			});

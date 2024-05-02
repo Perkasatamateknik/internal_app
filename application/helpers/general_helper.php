@@ -2496,3 +2496,60 @@ if (!function_exists('getTimeDisplay')) {
 		}
 	}
 }
+
+
+if (!function_exists('count_tax')) {
+	function count_tax($amount, $tax_rate = 0, $tax_type = 'percentage', $withholding = false)
+	{
+		if ($tax_type == 'percentage') {
+			$tax_total = $tax_rate / 100 * $amount;
+		} else {
+			$tax_total = $tax_rate;
+		}
+
+		if ($withholding) {
+			return $amount - $tax_total;
+		} else {
+			return $amount + $tax_total;
+		}
+	}
+}
+
+if (!function_exists('count_tax_expenses')) {
+	function count_tax_expenses($records)
+	{
+		$data = new stdClass();
+
+		if (count($records) > 0) {
+			$tax_withholding = 0;
+			$tax_no_withholding = 0;
+			$amount_item = 0;
+
+			foreach ($records as $r) {
+
+				// hitung total amount_item
+				$amount_item += $r->amount;
+
+				// jika tax tanpa withholding
+				if ($r->tax_withholding == 1) {
+					//hitung total tax no withholding
+					$tax_withholding += $r->tax_rate;
+				} else {
+					$tax_no_withholding += $r->tax_rate;
+				}
+			}
+
+			$data->tax_withholding = $tax_withholding;
+			$data->tax_no_withholding = $tax_no_withholding;
+			$data->amount_item = $amount_item;
+			$data->amount_item_total = $amount_item + ($tax_no_withholding - $tax_withholding);
+		} else {
+			$data->tax_withholding = 0;
+			$data->tax_no_withholding = 0;
+			$data->amount_item = 0;
+			$data->amount_item_total = 0;
+		}
+
+		return $data;
+	}
+}

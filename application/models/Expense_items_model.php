@@ -49,41 +49,62 @@ class Expense_items_model extends CI_Model
 	public function delete_item_by_trans_number($id)
 	{
 		$this->db->trans_start();
-		$this->db->where('pr_number', $id)->delete('ms_finance_expense_trans');
-		$records = $this->db->where('pr_number', $id)->get('ms_finance_expense_trans')->result();
+		$this->db->where('trans_number', $id)->delete('ms_finance_expense_trans');
+		$records = $this->db->where('trans_number', $id)->get('ms_finance_expense_trans')->result();
 
-		$tax_withholding = 0;
-		$tax_no_withholding = 0;
-		$amount_item = 0;
-
-		foreach ($records as $r) {
-
-			// hitung total amount_item
-			$amount_item += $r->amount_item;
-
-			// jika tax tanpa withholding
-			if ($r->tax_withholding == 1) {
-				//hitung total tax no withholding
-				$tax_withholding += $r->tax_rate;
-			} else {
-				$tax_no_withholding += $r->tax_rate;
-			}
-		}
+		$data = count_tax_expenses($records);
 
 		// update trade payable
-		$this->db->where('account_id', 34)->where('join_id', $id)->update('ms_finance_account_transactions', ['amount' => $amount_item + ($tax_no_withholding - $tax_withholding)]);
+		$this->db->where('account_id', 34)->where('join_id', $id)->update('ms_finance_account_transactions', ['amount' => $data->amount_item_total]);
 
-		if ($tax_withholding > 0) {
+		if ($data->tax_withholding > 0) {
 			// update tax total ke akun VAT Out - withholding
-			$this->db->where('account_id', 45)->where('join_id', $id)->update('ms_finance_account_transactions', ['amount' => $tax_withholding]);
+			$this->db->where('account_id', 45)->where('join_id', $id)->update('ms_finance_account_transactions', ['amount' => $data->tax_withholding]);
 		}
 
-		if ($tax_no_withholding > 0) {
+		if ($data->tax_no_withholding > 0) {
 			// update tax total ke akun VAT In - no withholding
-			$this->db->where('account_id', 14)->where('join_id', $id)->update('ms_finance_account_transactions', ['amount' => $tax_no_withholding]);
+			$this->db->where('account_id', 14)->where('join_id', $id)->update('ms_finance_account_transactions', ['amount' => $$data->tax_no_withholding]);
 		}
 
 		$this->db->trans_complete();
 		return $this->db->trans_status();
+	}
+
+	public function delete_item_by_id($id)
+	{
+		$this->db->trans_start();
+
+		// simpan dulu data trans_number nya
+		$data = $this->db->where('expense_trans_id', $id)->get('ms_finance_expense_trans')->row();
+		$trans_number = $data->trans_number;
+
+		// hapus data
+		$this->db->where('expense_trans_id', $id)->delete('ms_finance_expense_trans');
+
+		// hitung ulang tagihan
+		$this->calculate_expense_payment($trans_number);
+
+		$this->db->trans_complete();
+		return $this->db->trans_status();
+	}
+
+	public function calculate_expense_payment($trans_number)
+	{
+		$records = $this->db->where('trans_number', $trans_number)->get('ms_finance_expense_trans')->result();
+		$data = count_tax_expenses($records);
+
+		// update trade payable
+		$this->db->where('account_id', 34)->where('join_id', $trans_number)->update('ms_finance_account_transactions', ['amount' => $data->amount_item_total]);
+
+		if ($data->tax_withholding > 0) {
+			// update tax total ke akun VAT Out - withholding
+			$this->db->where('account_id', 45)->where('join_id', $trans_number)->update('ms_finance_account_transactions', ['amount' => $data->tax_withholding]);
+		}
+
+		if ($data->tax_no_withholding > 0) {
+			// update tax total ke akun VAT In - no withholding
+			$this->db->where('account_id', 14)->where('join_id', $trans_number)->update('ms_finance_account_transactions', ['amount' => $$data->tax_no_withholding]);
+		}
 	}
 }

@@ -4,6 +4,28 @@
 	</div>
 </div>
 
+
+
+<!-- Modal -->
+<div class="modal fade" id="modelId" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Modal title</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				Body
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-primary">Save</button>
+			</div>
+		</div>
+	</div>
+</div>
 <?php $attributes = array('name' => 'expense_form', 'id' => 'expense_form', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
 <?php $hidden = array('expense'  => 'UPDATE', '_token' => $record->trans_number); ?>
 <?php echo form_open('admin/finance/expenses/store', $attributes, $hidden); ?>
@@ -13,6 +35,10 @@
 			<div class="card-header">
 				<a href="<?= base_url('admin/finance/expenses') ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
 			</div>
+			<!-- Button trigger modal -->
+			<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modelId">
+				Launch
+			</button>
 			<div class="card-body">
 				<div class="row">
 					<div class="col-md-6">
@@ -33,7 +59,7 @@
 						<div class="form-group">
 							<label for="beneficiary"><?= $this->lang->line('ms_title_beneficiary'); ?></label>
 							<select name="beneficiary" id="beneficiary" class="form-control" data-plugin="terget_account" data-placeholder="<?= $this->lang->line('ms_title_terget_account'); ?>" required>
-								<!-- <option value="<?= $record->beneficiary; ?>"><?= $record->beneficiary_name; ?></option> -->
+								<option value="<?= $record->beneficiary; ?>"><?= $record->beneficiary_name; ?></option>
 							</select>
 						</div>
 					</div>
@@ -160,3 +186,41 @@
 </div>
 
 <?php echo form_close(); ?>
+
+
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modelId">
+	Launch
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="modelId" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Modal title</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div class="container-fluid">
+					Add rows here
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-primary">Save</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	$('#exampleModal').on('show.bs.modal', event => {
+		var button = $(event.relatedTarget);
+		var modal = $(this);
+		// Use above variables to manipulate the DOM
+
+	});
+</script>
