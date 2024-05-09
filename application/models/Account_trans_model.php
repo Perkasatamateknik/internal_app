@@ -211,6 +211,8 @@ class Account_trans_model extends CI_Model
 		$record = $this->db->select_sum('amount')->where('account_id', 34)->where('account_trans_cat_id', 6)->where('join_id', $log->payment_number)->where('type', 'credit')->get('ms_finance_account_transactions')->row();
 		$total_tagihan = $record->amount ?? 0;
 
+		// dd($record)
+
 		// cari akun pembayaran dari akun cash an bank
 		$records = $this->db->select(['ms_finance_account_transactions.*', 'COALESCE(ms_finance_accounts.account_code, "--") as account_code', 'COALESCE(ms_finance_accounts.account_name, "--") as account_name', 'ms_finance_accounts.category_id', 'xin_employees.first_name', 'xin_employees.last_name'])
 			->from('ms_finance_account_transactions')
@@ -228,7 +230,13 @@ class Account_trans_model extends CI_Model
 		}
 
 		$data = new stdClass;
-		$data->sisa_tagihan = $total_tagihan - $tagihan_dibayar;
+
+		if ($total_tagihan == 0) {
+			$data->sisa_tagihan = 0;
+		} else {
+			$data->sisa_tagihan = $total_tagihan - $tagihan_dibayar;
+		}
+
 		$data->jumlah_tagihan = $total_tagihan;
 		$data->jumlah_dibayar = $tagihan_dibayar;
 		$data->log_payments = $records;

@@ -3,8 +3,9 @@
 <?php $role_resources_ids = $this->Xin_model->user_role_resource(); ?>
 <?php $user_info = $this->Xin_model->read_user_info($session['user_id']); ?>
 <?php $uoms = $this->Xin_model->get_all_uoms(); ?>
-<?php $sub_categories = $this->Xin_model->get_all_product_sub_categories(); ?>
-
+<?php $sub_categories = $this->Xin_model->get_all_product_sub_categories();
+$kd_number = $this->Product_model->kd_number();
+?>
 <?php
 // reports to 
 $reports_to = get_reports_team_data($session['user_id']); ?>
@@ -65,7 +66,7 @@ $reports_to = get_reports_team_data($session['user_id']); ?>
 									<div class="col-md-6">
 										<div class="form-group">
 											<label class="form-label"><?php echo $this->lang->line('ms_product_number'); ?></label>
-											<input type="text" class="form-control" name="product_number" id="product_number" placeholder="<?php echo $this->lang->line('ms_product_number'); ?>" value="KD<?= time() ?>" readonly>
+											<input type="text" class="form-control" name="product_number" id="product_number" placeholder="<?php echo $this->lang->line('ms_product_number'); ?>" value="<?= $kd_number ?>" readonly>
 										</div>
 									</div>
 									<div class="col-md-6">

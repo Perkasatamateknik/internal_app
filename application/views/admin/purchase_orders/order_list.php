@@ -17,7 +17,7 @@
 				<div class="card-body">
 					<div class="row m-b-1">
 						<div class="col-md-12">
-							<?php $attributes = array('name' => 'purchase_orders', 'id' => 'purchase_orders', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
+							<?php $attributes = array('name' => 'purchase_orders', 'id' => 'purchase_orderss', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
 							<?php $hidden = array('purchase_orders' => 'INSERT',); ?>
 							<?php echo form_open('admin/purchase_orders/insert', $attributes, $hidden); ?>
 							<div class="form-body">

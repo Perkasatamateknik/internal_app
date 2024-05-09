@@ -147,7 +147,7 @@ class Purchase_invoices extends Purchasing
 			if (!is_null($read_pl)) {
 				$payment_number = $read_pl->payment_number;
 			} else {
-				$payment_number = strtoupper(uniqid());
+				$payment_number = "PRC" . strtoupper(uniqid());
 			}
 
 			$user_id = $this->session->userdata()['username']['user_id'] ?? 0;
@@ -184,6 +184,7 @@ class Purchase_invoices extends Purchasing
 			// check apakah ada dp
 			if (!is_null($this->input->post('down_payment_account')) and !is_null($this->input->post('down_payment'))) {
 
+				$ref_id_dp = $payment_number . "-" . rand(100000, 999999);
 				// kredit akun yang digunakan untuk dp
 				$trans[] =
 					[
@@ -197,6 +198,7 @@ class Purchase_invoices extends Purchasing
 						'ref' => "Purchase Order",
 						'note' => "DP Purchase Order",
 						'attachment' => null,
+						'ref_trans_id' => $ref_id_dp
 					];
 
 				// debit akun yang digunakan untuk menampung dp
@@ -212,6 +214,7 @@ class Purchase_invoices extends Purchasing
 						'ref' => "Purchase Order",
 						'note' => "DP Purchase Order",
 						'attachment' => null,
+						'ref_trans_id' => $ref_id_dp
 					];
 			}
 
@@ -239,7 +242,6 @@ class Purchase_invoices extends Purchasing
 					'category_name' 	=> $this->input->post('row_category_name')[$i] ?? null, // override to null
 					'uom_id' 			=> $this->input->post('row_uom_id')[$i] ?? null, // override to null
 					'uom_name' 			=> $this->input->post('row_uom_name')[$i] ?? null, // override to null
-
 					'project_id' 		=> $this->input->post('row_project_id')[$i] ?? null, // override to 0
 					'tax_id' 			=> $this->input->post('row_tax_id')[$i] ?? null, //override to 0
 					'tax_type' 			=> $this->input->post('data_tax_type')[$i] ?? 'fixed',
@@ -256,19 +258,23 @@ class Purchase_invoices extends Purchasing
 			// jika PI berdiri sendiri tanpa PO
 			if (is_null($read_pl->po_number)) {
 
+				$ref_trans_id = $payment_number . "-" . rand(100000, 999999);
+
 				// catat semua tagihan ke akun trade payable
 				$trans[] =
 					[
 						'account_id' => 34, // account_id trade payable
 						'user_id' => $user_id,
 						'account_trans_cat_id' => 6,
-						'amount' => $sub_total + $tax - $discount + $delivery_fee + $service_fee,
+						'amount' => $sub_total + $delivery_fee + $service_fee,
 						'date' => date('Y-m-d'),
 						'type' => 'credit',
 						'join_id' => $payment_number,
 						'ref' => "Purchase Invoice",
 						'note' => "Purchase Invoice",
 						'attachment' => null,
+						'ref_trans_id' => $ref_trans_id
+
 					];
 
 				// catat semua total item ke akun inventory
@@ -277,14 +283,16 @@ class Purchase_invoices extends Purchasing
 						'account_id' => 7, // akun 
 						'user_id' => $user_id,
 						'account_trans_cat_id' => 6,
-						'amount' => $sub_total,
+						'amount' => $amount_item,
 						'date' => date('Y-m-d'),
 						'type' => 'debit',
 						'join_id' => $payment_number,
 						'ref' => "Purchase Invoice",
 						'note' => "Begin Purchase Invoice",
 						'attachment' => null,
+						'ref_trans_id' => $ref_trans_id
 					];
+
 
 				if ($tax > 0) {
 					// masukan tax total ke akun VAT In 
@@ -300,6 +308,8 @@ class Purchase_invoices extends Purchasing
 							'ref' => "Tax from",
 							'note' => "Tax from Purchase Invoice",
 							'attachment' => null,
+							'ref_trans_id' => $ref_trans_id
+
 						];
 				}
 
@@ -317,11 +327,13 @@ class Purchase_invoices extends Purchasing
 							'ref' => "Discount from",
 							'note' => "Discount from Purchase Invoice",
 							'attachment' => null,
+							'ref_trans_id' => $ref_trans_id
+
 						];
 				}
 
-				// masukan biaya layanan ke akun Commision and Fee
 				if ($service_fee > 0) {
+					// masukan biaya layanan ke akun Commision and Fee
 					$trans[] =
 						[
 							'account_id' => 71,
@@ -334,11 +346,13 @@ class Purchase_invoices extends Purchasing
 							'ref' => "Service fee",
 							'note' => "Service fee from Purchase Invoice",
 							'attachment' => null,
+							'ref_trans_id' => $ref_trans_id
+
 						];
 				}
 
-				// masukan biaya delivery ke akun Shipping/Freight & Delivery
 				if ($delivery_fee > 0) {
+					// masukan biaya delivery ke akun Shipping/Freight & Delivery
 					$trans[] =
 						[
 							'account_id' => 67,
@@ -351,9 +365,17 @@ class Purchase_invoices extends Purchasing
 							'ref' => "Delivery fee",
 							'note' => "Delivery fee from Purchase Invoice",
 							'attachment' => null,
+							'ref_trans_id' => $ref_trans_id
+
 						];
 				}
-			} else if (is_null($read_pl->pd_number)) {
+
+				//
+			}
+
+
+
+			if (is_null($read_pl->pd_number)) {
 
 				// ketika PO > PI
 			} else {
@@ -391,123 +413,6 @@ class Purchase_invoices extends Purchasing
 						'attachment' => null,
 					];
 			}
-
-			// $data_po = $this->Purchase_model->read_po_by_po_number($po_number);
-			// if (!is_null($data_po)) {
-
-			// 	// cek apakah ada dp yang sudah di bayar
-			// 	// catat sisa pembayaran ke akun unbiled
-			// 	$cek_dp = $this->Account_trans_model->get_dp_purchase($po_number);
-			// 	if (!is_null($cek_dp)) {
-			// 		// kurangi dp dan masukan ke unbiled account jika pernah dp
-			// 		$sisa_tagihan =  $data_po->amount - $cek_dp->amount;
-
-			// 		// creditkan total ke akun trade payable
-			// 		$trans[] =
-			// 			[
-			// 				'account_id' => 35, // account_id unbiled account
-			// 				'user_id' => $user_id,
-			// 				'account_trans_cat_id' => 6, // = purchase_order
-			// 				'amount' => $data_po->amount,
-			// 				'date' => date('Y-m-d'),
-			// 				'type' => 'credit',
-			// 				'join_id' => $payment_number, // po number
-			// 				'ref' => "Purchase Delivery",
-			// 				'note' => "Purchase Delivery",
-			// 				'attachment' => null,
-			// 			];
-
-			// 		$trans[] =
-			// 			[
-			// 				'account_id' => 35, // account_id unbiled account
-			// 				'user_id' => $user_id,
-			// 				'account_trans_cat_id' => 6, // = purchase_order
-			// 				'amount' => $cek_dp->amount,
-			// 				'date' => date('Y-m-d'),
-			// 				'type' => 'debit',
-			// 				'join_id' => $payment_number, // po number
-			// 				'ref' => "Purchase Delivery",
-			// 				'note' => "Purchase Delivery",
-			// 				'attachment' => null,
-			// 			];
-			// 	} else {
-			// 		$sisa_tagihan =  $data_po->amount;
-			// 	}
-
-			// 	// debitkan semua sisa unbiled account
-			// 	$trans[] =
-			// 		[
-			// 			'account_id' => 35, // account_id unbiled account
-			// 			'user_id' => $user_id,
-			// 			'account_trans_cat_id' => 6, // = purchase_order
-			// 			'amount' => $sisa_tagihan,
-			// 			'date' => date('Y-m-d'),
-			// 			'type' => 'debit',
-			// 			'join_id' => $payment_number, // po number
-			// 			'ref' => "Purchase Delivery",
-			// 			'note' => "Purchase Delivery",
-			// 			'attachment' => null,
-			// 		];
-
-			// 	// $trans[] =
-			// 	// 	[
-			// 	// 		'account_id' => 34, // account_id trade payable
-			// 	// 		'user_id' => $user_id,
-			// 	// 		'account_trans_cat_id' => 6, // = purchase_order
-			// 	// 		'amount' => $sisa_tagihan,
-			// 	// 		'date' => date('Y-m-d'),
-			// 	// 		'type' => 'credit',
-			// 	// 		'join_id' => $payment_number, // po number
-			// 	// 		'ref' => "Purchase Delivery",
-			// 	// 		'note' => "Purchase Delivery",
-			// 	// 		'attachment' => null,
-			// 	// 	];
-			// }
-			// die;
-
-			// $read_pl = $this->Purchase_model->read_pl($po_number, 'po_number');
-			// if (!is_null($read_pl)) {
-
-			// 	// cek pembayaran sebelumnya
-			// } else {
-			// 	// masukan semua total purchasing ke akun Trade Payble = credit
-
-
-			// 	// masukan semua total only item ke akun cost of sales
-			// 	$trans[] =
-			// 		[
-			// 			'account_id' => 64, // account_id cost of sales
-			// 			'user_id' => $user_id,
-			// 			'account_trans_cat_id' => 6, // = purchase_order
-			// 			'amount' => $amount_item,
-			// 			'date' => date('Y-m-d'),
-			// 			'type' => 'debit',
-			// 			'join_id' => $pi_number, // pi number
-			// 			'ref' => "Purchase Invoice",
-			// 			'note' => "Begin Purchase Invoice",
-			// 			'attachment' => null,
-			// 		];
-
-			// 	// otomatis tercatat di akun Inventory
-			// 	$trans[] =
-			// 		[
-			// 			'account_id' => 7,
-			// 			'user_id' => $user_id,
-			// 			'account_trans_cat_id' => 6, // = purchase_order
-			// 			'amount' => $sub_total + $tax - $discount + $delivery_fee + $service_fee,
-			// 			'date' => date('Y-m-d'),
-			// 			'type' => 'debit',
-			// 			'join_id' => $pi_number, // pi number
-			// 			'ref' => "Purchase Invoice",
-			// 			'note' => "Begin Purchase Invoice",
-			// 			'attachment' => null,
-			// 		];
-
-
-
-
-
-
 
 			// insert data
 			$insert_pi = $this->Purchase_model->insert_pi($data_pi, $item_insert, $trans);
@@ -982,5 +887,111 @@ class Purchase_invoices extends Purchasing
 			}
 			$this->output($Return);
 		}
+	}
+
+	public function repurchase()
+	{
+		$data = $this->Purchase_model->get_all_pi_24()->result();
+		$user_id = $this->session->userdata()['username']['user_id'] ?? 0;
+
+		// var_dump($data);
+		$trans = [];
+		foreach ($data as $i => $d) {
+
+			$data_item = $this->Purchase_items_model->calculate_payment($d->pi_number);
+
+			$ref_trans_id = $data_item->payment_number . "-" . rand(100000, 999999);
+
+			// trade payable
+			$trans[] =
+				[
+					'account_id' => 34,
+					'user_id' => $user_id,
+					'account_trans_cat_id' => 6, // = purchase_order
+					'amount' => $data_item->total_amount,
+					'date' => date('Y-m-d'),
+					'type' => 'credit',
+					'join_id' => $data_item->payment_number, // pi number
+					'ref' => "Purchase Invoice",
+					'note' => "Begin Purchase Invoice",
+					'attachment' => null,
+					'ref_trans_id' => $ref_trans_id
+				];
+
+			if ($data_item->tax_amount > 0) {
+				// masukan tax total ke akun VAT In 
+				$trans[] =
+					[
+						'account_id' => 14,
+						'user_id' => $user_id,
+						'account_trans_cat_id' => 6,
+						'amount' => $data_item->tax_amount,
+						'date' => date('Y-m-d'),
+						'type' => 'debit',
+						'join_id' => $data_item->payment_number,
+						'ref' => "Tax from",
+						'note' => "Tax from Purchase Invoice",
+						'attachment' => null,
+						'ref_trans_id' => $ref_trans_id
+
+					];
+			}
+
+			if ($data_item->discount_amount > 0) {
+				// masukan discount total ke akun Purchase Discounts => credit
+				$trans[] =
+					[
+						'account_id' => 65,
+						'user_id' => $user_id,
+						'account_trans_cat_id' => 6,
+						'amount' => $data_item->discount_amount,
+						'date' => date('Y-m-d'),
+						'type' => 'credit',
+						'join_id' => $data_item->payment_number,
+						'ref' => "Discount from",
+						'note' => "Discount from Purchase Invoice",
+						'attachment' => null,
+						'ref_trans_id' => $ref_trans_id
+					];
+			}
+
+			// masukan biaya layanan ke akun Commision and Fee
+			if ($data_item->service_fee > 0) {
+				$trans[] =
+					[
+						'account_id' => 71,
+						'user_id' => $user_id,
+						'account_trans_cat_id' => 6, // = purchase_order
+						'amount' => $data_item->service_fee,
+						'date' => date('Y-m-d'),
+						'type' => 'debit',
+						'join_id' => $data_item->payment_number,
+						'ref' => "Service fee",
+						'note' => "Service fee from Purchase Invoice",
+						'attachment' => null,
+						'ref_trans_id' => $ref_trans_id
+					];
+			}
+
+			// masukan biaya delivery ke akun Shipping/Freight & Delivery
+			if ($data_item->delivery_fee > 0) {
+				$trans[] =
+					[
+						'account_id' => 67,
+						'user_id' => $user_id,
+						'account_trans_cat_id' => 6,
+						'amount' => $data_item->delivery_fee,
+						'date' => date('Y-m-d'),
+						'type' => 'debit',
+						'join_id' => $data_item->payment_number,
+						'ref' => "Delivery fee",
+						'note' => "Delivery fee from Purchase Invoice",
+						'attachment' => null,
+						'ref_trans_id' => $ref_trans_id
+					];
+			}
+			// dd($trans);
+		}
+		$this->Purchase_model->calculate_purchase($trans);
 	}
 }

@@ -9,7 +9,7 @@ class MY_Controller extends CI_Controller
 	public $Tax_model;
 	public $Exin_model;
 	public $Vendor_model;
-	public $Product_model;
+	// public $Product_model;
 	public $Project_model;
 	// public $Department_model;
 	public $Company_model;

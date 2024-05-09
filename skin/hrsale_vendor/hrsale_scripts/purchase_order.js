@@ -401,7 +401,10 @@ function addRow() {
 				<option value="">${ms_select_tax}</option>
 			</select>
 			<input type="hidden" class="row_tax_rate" name="row_tax_rate[]" id="row_tax_rate_${rowCount}" value="0">
-			<input type="hidden" class="data_tax_rate" value="0">
+			<input type="hidden" class="row_tax_name" name="row_tax_name[]" id="row_tax_name_${rowCount}" value="">
+			<input type="hidden" class="row_tax_value" name="row_tax_value[]" id="row_tax_value_${rowCount}" value="0">
+
+			<input type="hidden" class="data_tax_rate" value="0" name="data_tax_rate[]">
 			<input type="hidden" class="data_tax_type" value="fixed" name="data_tax_type[]"><br>
 			<strong class="row_tax_rate_show currency" style="font-size:10px"></strong>
 		</td>
@@ -411,7 +414,10 @@ function addRow() {
 				<option value="">${ms_select_discount}</option>
 			</select>
 			<input type="hidden" class="row_discount_rate" name="row_discount_rate[]" id="row_discount_rate_${rowCount}" value="0">
-			<input type="hidden" class="data_discount_rate" value="0">
+			<input type="hidden" class="row_discount_name" name="row_discount_name[]" id="row_discount_name_${rowCount}" value="">
+			<input type="hidden" class="row_discount_value" name="row_discount_value[]" id="row_discount_value_${rowCount}" value="0">
+
+			<input type="hidden" class="data_discount_rate" value="0" name="data_discount_rate[]">
 			<input type="hidden" class="data_discount_type" value="0" name="data_discount_type[]"><br>
 			<strong class='row_discount_rate_show currency' style='font-size:10px'></strong>
 		</td>
@@ -650,6 +656,7 @@ $(window).on("load", function () {
 										true,
 										true
 									);
+
 									$("#row_item_id_" + key).append(option);
 
 									row.find(".row_sub_category_id").val(res.sub_category_id);
@@ -815,7 +822,7 @@ function select_tax(x) {
 			var item_qty = parseFloat(selectedRow.find(".row_qty").val());
 			var item_price = parseFloat(selectedRow.find(".row_item_price").val());
 
-			// // tipe 0 adalah flat
+			// tipe 0 adalah flat
 			var proses_1 = item_price * item_qty;
 			var proses_2 = proses_1 - discount;
 
@@ -827,6 +834,8 @@ function select_tax(x) {
 
 			selectedRow.find(".data_tax_rate").val(data_tax_rate);
 			selectedRow.find(".data_tax_type").val(data_tax_type);
+
+			selectedRow.find(".row_tax_name").val(result.name);
 
 			selectedRow.find(".row_tax_rate").val(tax);
 			selectedRow.find(".row_tax_rate_show").text(formatCurrency(tax));
@@ -865,6 +874,7 @@ function select_discount(x) {
 			selectedRow.find(".data_discount_rate").val(discount_rate);
 			selectedRow.find(".data_discount_type").val(discount_type);
 
+			selectedRow.find(".row_discount_name").val(result.discount_name);
 			selectedRow.find(".row_discount_rate").val(discount);
 			selectedRow
 				.find(".row_discount_rate_show")

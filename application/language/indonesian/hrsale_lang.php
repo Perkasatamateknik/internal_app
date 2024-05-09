@@ -3281,6 +3281,7 @@ $lang['ms_title_doc'] = "Dokumen";
 $lang['ms_title_filter'] = "Filter";
 $lang['ms_title_process'] = "Proses";
 $lang['ms_title_save_draft'] = "Simpan Draft";
+$lang['ms_title_save_change'] = "Simpan Perubahan";
 $lang['ms_title_fund_source'] = "Sumber Dana";
 $lang['ms_title_balance_due'] = "Pembayaran Jatuh Tempo";
 

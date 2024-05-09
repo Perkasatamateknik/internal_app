@@ -514,6 +514,7 @@ class Accounts extends MY_Controller
 
 			$trans = [];
 
+			$ref_trans_id = $trans_number . "-" . rand(100000, 999999);
 			// masukan semua total ke akun Trade Payble = credit
 			$trans[] =
 				[
@@ -527,6 +528,8 @@ class Accounts extends MY_Controller
 					'ref' => "Dokumen Transfer",
 					'note' => "Begin Dokumen Transfer",
 					'attachment' => null,
+					'ref_trans_id' => $ref_trans_id
+
 				];
 
 			// masukan semua total ke akun penerima
@@ -542,6 +545,7 @@ class Accounts extends MY_Controller
 					'ref' => "Dokumen Transfer",
 					'note' => "Transfer Dokumen Transfer",
 					'attachment' => null,
+					'ref_trans_id' => $ref_trans_id
 				];
 
 			if (!empty($_FILES["attachments"]["name"][0])) {
@@ -1222,6 +1226,12 @@ class Accounts extends MY_Controller
 	public function transfer_view()
 	{
 
+		$data['title'] = $this->Xin_model->site_title();
+		$session = $this->session->userdata('username');
+		if (empty($session)) {
+			redirect('admin/');
+		}
+
 		$id = $this->input->get('id');
 
 		$role_resources_ids = $this->Xin_model->user_role_resource();
@@ -1245,11 +1255,6 @@ class Accounts extends MY_Controller
 		}
 
 		$data['make_payment'] = $make_payment ?? true;
-		$data['title'] = $this->Xin_model->site_title();
-		$session = $this->session->userdata('username');
-		if (empty($session)) {
-			redirect('admin/');
-		}
 		// $data['breadcrumbs'] = "<strong>" . $record->account_code . "</strong>" . "&nbsp;&nbsp;" . $record->account_name;
 		$data['breadcrumbs'] = $this->lang->line('ms_title_transfer');
 		$data['path_url'] = 'finance/account_transfer';
@@ -2379,6 +2384,7 @@ class Accounts extends MY_Controller
 
 		$file_attachment = $this->upload_attachment('./uploads/finance/account_trans/', 'TRANS');
 
+		$ref_trans_id = $trans_number . "-" . rand(100000, 999999);
 		$data = [
 			[
 				'account_id' => $source_payment_account,
@@ -2391,6 +2397,7 @@ class Accounts extends MY_Controller
 				'ref' => $payment_ref,
 				'note' => "Kredit Pembayaran Transfer",
 				'attachment' => $file_attachment,
+				'ref_trans_id' => $ref_trans_id
 			],
 			[
 				'account_id' => 34, // update debit akun trade payable
@@ -2403,6 +2410,7 @@ class Accounts extends MY_Controller
 				'ref' => $payment_ref,
 				'note' => "Debit Pembayaran Transfer",
 				'attachment' => $file_attachment,
+				'ref_trans_id' => $ref_trans_id
 			]
 		];
 
@@ -2926,6 +2934,102 @@ class Accounts extends MY_Controller
 			} else {
 				$Return['error'] = $this->lang->line('xin_error_msg');
 			}
+			$this->output($Return);
+		}
+	}
+
+
+
+	public function transfer_edit()
+	{
+
+		$id = $this->input->get('id');
+
+		$role_resources_ids = $this->Xin_model->user_role_resource();
+		$record = $this->Account_transfer_model->get_by_number_doc($id);
+
+		if (!is_null($record)) {
+			$from = $this->Accounts_model->get($record->account_id)->row();
+			$to = $this->Accounts_model->get($record->terget_account_id)->row();
+
+			$record->source_account = $from->account_code . " | " . $from->account_name;
+			$record->target_account = $to->account_code . " | " . $to->account_name;
+
+			$attachments = $this->Files_ms_model->get_by_access_id(1, $record->transfer_id)->result();
+			$data['attachments'] = $attachments;
+		} else {
+			redirect('admin/finance/accounts');
+		}
+
+		$data['title'] = $this->Xin_model->site_title();
+		$session = $this->session->userdata('username');
+		if (empty($session)) {
+			redirect('admin/');
+		}
+		// $data['breadcrumbs'] = "<strong>" . $record->account_code . "</strong>" . "&nbsp;&nbsp;" . $record->account_name;
+		$data['breadcrumbs'] = $this->lang->line('ms_title_transfer');
+		$data['path_url'] = 'finance/account_transfer';
+
+
+		$data['record'] = $record;
+		if (in_array('503', $role_resources_ids)) {
+			$data['subview'] = $this->load->view("admin/finance/accounts/transfer_edit", $data, TRUE);
+			$this->load->view('admin/layout/layout_main', $data); //page load
+		} else {
+			redirect('admin/dashboard');
+		}
+	}
+
+	public function transfer_update()
+	{
+
+		$session = $this->session->userdata('username');
+		if (empty($session)) {
+			redirect('admin/');
+		}
+
+		/* Define return | here result is used to return user data and error for error message */
+		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
+		$Return['csrf_hash'] = $this->security->get_csrf_hash();
+
+		$desc = "Transfer Doc";
+		$amount = $this->input->post('amount');
+		$trans_number = $this->input->post('_token');
+
+		if ($this->input->post('target_account') == $this->input->post('old_target_account')) {
+			$data = [
+				'account_id' => $this->input->post('account_id'),
+				'terget_account_id' => $this->input->post('old_target_account'),
+				'trans_number' => $trans_number,
+				'date' => $this->input->post('date'),
+				'amount' => $amount,
+				'ref' => $this->input->post('ref'),
+				'note' => $this->input->post('note'),
+				'description' => $desc,
+			];
+
+			$new_target_account = false;
+		} else {
+			$new_target_account = $this->input->post('target_account');
+			$data = [
+				'account_id' => $this->input->post('account_id'),
+				'terget_account_id' => $this->input->post('target_account'),
+				'trans_number' => $trans_number,
+				'date' => $this->input->post('date'),
+				'amount' => $amount,
+				'ref' => $this->input->post('ref'),
+				'note' => $this->input->post('note'),
+				'description' => $desc,
+			];
+		}
+
+		$query = $this->Account_transfer_model->update_by_trans_number($trans_number, $data, $new_target_account);
+
+		if ($query) {
+			$Return['result'] = $this->lang->line('ms_title_success_added');
+			$this->output($Return);
+		} else {
+			$Return['error'] = $this->lang->line('ms_title_error');
 			$this->output($Return);
 		}
 	}

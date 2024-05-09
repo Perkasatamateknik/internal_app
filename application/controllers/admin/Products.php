@@ -293,4 +293,9 @@ class Products extends MY_Controller
 		echo json_encode($data);
 		exit();
 	}
+
+	public function set_product()
+	{
+		$this->Product_model->set_ulang();
+	}
 }

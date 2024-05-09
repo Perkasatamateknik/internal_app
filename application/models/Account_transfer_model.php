@@ -170,6 +170,40 @@ class Account_transfer_model extends CI_Model
 		return $this->db->trans_status();
 	}
 
+	public function update_by_trans_number($trans_number, $data, $new_target_account = false)
+	{
+		$this->db->trans_start();
+
+		// update transfer
+		$this->db->where('trans_number', $trans_number)->update('ms_finance_account_transfers', $data);
+
+		// get trade payable = 
+		$trade_payable = $this->db->where('account_id', 34)
+			->where('join_id', $trans_number)
+			->where('type', 'credit')
+			->get('ms_finance_account_transactions')->row();
+
+		// save code
+		$ref_trans_id = $trade_payable->ref_trans_id;
+
+		// update trade payable credit
+		$this->db->where('account_id', 34)
+			->where('join_id', $trans_number)
+			->where('type', 'credit')
+			->update('ms_finance_account_transactions', ['amount' => $data['amount']]);
+
+		// update debit yang ke trade payable
+		$this->db->update('ms_finance_account_transactions', ['amount' => $data['amount']], ['join_id' => $trans_number, 'type' => 'credit', 'account_id' => $data['terget_account_id'], 'ref_trans_id' => $ref_trans_id]);
+
+		// update transaction account id penerima setalh punya tf
+		if ($new_target_account) {
+			$this->db->update('ms_finance_account_transactions', ['account_id' => $new_target_account], ['join_id' => $trans_number, 'type' => 'debit', 'ref_trans_id' => $ref_trans_id]);
+		}
+
+		$this->db->trans_complete();
+		return $this->db->trans_status();
+	}
+
 	public function get_tagihan($id)
 	{
 		$record = $this->db->where('transfer_id', $id)->get('ms_finance_account_transfers')->row();

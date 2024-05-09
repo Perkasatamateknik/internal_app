@@ -131,4 +131,48 @@ class Purchase_items_model extends CI_Model
 		$this->db->group_by('vendor_id');
 		return $this->db->group_by('vendor_id')->get();
 	}
+
+	public function calculate_payment($id)
+	{
+
+		$record = $this->db->where('pi_number', $id)->get('ms_purchase_invoices')->row();
+
+		$log = $this->db->where('pi_number', $id)->get('ms_purchase_logs')->row();
+
+		if ($log->payment_number == 0) {
+			$payment_number = "PRC" . strtoupper(uniqid());
+
+			$this->db->update('ms_purchase_logs', ['payment_number' => $payment_number], ['pi_number' => $id]);
+		} else {
+			$payment_number = $log->payment_number;
+		}
+
+		$records = $this->db->where('pi_number', $id)->get('ms_items_purchase_invoice')->result();
+		// $rec = $this->db->select(['sum(tax_rate) as tax_amount', 'sum(discount_rate) as discount_amount', 'sum(price*quantity) as item_amount', 'sum(amount) as amount'])->where('pi_number', $id)->get('ms_items_purchase_invoice')->row();
+		// $rec->payment_number = $payment_number;
+
+		$res = new stdClass();
+		$res->tax_amount = 0;
+		$res->discount_amount = 0;
+		$res->item_amount = 0;
+		$res->total_amount = 0;
+		$res->payment_number = $payment_number;
+		$res->service_fee = $record->service_fee;
+		$res->delivery_fee = $record->delivery_fee;
+
+		$rand = uniqid();
+		foreach ($records as $i => $r) {
+
+			$res->tax_amount += $r->tax_rate;
+			$res->discount_amount += $r->discount_rate;
+
+			$res->item_amount += $r->price * $r->quantity;
+			$res->total_amount += $r->amount;
+		}
+
+		$res->total_amount += $record->service_fee + $record->delivery_fee;
+		return $res;
+
+		var_dump([$res]);
+	}
 }

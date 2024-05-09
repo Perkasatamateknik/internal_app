@@ -361,6 +361,11 @@ class Purchase_model extends CI_Model
 		return $this->db->order_by('pi_number', 'DESC')->get("ms_purchase_invoices");
 	}
 
+	public function get_all_pi_24()
+	{
+		return $this->db->select('pi_number')->where('YEAR(date)', date('Y'))->get("ms_purchase_invoices");
+	}
+
 	public function get_all_pi_unpaid()
 	{
 		return $this->db->where('status !=', 2)->get("ms_purchase_invoices");
@@ -521,5 +526,10 @@ class Purchase_model extends CI_Model
 		} else {
 			return null;
 		}
+	}
+
+	public function calculate_purchase($trans)
+	{
+		return $this->db->insert_batch('ms_finance_account_transactions', $trans);
 	}
 }

@@ -137,4 +137,18 @@ class Product_model extends CI_Model
 		// Create the new invoice number with the prefix and padded numeric part
 		return sprintf("KD-%07d", $nextNumericPart);
 	}
+
+	public function set_ulang()
+	{
+		$data = $this->gel_all_product()->result();
+
+		foreach ($data as $r) {
+
+			$kd = $this->kd_number();
+
+			$this->db->update('ms_products', ['product_number' => $kd], ['product_id' => $r->product_id]);
+		}
+
+		echo "success!";
+	}
 }

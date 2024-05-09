@@ -152,7 +152,7 @@ class Purchase_requisitions extends Purchasing
 			$insert_pr = $this->Purchase_model->insert_pr($data_pr, $item_insert);
 
 			# add logs
-			$payment_number = strtoupper(uniqid());
+			$payment_number = "PRC" . strtoupper(uniqid());
 			$this->Purchase_model->insert_pl(['pr_number' => $pr_number, 'created_at' => $this->input->post('issue_date'), 'payment_number' => $payment_number]);
 
 			if ($insert_pr) {

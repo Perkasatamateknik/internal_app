@@ -649,30 +649,14 @@ class Purchasing extends MY_Controller
 		// get user id
 		$user_id = $this->session->userdata('username')['user_id'];
 
-		// doing attachment
-		$config['allowed_types'] = 'gif|jpg|png|pdf';
-		$config['max_size'] = '10240'; // max_size in kb
-		$config['upload_path'] = './uploads/finance/account_trans/';
-
-		$filename = $_FILES['attachment']['name'];
-
-		// get extention
-		$extension = pathinfo($filename, PATHINFO_EXTENSION);
-
-		$newName = date('YmdHis') . '_TRANS.' . $extension;
-
-		$config['filename'] = $newName;
-
-		//load upload class library
-		$this->load->library('upload', $config);
-
-		// $upload
-		$this->upload->do_upload('attachment');
+		$file_attachment = $this->upload_attachment('./uploads/finance/account_trans/', 'TRANS');
 
 		// uang yang dibayar
 		$amount_paid = $this->input->post('amount_paid');
 
 		$log = $this->Purchase_model->read_pl($id, $type);
+
+		$ref_trans_id = $log->payment_number . "-" . rand(100000, 999999);
 
 		$data = [
 			[
@@ -685,7 +669,8 @@ class Purchasing extends MY_Controller
 				'join_id' => $log->payment_number,
 				'ref' => $payment_ref,
 				'note' => "Kredit Pembayaran Purchase Order",
-				'attachment' => $newName,
+				'attachment' => $file_attachment,
+				'ref_trans_id' => $ref_trans_id
 			],
 			[
 				'account_id' => $source_payment_account,
@@ -697,7 +682,8 @@ class Purchasing extends MY_Controller
 				'join_id' => $log->payment_number,
 				'ref' => $payment_ref,
 				'note' => "Kredit Pembayaran Purchase Order",
-				'attachment' => $newName,
+				'attachment' => $file_attachment,
+				'ref_trans_id' => $ref_trans_id
 			]
 		];
 
@@ -734,6 +720,52 @@ class Purchasing extends MY_Controller
 		} else {
 			$Return['error'] = $this->lang->line('ms_title_peyment_error');
 			$this->output($Return);
+		}
+	}
+
+	public function down_payment($payment_number)
+	{
+		if (!is_null($this->input->post('down_payment_account')) and !is_null($this->input->post('down_payment'))) {
+
+			$trans = [];
+
+			$user_id = $this->session->userdata()['username']['user_id'] ?? 0;
+
+			$ref_trans_id = $payment_number . "-" . rand(100000, 999999);
+
+			// kredit akun yang digunakan untuk dp
+			$trans[] =
+				[
+					'account_id' => $this->input->post('down_payment_account'), // account_id trade payable
+					'user_id' => $user_id,
+					'account_trans_cat_id' => 6, // = purchase_order
+					'amount' => $this->input->post('down_payment'),
+					'date' => date('Y-m-d'),
+					'type' => 'credit',
+					'join_id' => $payment_number, // po number
+					'ref' => "Purchase Order",
+					'note' => "DP Purchase Order",
+					'attachment' => null,
+					'ref_trans_id' => $ref_trans_id
+				];
+
+			// debit akun yang digunakan untuk menampung dp
+			$trans[] =
+				[
+					'account_id' => 12, // account_id prepaid expenses
+					'user_id' => $user_id,
+					'account_trans_cat_id' => 6, // = purchase_order
+					'amount' => $this->input->post('down_payment'),
+					'date' => date('Y-m-d'),
+					'type' => 'debit',
+					'join_id' => $payment_number, // po number
+					'ref' => "Purchase Order",
+					'note' => "DP Purchase Order",
+					'attachment' => null,
+					'ref_trans_id' => $ref_trans_id
+				];
+
+			return $trans;
 		}
 	}
 }
