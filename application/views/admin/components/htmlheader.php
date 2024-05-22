@@ -20,6 +20,14 @@
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 	<style>
+		.bg-card {
+			background-color: #fcfcfc2c !important;
+		}
+
+		.text-link {
+			color: #2D2D2D !important;
+		}
+
 		* {
 			font-family: 'Plus Jakarta Sans', sans-serif;
 		}
@@ -140,6 +148,10 @@
 
 	<!-- <link href="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone.css" rel="stylesheet" type="text/css" /> -->
 	<style>
+		/* .bg-card {
+			background-color: #fcfcfc2c !important;
+		} */
+
 		.purporse {
 			background-color: #f1f1f2;
 			/* Use the desired grey background color */

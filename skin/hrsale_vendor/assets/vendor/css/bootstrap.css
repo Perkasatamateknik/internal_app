@@ -8102,4 +8102,9 @@ a.text-dark:focus {
 		color: inherit;
 		border-color: #e8e8e9;
 	}
+
+	/* custom bg */
+	.bg-card {
+		background-color: #fcfcfc2c;
+	}
 }

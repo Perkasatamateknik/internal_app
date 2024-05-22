@@ -620,26 +620,6 @@
 	});
 </script>
 
-<script>
-	// Mendapatkan tanggal saat ini
-	var currentDate = new Date();
-
-	// Mendapatkan tahun saat ini
-	var currentYear = currentDate.getFullYear();
-
-	// Mendapatkan bulan saat ini (dalam format MM)
-	var currentMonth = ('0' + (currentDate.getMonth() + 1)).slice(-2);
-
-	// Mendapatkan tanggal saat ini (dalam format DD)
-	var currentDay = ('0' + currentDate.getDate()).slice(-2);
-
-	// Menggabungkan tahun, bulan, dan tanggal dalam format YYYY-MM-DD
-	var currentDateFormatted = currentYear + '-' + currentMonth + '-' + currentDay;
-
-	// Mengatur nilai awal input tanggal
-	document.getElementById('date').value = currentDateFormatted;
-	document.getElementById('delivery_date').value = currentDateFormatted;
-</script>
 
 <script>
 	$(document).ready(function() {

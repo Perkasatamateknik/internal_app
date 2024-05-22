@@ -296,6 +296,6 @@ class Products extends MY_Controller
 
 	public function set_product()
 	{
-		$this->Product_model->set_ulang();
+		$this->Product_model->set_po();
 	}
 }

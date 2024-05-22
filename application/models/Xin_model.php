@@ -698,6 +698,19 @@ class Xin_model extends CI_Model
 			return null;
 		}
 	}
+
+	public function find_country($query = false)
+	{
+		if ($query) {
+			$this->db->like('country_name', $query);
+		}
+
+		// limit record to 10
+		$this->db->limit(10);
+		// order by account_name
+		$this->db->order_by('country_name', 'ASC');
+		return $this->db->get("xin_countries")->result();
+	}
 	// get single country
 	public function read_recently_products($id)
 	{

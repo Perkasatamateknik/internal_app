@@ -25,6 +25,7 @@ class Ajax_request extends MY_Controller
 		$this->load->model("Account_categories_model");
 
 		$this->load->model("Expense_model");
+		$this->load->model("Contact_model");
 
 		// if (!$this->input->is_ajax_request()) {
 		// 	$this->output([
@@ -621,5 +622,39 @@ class Ajax_request extends MY_Controller
 			$this->output($Return);
 			exit;
 		}
+	}
+
+	public function find_contact_type()
+	{
+		if ($this->input->is_ajax_request()) {
+			$query = $this->input->get('query');
+			$res = $this->Contact_model->find_contact_type($query);
+			$data = [];
+			foreach ($res as $key => $r) {
+				$data[] = array(
+					'id' => $r->type_id,
+					'text' => $r->contact_type,
+				);
+			}
+			echo $this->output($data);
+			exit();
+		}
+	}
+
+	public function find_country()
+	{
+		// if ($this->input->is_ajax_request()) {
+		$query = $this->input->get('query');
+		$res = $this->Xin_model->find_country($query);
+		$data = [];
+		foreach ($res as $key => $r) {
+			$data[] = array(
+				'id' => $r->country_id,
+				'text' => $r->country_name,
+			);
+		}
+		echo $this->output($data);
+		exit();
+		// }
 	}
 }
