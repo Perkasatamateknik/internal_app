@@ -37,7 +37,61 @@ class Contact_model extends CI_Model
 		return $this->db->update('ms_contacts', $data);
 	}
 
+	// Function to update selected record from table
+	public function delete($id, $del_file)
+	{
+		$this->db->trans_start();
 
+		// delete contact
+		$this->db->where('contact_id', $id)->delete('ms_contacts');
+
+
+		// get all liabilities
+		$liabilities = $this->db->where('contact_id', $id)->get('ms_liabilities')->result();
+		foreach ($liabilities as $r) {
+			// hapus seluruh item terkait liability
+			$this->db->where('trans_number', $r->trans_number)->delete('ms_liability_trans');
+
+			// hapus semua transaksi terkait
+			$this->db->where('join_id', $r->trans_number)->delete('ms_finance_account_transactions');
+		}
+
+		// hapus data liabilities
+		$this->db->where('contact_id', $id)->delete('ms_liabilities');
+
+
+		// get all receivables
+		$receivables = $this->db->where('contact_id', $id)->get('ms_receivables')->result();
+		foreach ($receivables as $r) {
+			// hapus seluruh item terkait receivable
+			$this->db->where('trans_number', $r->trans_number)->delete('ms_receivable_trans');
+
+			// hapus semua transaksi terkait
+			$this->db->where('join_id', $r->trans_number)->delete('ms_finance_account_transactions');
+		}
+
+		// hapus data receivables
+		$this->db->where('contact_id', $id)->delete('ms_receivables');
+
+		if ($del_file) {
+
+			// get data
+			$files = $this->db->where('access_id', $id)->get('ms_files')->result();
+
+			foreach ($files as $file) {
+				// check file in dir
+				if (file_exists("./uploads/contact/" . $file->file_name)) {
+					// Delete the file
+					unlink("./uploads/contact/" . $file->file_name);
+				}
+			}
+
+			$this->db->where('access_id', $id)->delete('ms_files');
+		}
+
+		$this->db->trans_complete();
+		return $this->db->trans_status();
+	}
 
 	public function get_all_contact_type()
 	{
@@ -47,25 +101,6 @@ class Contact_model extends CI_Model
 	public function get_contact_type($id)
 	{
 		return $this->db->get_where("ms_contact_types", ['type_id' => $id])->row();
-	}
-
-
-	// Function to Delete selected record from table
-	public function delete_record($id)
-	{
-		$this->db->where('travel_id', $id);
-		$this->db->delete('xin_employee_travels');
-	}
-
-	// Function to update record in table
-	public function update_record($data, $id)
-	{
-		$this->db->where('vendor_id', $id);
-		if ($this->db->update('ms_vendors', $data)) {
-			return true;
-		} else {
-			return false;
-		}
 	}
 
 	public function store($data)
@@ -107,5 +142,38 @@ class Contact_model extends CI_Model
 		// order by account_name
 		$this->db->order_by('contact_type', 'ASC');
 		return $this->db->get("ms_contact_types")->result();
+	}
+
+	public function get_all_trans($contact_id)
+	{
+
+		$liabilities = $this->db->select('trans_number')->where('contact_id', $contact_id)->get('ms_liabilities')->result();
+
+		$trans = [];
+		foreach ($liabilities as $l) {
+			foreach ($this->db->select(['ms_finance_account_transactions.*', 'ms_finance_account_trans_categories.trans_type'])
+				->from('ms_finance_account_transactions')
+				->join('ms_finance_account_trans_categories', 'ms_finance_account_transactions.account_trans_cat_id=ms_finance_account_trans_categories.trans_cat_id', 'inner')
+				->where('ms_finance_account_transactions.join_id', $l->trans_number)
+				->where('ms_finance_account_transactions.type', 'credit')
+				->get()->result() as $li) {
+				$trans[] = $li;
+			}
+		}
+
+		$receivables = $this->db->select('trans_number')->where('contact_id', $contact_id)->get('ms_receivables')->result();
+
+		foreach ($receivables as $r) {
+			foreach ($this->db->select(['ms_finance_account_transactions.*', 'ms_finance_account_trans_categories.trans_type'])
+				->from('ms_finance_account_transactions')
+				->join('ms_finance_account_trans_categories', 'ms_finance_account_transactions.account_trans_cat_id=ms_finance_account_trans_categories.trans_cat_id', 'inner')
+				->where('ms_finance_account_transactions.join_id', $r->trans_number)
+				->where('ms_finance_account_transactions.type', 'debit')
+				->get()->result() as $ri) {
+				$trans[] = $ri;
+			}
+		}
+
+		return $trans;
 	}
 }

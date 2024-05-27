@@ -211,11 +211,21 @@ class Liabilities_model extends CI_Model
 		$std = new stdClass();
 		$std->count = $count;
 		$std->amount_bill = 0;
+		$std->amount_paid = 0;
 
 		// get total semua tagihan liabilities
 		// ! belum dikurangi duit yang di bayar
+		// dd($records);
 		foreach ($records as $r) {
+
+			// total semua biaya
 			$std->amount_bill += $this->db->select_sum('amount')->from('ms_liability_trans')->where('trans_number', $r->trans_number)->get()->row()->amount;
+
+			// total semua biaya yang sudah di bayarkan
+			// $std->amount_paid = $this->db->select_sum('ms_finance_account_transactions.amount')->from('ms_finance_account_transactions')
+			// ->join('ms_finance_accounts', 'ms_finance_account_transactions.account_id=ms_finance_accounts.account_id', 'LEFT')
+			// ->where('ms_finance_account_transactions.join_id', $r->trans_number)->where('ms_finance_accounts.category_id', 1)->get()->row()->amount ?? 0;
+			$std->amount_bill -= $this->db->select_sum('amount')->from('ms_finance_account_transactions')->where('join_id', $r->trans_number)->where('account_id', 34)->where('type', 'debit')->get()->row()->amount ?? 0;
 		}
 
 
@@ -224,13 +234,75 @@ class Liabilities_model extends CI_Model
 		// dd($records_late);
 		$std->count_late = count($records_late);
 		$std->amount_bill_late = 0;
+		$std->amount_paid_late = 0;
 
 		// get total semua tagihan liabilities
-		// ! belum dikurangi duit yang di bayar
+		// * sudah dikurangi duit yang di bayar
 		foreach ($records_late as $r) {
 			$std->amount_bill_late += $this->db->select_sum('amount')->from('ms_liability_trans')->where('trans_number', $r->trans_number)->get()->row()->amount;
+
+			// total semua biaya yang sudah di bayarkan
+			// $std->amount_paid_late += $this->db->select_sum('ms_finance_account_transactions.amount')->from('ms_finance_account_transactions')
+			// 	->join('ms_finance_accounts', 'ms_finance_account_transactions.account_id=ms_finance_accounts.account_id', 'LEFT')
+			// 	->where('ms_finance_account_transactions.join_id', $r->trans_number)->where('ms_finance_accounts.category_id', 1)->get()->row()->amount ?? 0;
+
+			$std->amount_bill_late -= $this->db->select_sum('amount')->from('ms_finance_account_transactions')->where('join_id', $r->trans_number)->where('account_id', 34)->where('type', 'debit')->get()->row()->amount ?? 0;
 		}
 
+		// dd($std);
 		return $std;
+	}
+
+	public function delete_item_by_id($id)
+	{
+		$this->db->trans_start();
+
+		// simpan dulu data trans_number nya
+		$data = $this->db->where('liability_trans_id', $id)->get('ms_liability_trans')->row();
+		$trans_number = $data->trans_number;
+
+		// hapus data
+		$this->db->where('liability_trans_id', $id)->delete('ms_liability_trans');
+
+		// hitung ulang tagihan
+		$this->calculate_total_payment($trans_number);
+
+		$this->db->trans_complete();
+		return $this->db->trans_status();
+	}
+
+	public function update($trans_number, $data, $item_update, $item_add)
+	{
+		$this->db->trans_start();
+		// ambil data tagihan
+		$record_tagihan = $this->db->where('account_id', 34)->where('account_trans_cat_id', 7)->where('join_id', $trans_number)->where('type', 'credit')->get('ms_finance_account_transactions')->row();
+
+		// update data
+		$this->db->update('ms_liabilities', $data, ['trans_number' => $trans_number]);
+
+		// update item
+		foreach ($item_update as $iu) {
+			$this->db->update('ms_liability_trans', $iu->data, ['liability_id' => $iu->liability_id]);
+
+			// update transaksi
+			$this->db->where('account_id', $iu->account_id)->where('join_id', $trans_number)->update('ms_finance_account_transactions', ['amount' => $iu->amount]);
+		}
+
+		if ($item_add) {
+
+			// simpan data item baru
+			$this->db->insert_batch('ms_liability_trans', $item_add['data']);
+
+			// simpan catatan tagihan item baru
+			$this->db->insert_batch('ms_finance_account_transactions', $item_add['trans']);
+		}
+	}
+
+	public function calculate_total_payment($trans_number)
+	{
+		$new_amount = $this->db->select_sum('amount')->where('trans_number', $trans_number)->get('ms_liability_trans')->row()->amount;
+
+		// update trade payable
+		$this->db->where('account_id', 34)->where('join_id', $trans_number)->update('ms_finance_account_transactions', ['amount' => $new_amount]);
 	}
 }

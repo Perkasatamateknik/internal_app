@@ -65,6 +65,8 @@ $(document).ready(function () {
 	// On page load:
 	var otable = $("#ms_table").dataTable({
 		bDestroy: true,
+		// processing: true,
+		// serverSide: true,
 		ajax: {
 			url: site_url + "contacts/get_ajax_receivables/",
 			type: "GET",
@@ -74,10 +76,10 @@ $(document).ready(function () {
 		},
 	});
 
-	$("#ms_table_filter").hide();
-	$("#cari_data").keyup(function () {
-		otable.search($(this).val()).draw();
-	});
+	// $("#ms_table_filter").hide();
+	// $("#cari_data").keyup(function () {
+	// 	otable.search($(this).val()).draw();
+	// });
 
 	$("#delete_record").submit(function (e) {
 		/*Form Submit*/
@@ -238,14 +240,6 @@ function addRow() {
 	// update_total();
 }
 
-// Fungsi edit otomatic kaluasi saat load
-// addRow();
-
-// Fungsi edit otomatic kaluasi saat load
-$(document).on("load", function () {
-	// update_total();
-});
-
 // Calculate subtotal whenever row_qty or row_item_price is changed
 $(document).on("change click keyup load", ".row_amount", function () {
 	update_total();
@@ -261,6 +255,8 @@ function update_total() {
 	$("#amount").val(total);
 	$("#amount_show").text(formatCurrency(total));
 }
+
+// payment form
 $(document).ready(function () {
 	$("#payment_form").submit(function (e) {
 		e.preventDefault();
@@ -319,17 +315,6 @@ $(document).on("click", ".delete", function () {
 	$("#data-message").addClass("pt-3 font-weight-bold");
 
 	let del_file = $(this).data("record-id");
-	// let del_file =
-	// 	$(this).data("record-id") +
-	// 	`<br><br>
-	// 	<div class="alert alert-primary" role="alert">
-	// 		<div class="form-check">
-	// 			<label class="form-check-label">
-	// 				<input type="checkbox" class="form-check-input" name="delete_file" value="1">
-	// 				Hapus File
-	// 			</label>
-	// 		</div>
-	// 	</div>`;
 	$("#data-message").html(del_file);
 
 	$("#delete_record").attr("action", site_url + "contacts/receivables_delete/");
@@ -426,7 +411,7 @@ $(document).on("click", ".remove-item", function () {
 					} else {
 						row.fadeOut(300, function () {
 							$(this).remove();
-							// update_total();
+							update_total();
 						});
 						toastr.success(JSON.result);
 						$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
@@ -448,24 +433,34 @@ $(document).on("click", ".remove-item", function () {
 	}
 });
 
-function auto_date() {
-	// Mendapatkan tanggal saat ini
-	var currentDate = new Date();
+$(document).ready(function () {
+	$('[data-plugin="select_accounts"]').select2({
+		ajax: {
+			delay: 250,
+			url: site_url + "ajax_request/get_bank_account",
+			data: function (params) {
+				var queryParameters = {
+					query: params.term,
+				};
+				return queryParameters;
+			},
 
-	// Mendapatkan tahun saat ini
-	var currentYear = currentDate.getFullYear();
+			processResults: function (data) {
+				console.log(data);
+				return {
+					results: data,
+				};
+			},
+			cache: true,
+			transport: function (params, success, failure) {
+				var $request = $.ajax(params);
 
-	// Mendapatkan bulan saat ini (dalam format MM)
-	var currentMonth = ("0" + (currentDate.getMonth() + 1)).slice(-2);
+				$request.then(success);
+				$request.fail(failure);
 
-	// Mendapatkan tanggal saat ini (dalam format DD)
-	var currentDay = ("0" + currentDate.getDate()).slice(-2);
-
-	// Menggabungkan tahun, bulan, dan tanggal dalam format YYYY-MM-DD
-	var currentDateFormatted =
-		currentYear + "-" + currentMonth + "-" + currentDay;
-
-	// Mengatur nilai awal input tanggal
-	// document.getElementById("date").value = currentDateFormatted;
-	$("#date").value = currentDateFormatted;
-}
+				return $request;
+			},
+		},
+		width: "100%",
+	});
+});

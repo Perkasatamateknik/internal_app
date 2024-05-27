@@ -222,10 +222,9 @@
 					$(".icon-spinner3").hide();
 					Ladda.stopAll();
 				} else {
-					$("#modal-result").modal("hide");
 
 					toastr.options = {
-						timeOut: 1000,
+						timeOut: 700,
 						onHidden: function() {
 							window.location.reload();
 						},
@@ -235,6 +234,7 @@
 					$(".icon-spinner3").hide();
 					$(".save").prop("disabled", false);
 					Ladda.stopAll();
+					$("#modal-result").modal("hide");
 				}
 			},
 			error: function(xhr, status, error) {

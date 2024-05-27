@@ -101,9 +101,9 @@ class Receivables_model extends CI_Model
 
 	public function get_payment($account_trans_cat_id, $join_id)
 	{
-		// cari data tagihan di akun 34 trade payable
-		$record_tagihan = $this->db->where('account_id', 34)->where('account_trans_cat_id', $account_trans_cat_id)->where('join_id', $join_id)->where('type', 'credit')->get('ms_finance_account_transactions')->row();
-		$records_pembayaran = $this->db->select_sum('amount')->where('account_id', 34)->where('account_trans_cat_id', $account_trans_cat_id)->where('join_id', $join_id)->where('type', 'debit')->get('ms_finance_account_transactions')->row()->amount;
+		// cari data tagihan di akun piutang usaha
+		$record_tagihan = $this->db->where('account_id', 4)->where('account_trans_cat_id', $account_trans_cat_id)->where('join_id', $join_id)->where('type', 'debit')->get('ms_finance_account_transactions')->row();
+		$records_pembayaran = $this->db->select_sum('amount')->where('account_id', 4)->where('account_trans_cat_id', $account_trans_cat_id)->where('join_id', $join_id)->where('type', 'credit')->get('ms_finance_account_transactions')->row()->amount;
 
 		// log pembayaran dari akun
 		$log = $this->db->select(['ms_finance_account_transactions.*', 'COALESCE(ms_finance_accounts.account_code, "--") as account_code', 'COALESCE(ms_finance_accounts.account_name, "--") as account_name', 'ms_finance_accounts.category_id', 'xin_employees.first_name', 'xin_employees.last_name'])
@@ -111,7 +111,7 @@ class Receivables_model extends CI_Model
 			->join('xin_employees', 'ms_finance_account_transactions.user_id=xin_employees.user_id', 'inner')
 			// ->where_not_in('ms_finance_accounts.account_id', [34])
 			->where('ms_finance_accounts.category_id', 1)
-			->where('ms_finance_account_transactions.account_trans_cat_id', $account_trans_cat_id)->where('ms_finance_account_transactions.join_id', $join_id)->where('ms_finance_account_transactions.type', 'credit')->get()->result();
+			->where('ms_finance_account_transactions.account_trans_cat_id', $account_trans_cat_id)->where('ms_finance_account_transactions.join_id', $join_id)->where('ms_finance_account_transactions.type', 'debit')->get()->result();
 
 		$data = new stdClass;
 		$data->sisa_tagihan = $record_tagihan->amount - $records_pembayaran;
@@ -125,8 +125,8 @@ class Receivables_model extends CI_Model
 	public function get_sisa_tagihan($join_id)
 	{
 		// cari data tagihan di akun 34 trade payable
-		$record_tagihan = $this->db->where('account_id', 34)->where('account_trans_cat_id', 4)->where('join_id', $join_id)->where('type', 'credit')->get('ms_finance_account_transactions')->row();
-		$records_pembayaran = $this->db->select_sum('amount')->where('account_id', 34)->where('account_trans_cat_id', 4)->where('join_id', $join_id)->where('type', 'debit')->get('ms_finance_account_transactions')->row()->amount;
+		$record_tagihan = $this->db->where('account_id', 4)->where('account_trans_cat_id', 7)->where('join_id', $join_id)->where('type', 'credit')->get('ms_finance_account_transactions')->row();
+		$records_pembayaran = $this->db->select_sum('amount')->where('account_id', 4)->where('account_trans_cat_id', 7)->where('join_id', $join_id)->where('type', 'debit')->get('ms_finance_account_transactions')->row()->amount;
 
 		$records_pembayaran ?? 0;
 		return $record_tagihan->amount - $records_pembayaran;
@@ -216,6 +216,8 @@ class Receivables_model extends CI_Model
 		// ! belum dikurangi duit yang di bayar
 		foreach ($records as $r) {
 			$std->amount_bill += $this->db->select_sum('amount')->from('ms_receivable_trans')->where('trans_number', $r->trans_number)->get()->row()->amount;
+
+			$std->amount_bill -= $this->db->select_sum('amount')->from('ms_finance_account_transactions')->where('join_id', $r->trans_number)->where('account_id', 4)->where('type', 'credit')->get()->row()->amount ?? 0;
 		}
 
 
@@ -229,6 +231,8 @@ class Receivables_model extends CI_Model
 		// ! belum dikurangi duit yang di bayar
 		foreach ($records_late as $r) {
 			$std->amount_bill_late += $this->db->select_sum('amount')->from('ms_receivable_trans')->where('trans_number', $r->trans_number)->get()->row()->amount;
+
+			$std->amount_bill_late -= $this->db->select_sum('amount')->from('ms_finance_account_transactions')->where('join_id', $r->trans_number)->where('account_id', 4)->where('type', 'credit')->get()->row()->amount ?? 0;
 		}
 
 		return $std;

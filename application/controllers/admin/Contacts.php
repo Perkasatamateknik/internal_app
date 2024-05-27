@@ -80,13 +80,13 @@ class Contacts extends MY_Controller
 			}
 
 			if (true) { //edit
-				$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" href="' . site_url() . 'admin/contacts/edit/' . $r->contact_id  . '"><span class="fas fa-pencil-alt"></span></a></span>';
+				$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" onclick="modalEdit(' . $r->contact_id  . ')"><span class="fas fa-pencil-alt"></span></a></span>';
 			} else {
 				$edit = '';
 			}
 
 			if (true) { // delete
-				$delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '"><button type="button" class="btn icon-btn btn-sm btn-outline-danger waves-effect waves-light delete" data-toggle="modal" data-target=".delete-modal" data-record-id="' . $r->contact_id . '" data-token_type="contacts"><span class="fas fa-trash-restore"></span></button></span>';
+				$delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '"><button type="button" class="btn icon-btn btn-sm btn-outline-danger waves-effect waves-light delete" data-toggle="modal" data-target=".delete-modal" data-record-id="' . $r->contact_id . '" data-record-name="' . $r->contact_name . '" data-token_type="contacts" data-warning="Semua data tertaut akan terhapus!"><span class="fas fa-trash-restore"></span></button></span>';
 			} else {
 				$delete = '';
 			}
@@ -149,6 +149,46 @@ class Contacts extends MY_Controller
 		return $this->output([
 			'data' => $html
 		]);
+	}
+
+	public function ajax_all_trans()
+	{
+		$role_resources_ids = $this->Xin_model->user_role_resource();
+
+		$data['title'] = $this->Xin_model->site_title();
+		$session = $this->session->userdata('username');
+		if (empty($session)) {
+			redirect('admin/');
+		}
+
+		// Datatables Variables
+		$draw = intval($this->input->get("draw"));
+		$start = intval($this->input->get("start"));
+		$length = intval($this->input->get("length"));
+
+		$contact_id = $this->input->get('_token');
+		$records = $this->Contact_model->get_all_trans($contact_id);
+
+		$data = array();
+
+		foreach ($records as $r) {
+			$data[] = array(
+				$r->date,
+				$r->trans_type,
+				$r->note,
+				$this->Xin_model->currency_sign($r->amount),
+
+			);
+		}
+
+		$output = array(
+			"draw" => $data,
+			"recordsTotal" => count($data),
+			"recordsFiltered" => count($data),
+			"data" => $data
+		);
+		echo json_encode($output);
+		exit();
 	}
 
 	public function dashboard()
@@ -342,6 +382,29 @@ class Contacts extends MY_Controller
 		exit;
 	}
 
+	public function delete()
+	{
+		$role_resources_ids = $this->Xin_model->user_role_resource();
+
+		/* Define return | here result is used to return user data and error for error message */
+		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
+		$Return['csrf_hash'] = $this->security->get_csrf_hash();
+
+		if (in_array(505, $role_resources_ids)) {
+			$id = $this->input->post('_token');
+
+			$del_attachment = $this->input->post('del_attachment') ?? false; // bool
+
+			$result = $this->Contact_model->delete($id, $del_attachment);
+			if ($result) {
+				$Return['result'] = $this->lang->line('ms_title_success_deleted');
+			} else {
+				$Return['error'] = $this->lang->line('xin_error_msg');
+			}
+			$this->output($Return);
+		}
+	}
+
 
 	// trans //
 
@@ -434,13 +497,15 @@ class Contacts extends MY_Controller
 			$contact = $this->Contact_model->get_contact($r->contact_id);
 			if (!is_null($contact)) {
 
-				$contact = '<a href="' . base_url('/admin/contacts/view/' . $contact->contact_id) . '" type="button" class="text-link font-weight-bold">' . $contact->contact_name . '</a>';
+				$contact = '<a href="' . base_url('/admin/contacts/view/' . $contact->contact_id) . '" type="button" class="font-weight-bold">' . $contact->contact_name . '</a>';
 			} else {
 				$contact = "--";
 			}
 
+			$trans_number = '<a href="' . base_url('/admin/contacts/liability_view/' . $r->trans_number) . '" class="font-weight-bold">' . $r->trans_number . '</a>';
+
 			if (true) { //edit
-				$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" href="' . site_url() . 'admin/finance/accounts/transfer_edit?id=' . $r->trans_number  . '"><span class="fas fa-pencil-alt"></span></a></span>';
+				$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" href="' . site_url() . 'admin/contacts/liability_edit/' . $r->trans_number  . '"><span class="fas fa-pencil-alt"></span></a></span>';
 			} else {
 				$edit = '';
 			}
@@ -456,9 +521,9 @@ class Contacts extends MY_Controller
 			$data[] = array(
 				$combhr,
 				$this->Xin_model->set_date_format($r->date),
-				$r->trans_number,
+				$trans_number,
 				$contact,
-				$r->reference,
+				$r->reference ?? "--",
 				doc_stats($r->status, true),
 				$this->Xin_model->currency_sign($amount),
 			);
@@ -613,7 +678,6 @@ class Contacts extends MY_Controller
 		$role_resources_ids = $this->Xin_model->user_role_resource();
 		$record = $this->Liabilities_model->get_by_number_doc($id);
 
-		// dd($record);
 		if (!is_null($record)) {
 
 			// get payment
@@ -626,18 +690,12 @@ class Contacts extends MY_Controller
 			//add expense items model
 			$items = $this->Liabilities_model->get_items_by_trans_number($record->trans_number);
 
-			if (!is_null($items)) {
-				foreach ($items as $item) {
-					$item->account_name = $this->Accounts_model->get($item->account_id)->row()->account_name;
-				}
-			}
-
 			$data['items'] = $items;
 		} else {
 			redirect('admin/contacts');
 		}
 
-		// dd($data);
+		// dd($data['payment']);
 		$data['record'] = $record;
 		if (true) {
 			$data['subview'] = $this->load->view("admin/contacts/liabilities/view", $data, TRUE);
@@ -645,6 +703,76 @@ class Contacts extends MY_Controller
 		} else {
 			redirect('admin/dashboard');
 		}
+	}
+
+	public function liability_edit($id)
+	{
+		$data['title'] = $this->Xin_model->site_title();
+		$session = $this->session->userdata('username');
+		$data['path_url'] = 'liabilities';
+		if (empty($session)) {
+			redirect('admin/');
+		}
+
+		$data['breadcrumbs'] = $this->lang->line('ms_title_liabilities');
+		$role_resources_ids = $this->Xin_model->user_role_resource();
+
+		$record = $this->Liabilities_model->get_by_number_doc($id);
+
+		if (!is_null($record)) {
+
+			$data['contact'] = $this->Contact_model->get_contact($record->contact_id);
+
+			// // get payment
+			// $data['payment'] = $this->Liabilities_model->get_payment(7, $record->trans_number);
+
+			// // 4 => roles expense
+			// $attachments = $this->Files_ms_model->get_by_access_id(7, $record->trans_number)->result();
+			// $data['attachments'] = $attachments;
+
+			//add expense items model
+			$items = $this->Liabilities_model->get_items_by_trans_number($record->trans_number);
+
+			$data['items'] = $items;
+		} else {
+			redirect('admin/contacts');
+		}
+
+		$data['record'] = $record;
+		if (true) {
+			$data['subview'] = $this->load->view("admin/contacts/liabilities/edit", $data, TRUE);
+			$this->load->view('admin/layout/layout_main', $data); //page load
+		} else {
+			redirect('admin/dashboard');
+		}
+	}
+
+	public function get_ajax_items_liability()
+	{
+		$role_resources_ids = $this->Xin_model->user_role_resource();
+		$data['title'] = $this->Xin_model->site_title();
+		$session = $this->session->userdata('username');
+		if (empty($session)) {
+			redirect('admin/contacts');
+		}
+
+		$id = $this->input->get('_token');
+
+		// Datatables Variables
+		$draw = intval($this->input->get("draw"));
+		$start = intval($this->input->get("start"));
+		$length = intval($this->input->get("length"));
+
+		$record = $this->Liabilities_model->get_items_by_trans_number($id);
+
+		$output = array(
+			"draw" => $draw,
+			"recordsTotal" => count($record),
+			"recordsFiltered" => count($record),
+			"items" => $record
+		);
+		echo json_encode($output);
+		exit();
 	}
 
 	public function liabilities_delete()
@@ -670,6 +798,91 @@ class Contacts extends MY_Controller
 		}
 	}
 
+	public function liability_update()
+	{
+
+		$session = $this->session->userdata('username');
+		if (empty($session)) {
+			redirect('admin/');
+		}
+		die();
+		/* Define return | here result is used to return user data and error for error message */
+		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
+		$Return['csrf_hash'] = $this->security->get_csrf_hash();
+
+		$trans_number = $this->input->post('_token');
+
+		// data liability
+		$data = [
+			'date' => $this->input->post('date'),
+			'due_date' => $this->input->post('due_date'),
+			'reference' => $this->input->post('reference')
+		];
+
+		// masukan semua total ke akun hutang usaha trade payable
+		$trans[] =
+			[
+				'account_id' => 34, // account_id
+				'account_trans_cat_id' => 7,
+				'amount' => $this->input->post('amount'),
+				'attachment' => null,
+				'ref_trans_id' => $ref_trans_id
+
+			];
+
+		for ($i = 0; $i < count($this->input->post('row_amount')); $i++) {
+
+			$trans[] = [
+				'account_id' => $this->input->post('row_target_id')[$i],
+				'amount' => $this->input->post('row_amount')[$i],
+				'note' => $this->input->post('row_note')[$i],
+			];
+		}
+
+
+
+		$desc = "Transfer Doc";
+		$amount = $this->input->post('amount');
+
+		if ($this->input->post('target_account') == $this->input->post('old_target_account')) {
+			$data = [
+				'account_id' => $this->input->post('account_id'),
+				'terget_account_id' => $this->input->post('old_target_account'),
+				'trans_number' => $trans_number,
+				'date' => $this->input->post('date'),
+				'amount' => $amount,
+				'ref' => $this->input->post('ref'),
+				'note' => $this->input->post('note'),
+				'description' => $desc,
+			];
+
+			$new_target_account = false;
+		} else {
+			$new_target_account = $this->input->post('target_account');
+			$data = [
+				'account_id' => $this->input->post('account_id'),
+				'terget_account_id' => $this->input->post('target_account'),
+				'trans_number' => $trans_number,
+				'date' => $this->input->post('date'),
+				'amount' => $amount,
+				'ref' => $this->input->post('ref'),
+				'note' => $this->input->post('note'),
+				'description' => $desc,
+			];
+		}
+
+		$query = $this->Account_transfer_model->update_by_trans_number($trans_number, $data, $new_target_account);
+
+		if ($query) {
+			$Return['result'] = $this->lang->line('ms_title_success_updated');
+			$this->output($Return);
+		} else {
+			$Return['error'] = $this->lang->line('ms_title_error');
+			$this->output($Return);
+		}
+	}
+
+	/* terakhir sampai edit, tapi blm save data */
 
 
 	public function receivable_store()
@@ -702,7 +915,7 @@ class Contacts extends MY_Controller
 			$trans[] = [
 				'account_id' => $this->input->post('row_target_id')[$i], // account_id
 				'user_id' => $user_id,
-				'account_trans_cat_id' => 7,
+				'account_trans_cat_id' => 8,
 				'amount' => $this->input->post('row_amount')[$i],
 				'date' => date('Y-m-d'),
 				'type' => 'credit',
@@ -722,12 +935,12 @@ class Contacts extends MY_Controller
 		}
 
 
-		// masukan semua total ke akun hutang usaha unbilled accounts payable
+		// masukan semua total ke akun hutang usaha 1-10100 Account Receivable
 		$trans[] =
 			[
-				'account_id' => 35, // account_id 
+				'account_id' => 4, // account_id 
 				'user_id' => $user_id,
-				'account_trans_cat_id' => 7, // = 
+				'account_trans_cat_id' => 8, // = 
 				'amount' => $this->input->post('amount'),
 				'date' => date('Y-m-d'),
 				'type' => 'debit',
@@ -774,7 +987,7 @@ class Contacts extends MY_Controller
 						'file_size' => $files['size'][$key],
 						'file_type' => $files['type'][$key],
 						'file_ext' => $extension,
-						'file_access' => 7, // expense
+						'file_access' => 8, // expense
 						'access_id' => $trans_number
 					);
 				} else {
@@ -815,10 +1028,10 @@ class Contacts extends MY_Controller
 		if (!is_null($record)) {
 
 			// get payment
-			// $data['payment'] = $this->Receivables_model->get_payment(4, $record->trans_number);
+			$data['payment'] = $this->Receivables_model->get_payment(8, $record->trans_number);
 
 			// 4 => roles expense
-			$attachments = $this->Files_ms_model->get_by_access_id(7, $record->trans_number)->result();
+			$attachments = $this->Files_ms_model->get_by_access_id(8, $record->trans_number)->result();
 			$data['attachments'] = $attachments;
 
 			//add expense items model
@@ -890,13 +1103,15 @@ class Contacts extends MY_Controller
 			$contact = $this->Contact_model->get_contact($r->contact_id);
 			if (!is_null($contact)) {
 
-				$contact = '<a href="' . base_url('/admin/contacts/view/' . $contact->contact_id) . '" type="button" class="text-link font-weight-bold">' . $contact->contact_name . '</a>';
+				$contact = '<a href="' . base_url('/admin/contacts/view/' . $contact->contact_id) . '" type="button" class="font-weight-bold">' . $contact->contact_name . '</a>';
 			} else {
 				$contact = "--";
 			}
 
+			$trans_number = '<a href="' . base_url('/admin/contacts/receivable_view/' . $r->trans_number) . '" type="button" class="font-weight-bold">' . $r->trans_number . '</a>';
+
 			if (true) { //edit
-				$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" href="' . site_url() . 'admin/finance/accounts/transfer_edit?id=' . $r->trans_number  . '"><span class="fas fa-pencil-alt"></span></a></span>';
+				$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" href="' . site_url() . 'admin/contacts/receivable_view/' . $r->trans_number  . '"><span class="fas fa-pencil-alt"></span></a></span>';
 			} else {
 				$edit = '';
 			}
@@ -912,7 +1127,7 @@ class Contacts extends MY_Controller
 			$data[] = array(
 				$combhr,
 				$this->Xin_model->set_date_format($r->date),
-				$r->trans_number,
+				$trans_number,
 				$contact,
 				$r->reference,
 				doc_stats($r->status, true),
@@ -1118,6 +1333,82 @@ class Contacts extends MY_Controller
 		} else {
 			// update status spend
 			$this->Liabilities_model->update_by_trans_number($trans_number, ['status' => 'partially_paid']);
+		}
+
+		if ($insert) {
+			$Return['result'] = $this->lang->line('ms_title_payment_success');
+			$this->output($Return);
+		} else {
+			$Return['error'] = $this->lang->line('ms_title_peyment_error');
+			$this->output($Return);
+		}
+	}
+
+	public function receivable_store_payment()
+	{
+		/* Define return | here result is used to return user data and error for error message */
+		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
+		$Return['csrf_hash'] = $this->security->get_csrf_hash();
+
+		$trans_number = $this->input->post('_token');
+
+		$date = $this->input->post('date');
+		$payment_ref = $this->input->post('payment_ref');
+		$source_payment_account = $this->input->post('source_payment_account');
+
+		// get user id
+		$user_id = $this->session->userdata('username')['user_id'];
+
+		$file_attachment = $this->upload_attachment('./uploads/receivables/', 'TRANS');
+
+		$ref_trans_id = $trans_number . "-" . rand(100000, 999999);
+
+		// uang yang dibayar
+		$amount_paid = $this->input->post('amount_paid');
+		$trans = [];
+
+		// kredit pengirim
+		$trans[] =
+			[
+				'account_id' => $source_payment_account,
+				'user_id' => $user_id,
+				'account_trans_cat_id' => 8,
+				'amount' => $amount_paid,
+				'date' => $date,
+				'type' => 'debit',
+				'join_id' => $trans_number,
+				'ref' => $payment_ref,
+				'note' => "Pembayaran Piutang",
+				'attachment' => $file_attachment,
+				'ref_trans_id' => $ref_trans_id
+			];
+
+		// debit Account Receivable
+		$trans[] =
+			[
+				'account_id' => 4,
+				'user_id' => $user_id,
+				'account_trans_cat_id' => 8,
+				'amount' => $amount_paid,
+				'date' => $date,
+				'type' => 'credit',
+				'join_id' => $trans_number,
+				'ref' => $payment_ref,
+				'note' => "Pembayaran Piutang",
+				'attachment' => $file_attachment,
+				'ref_trans_id' => $ref_trans_id
+			];
+
+		$insert = $this->Account_trans_model->insert_payment($trans);
+
+		$check_tagihan = $this->Receivables_model->get_payment(8, $trans_number);
+
+		if ($check_tagihan->sisa_tagihan == 0) {
+			// update status spend
+			$this->Receivables_model->update_by_trans_number($trans_number, ['status' => 'paid']);
+		} else {
+			// update status spend
+			$this->Receivables_model->update_by_trans_number($trans_number, ['status' => 'partially_paid']);
 		}
 
 		if ($insert) {

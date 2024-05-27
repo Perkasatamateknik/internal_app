@@ -186,47 +186,6 @@ function addRow() {
 		width: "100%",
 	});
 
-	$('[data-plugin="select_tax"]').select2({
-		ajax: {
-			delay: 250,
-			url: site_url + "ajax_request/find_tax",
-			data: function (params) {
-				var queryParameters = {
-					query: params.term,
-				};
-				return queryParameters;
-			},
-			processResults: function (data) {
-				// return {
-				// 	results: data,
-				// };
-				var options = [];
-
-				data.forEach(function (item) {
-					options.push({
-						id: item.id,
-						text: item.text,
-						customAttribute: item.rate,
-					});
-				});
-
-				return {
-					results: options,
-				};
-			},
-			cache: false,
-			transport: function (params, success, failure) {
-				var $request = $.ajax(params);
-
-				$request.then(success);
-				$request.fail(failure);
-
-				return $request;
-			},
-		},
-		width: "100%",
-	});
-
 	var rowAmountSelect = $("#row_amount_" + rowCount);
 	rowAmountSelect
 		.closest("td")
@@ -330,9 +289,10 @@ $(window).on("load", function () {
 	let type = $("input[name='liabilities']").val() ?? "";
 	if (type == "UPDATE") {
 		let token = $("input[name='_token']").val();
+		console.log(token);
 		$.ajax({
 			type: "GET",
-			url: site_url + "/finance/liabilities/get_ajax_items_liabilities",
+			url: site_url + "/contacts/get_ajax_items_liability",
 			data: "_token=" + token,
 			dataType: "JSON",
 			success: function (response) {
@@ -355,25 +315,13 @@ $(window).on("load", function () {
 							.append(option)
 							.trigger("change");
 
-						if (value.tax_name != null) {
-							$("#row_tax_id_" + key).append(
-								new Option(value.tax_name, value.tax_id, true, true)
-							);
-
-							row.find(".row_tax_rate").val(value.tax_rate);
-							row
-								.find(".row_tax_rate_show")
-								.text(formatCurrency(value.tax_rate));
-						}
 						row.find(".row_note").val(value.note);
 						row.find(".row_amount").val(value.amount);
 						row.find(".row_amount_show").text(formatCurrency(value.amount));
 
 						// set tombol delete to ajax
 						row.find(".remove-item").attr("data-ajax", "true");
-						row
-							.find(".remove-item")
-							.attr("data-id", value.liabilities_trans_id); // set id item liabilities
+						row.find(".remove-item").attr("data-id", value.liability_trans_id); // set id item liabilities
 
 						row.find(".fa").removeClass("fa-minus"); // remove class btn danger
 						row.find(".fa").addClass("fa-trash"); // remove class btn danger
@@ -401,6 +349,8 @@ $(document).on("click", ".remove-item", function () {
 		if (conf == true) {
 			var id = $(this).data("id");
 			var row = $(this).closest("tr");
+			console.log($('input[name="csrf_hrsale"]').val());
+
 			$.ajax({
 				url: site_url + "ajax_request/delete_item_liabilities",
 				type: "POST",
@@ -442,7 +392,7 @@ $(document).ready(function () {
 	$('[data-plugin="select_accounts"]').select2({
 		ajax: {
 			delay: 250,
-			url: site_url + "ajax_request/get_accounts",
+			url: site_url + "ajax_request/get_bank_account",
 			data: function (params) {
 				var queryParameters = {
 					query: params.term,

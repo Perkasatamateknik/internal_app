@@ -13,9 +13,65 @@ $(document).ready(function () {
 		},
 	});
 
+	$("#ms_table_trans").DataTable({
+		bDestroy: true,
+
+		ajax: {
+			url: base_url + "/ajax_all_trans/",
+			type: "GET",
+			data: {
+				_token: $("#ms_table_trans").data("id"),
+			},
+		},
+		fnDrawCallback: function (settings) {
+			$('[data-toggle="tooltip"]').tooltip();
+		},
+	});
+
 	$("#ms_table_filter").hide();
 	$("#cari_data").keyup(function () {
 		ms_table.search($(this).val()).draw();
+	});
+
+	$("#delete_record").submit(function (e) {
+		/*Form Submit*/
+
+		e.preventDefault();
+		var obj = $(this),
+			action = obj.attr("name");
+		$.ajax({
+			type: "POST",
+			url: e.target.action,
+			data: obj.serialize() + "&is_ajax=2&form=" + action,
+			cache: false,
+			success: function (JSON) {
+				if (JSON.error != "") {
+					toastr.error(JSON.error);
+					$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
+					Ladda.stopAll();
+				} else {
+					$(".delete-modal").modal("toggle");
+					// ms_table.api().ajax.reload(function () {
+					// 	toastr.success(JSON.result);
+					// }, true);
+					toastr.options = {
+						timeOut: 700,
+						onHidden: function () {
+							window.location.reload();
+						},
+					};
+					$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
+					Ladda.stopAll();
+				}
+			},
+			error: function (xhr, status, error) {
+				toastr.error("Error: " + status + " | " + error);
+				$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
+				$(".icon-spinner3").hide();
+				$(".save").prop("disabled", false);
+				Ladda.stopAll();
+			},
+		});
 	});
 });
 
@@ -57,7 +113,7 @@ function modalEdit(id) {
 }
 
 $(document).ready(function () {
-	$("#contacts_form").submit(function (e) {
+	$("#type_form").submit(function (e) {
 		/*Form Submit*/
 		e.preventDefault();
 		var obj = $(this),
@@ -104,4 +160,18 @@ $(document).ready(function () {
 			},
 		});
 	});
+});
+
+// button set delete
+$(document).on("click", ".delete", function () {
+	$("input[name=_token]").val($(this).data("record-id"));
+	$("#data-message").addClass("pt-3 font-weight-bold");
+
+	let del_file = $(this).data("record-name");
+
+	$("#data-message").html(del_file);
+	$("#warning-message").html($(this).data("warning"));
+	$("#warning-message").addClass("pt-3 text-danger text-sm");
+
+	$("#delete_record").attr("action", site_url + "contacts/delete/");
 });

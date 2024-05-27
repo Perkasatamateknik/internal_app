@@ -226,7 +226,7 @@
 						</div>
 					</div>
 					<div class="table-responsive">
-						<table class="table w-100">
+						<table class="table w-100" id="ms_table_trans" data-id="<?= $record->contact_id; ?>">
 							<thead>
 								<tr>
 									<th style="width: 15%;"><?= $this->lang->line('ms_title_date'); ?></th>

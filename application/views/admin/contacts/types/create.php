@@ -1,7 +1,7 @@
 <div class="card">
 	<?php $attributes = array('name' => 'type_form', 'id' => 'type_form', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
 	<?php $hidden = array('type' => 'type'); ?>
-	<?php echo form_open('admin/contacts/type_store', $attributes, $hidden); ?>
+	<?php echo form_open('admin/contacts/store_type', $attributes, $hidden); ?>
 	<div class="card-body">
 		<div class="form-group">
 			<label for="contact_type"><?= $this->lang->line('ms_title_contact_type'); ?></label>

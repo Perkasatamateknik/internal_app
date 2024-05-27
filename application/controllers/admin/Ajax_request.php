@@ -26,13 +26,7 @@ class Ajax_request extends MY_Controller
 
 		$this->load->model("Expense_model");
 		$this->load->model("Contact_model");
-
-		// if (!$this->input->is_ajax_request()) {
-		// 	$this->output([
-		// 		'error' => 403
-		// 	]);
-		// 	exit('No direct script access allowed');
-		// }
+		$this->load->model("Liabilities_model");
 	}
 
 	/*Function to set JSON output*/
@@ -609,6 +603,32 @@ class Ajax_request extends MY_Controller
 
 			try {
 				$del = $this->Expense_items_model->delete_item_by_id($id);
+
+				if ($del) {
+					$Return['result'] = $this->lang->line('ms_item_deleted');
+				} else {
+					$Return['error'] = $this->lang->line('xin_error_msg');
+				}
+			} catch (Throwable $e) {
+				$Return['error'] = $e->getMessage();
+			}
+
+			$this->output($Return);
+			exit;
+		}
+	}
+
+	public function delete_item_liabilities()
+	{
+		// if ($this->input->is_ajax_request()) {
+		if (true) {
+			$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
+			$Return['csrf_hash'] = $this->security->get_csrf_hash();
+
+			$id = $this->input->post('id') ?? 0;
+
+			try {
+				$del = $this->Liabilities_model->delete_item_by_id($id);
 
 				if ($del) {
 					$Return['result'] = $this->lang->line('ms_item_deleted');

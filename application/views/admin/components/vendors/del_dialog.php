@@ -29,6 +29,7 @@
 					<span class="text-danger py-3"><?php echo $this->lang->line('xin_d_not_restored'); ?></span>
 					<br>
 					<div id="data-message" class="data-message"></div>
+					<div id="warning-message"></div>
 				</center>
 			</div>
 			<div class="modal-footer">
