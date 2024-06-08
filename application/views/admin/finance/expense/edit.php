@@ -33,7 +33,7 @@
 	<div class="col-md-12">
 		<div class="card mb-3">
 			<div class="card-header">
-				<a href="javascript:history.back()" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
+				<a href="<?= base_url('admin/finance/expenses') ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
 			</div>
 			<!-- Button trigger modal -->
 			<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modelId">

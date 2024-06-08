@@ -73,7 +73,7 @@ class Account_receive_model extends CI_Model
 
 	public function get_by_number_doc($id = false)
 	{
-		$this->db->select(['ms_finance_account_receives.*', 'COALESCE(ms_finance_accounts.account_code, "--") as account_code', 'COALESCE(ms_finance_accounts.account_name, "--") as account_name', 'ms_finance_accounts.account_id'])
+		$this->db->select(['ms_finance_account_receives.*', 'COALESCE(ms_finance_accounts.account_code, "--") as account_code', 'COALESCE(ms_finance_accounts.account_name, "--") as account_name'])
 			->from('ms_finance_account_receives')
 			->join('ms_finance_accounts', 'ms_finance_account_receives.receive_account_id=ms_finance_accounts.account_id');
 
@@ -116,7 +116,7 @@ class Account_receive_model extends CI_Model
 	public function init_trans()
 	{
 		$last = $this->get_last_receive();
-		if (is_null($last) or !in_array(null, [$last->contact_id], true)) {
+		if (is_null($last) or !in_array(null, [$last->vendor_id], true)) {
 			$trans_number = $this->trans_number();
 			$this->db->insert('ms_finance_account_receives', [
 				'trans_number' => $trans_number

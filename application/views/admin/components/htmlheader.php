@@ -20,14 +20,6 @@
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 	<style>
-		.bg-card {
-			background-color: #fcfcfc2c !important;
-		}
-
-		.text-link {
-			color: #2D2D2D !important;
-		}
-
 		* {
 			font-family: 'Plus Jakarta Sans', sans-serif;
 		}
@@ -35,33 +27,26 @@
 		.fa {
 			transition: transform 0.5s ease-in-out;
 		}
-	</style>
 
-	<style>
-		.item-container {
-			display: flex;
-			align-items: baseline;
-			/* Align items by their baselines */
-			margin-bottom: 0px !important;
+		/* Custom CSS to disable button hover for btn-transparent class */
+		.btn-transparent {
+			pointer-events: none;
+			/* Disable pointer events */
+			background-color: transparent !important;
+			/* Transparent background */
+			border-color: transparent !important;
+			/* Transparent border */
+			color: inherit !important;
+			/* Inherit text color */
 		}
 
-		.item-box {
-			width: 12px;
-			/* Width of the box */
-			height: 12px;
-			/* Height of the box */
-			margin-right: 5px;
-			/* Space between box and text */
-			display: inline-block;
-			vertical-align: middle;
-			/* Ensure box aligns with text */
-			border-radius: 50%;
-		}
-
-		.item-text {
-			display: inline-block;
-			vertical-align: middle;
-			/* Ensure text aligns with box */
+		.btn-transparent:hover {
+			background-color: transparent !important;
+			/* Transparent background on hover */
+			border-color: transparent !important;
+			/* Transparent border on hover */
+			color: inherit !important;
+			/* Inherit text color on hover */
 		}
 	</style>
 	<!-- Icon fonts -->
@@ -155,10 +140,6 @@
 
 	<!-- <link href="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone.css" rel="stylesheet" type="text/css" /> -->
 	<style>
-		/* .bg-card {
-			background-color: #fcfcfc2c !important;
-		} */
-
 		.purporse {
 			background-color: #f1f1f2;
 			/* Use the desired grey background color */

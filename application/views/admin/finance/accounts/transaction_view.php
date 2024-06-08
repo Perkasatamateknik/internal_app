@@ -1,7 +1,9 @@
 <?php
 
 $id = $this->input->get('id');
-if ($id == '') {
+$back_id = $this->input->get('back_id');
+
+if ($id == '' or $back_id == '') {
 	redirect('admin/finance/accounts');
 }
 ?>
@@ -17,7 +19,7 @@ if ($id == '') {
 			<div class="card-body">
 				<div class="row justify-content-between">
 					<div class="col-md-auto">
-						<a href="javascript:history.back()" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
+						<a href="<?= base_url('/admin/finance/accounts/transactions?id=' . $back_id) ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
 					</div>
 				</div>
 				<hr>

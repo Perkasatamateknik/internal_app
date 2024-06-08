@@ -12,7 +12,7 @@ class Purchase_orders extends Purchasing
 		$this->load->model("Tax_model");
 		$this->load->model("Exin_model");
 
-		$this->load->model("Contact_model");
+		$this->load->model("Vendor_model");
 		$this->load->model("Product_model");
 		$this->load->model("Project_model");
 		$this->load->model("Department_model");
@@ -78,7 +78,7 @@ class Purchase_orders extends Purchasing
 		$data['po_number'] = $this->po_number();
 
 		$role_resources_ids = $this->Xin_model->user_role_resource();
-		if (in_array('508', $role_resources_ids)) {
+		if (in_array('507', $role_resources_ids)) {
 			if (!empty($session)) {
 				$data['subview'] = $this->load->view("admin/purchase_orders/order_list", $data, TRUE);
 				$this->load->view('admin/layout/layout_main', $data); //page load
@@ -109,7 +109,6 @@ class Purchase_orders extends Purchasing
 		exit();
 	}
 
-	
 	public function insert()
 	{
 		// Get the input data
@@ -124,10 +123,12 @@ class Purchase_orders extends Purchasing
 			$Return['csrf_hash'] = $this->security->get_csrf_hash();
 
 			/* Server side PHP input validation */
-			if ($this->input->post('contact_id') === '') {
-				$Return['error'] = $this->lang->line('ms_error_contact_field');
+			if ($this->input->post('vendor_id') === '') {
+				$Return['error'] = $this->lang->line('ms_error_vendor_field');
 			} else if ($this->input->post('warehouse_assign') === '') {
 				$Return['error'] = $this->lang->line('ms_error_warehouse_assign_field');
+				// } else if ($this->input->post('faktur_number') === '') {
+				// 	$Return['error'] = $this->lang->line('ms_error_faktur_number_field');
 			} else if ($this->input->post('date') === '') {
 				$Return['error'] = $this->lang->line('ms_error_date_field');
 			} else if ($this->input->post('termin') === '') {
@@ -157,7 +158,7 @@ class Purchase_orders extends Purchasing
 			}
 
 			$data_po = array(
-				'contact_id'			=> $this->input->post('contact_id'),
+				'vendor_id'			=> $this->input->post('vendor'),
 				'po_number'			=> $po_number,
 				'added_by'			=> $user_id,
 				'department_id'		=> $department_id,
@@ -180,6 +181,8 @@ class Purchase_orders extends Purchasing
 			$sub_total = 0;
 			$tax = 0;
 			$discount = 0;
+			$delivery_fee = $this->input->post('delivery_fee');
+			$service_fee = $this->input->post('service_fee');
 			$amount_item = 0;
 
 			for ($i = 0; $i < count($this->input->post('row_item_id')); $i++) {
@@ -281,12 +284,12 @@ class Purchase_orders extends Purchasing
 				$delete = '';
 			}
 
-			/// get contact
-			$contact = $this->Contact_model->get_contact($r->contact_id);
-			if (!is_null($contact)) {
-				$contact = "<a href='" . site_url() . 'admin/contacts/view/' . $r->contact_id  . "' class='text-md font-weight-bold'>" . $contact->contact_name . "</a><br><small>" . $contact->billing_address . "</small>";
+			/// get vendor
+			$vendor = $this->Vendor_model->read_vendor_information($r->vendor_id);
+			if (!is_null($vendor)) {
+				$vendor = $vendor[0]->vendor_name . '<br><small>' . $vendor[0]->vendor_address . '</small>';
 			} else {
-				$contact = '--';
+				$vendor = '--';
 			}
 
 			//get amount
@@ -297,7 +300,7 @@ class Purchase_orders extends Purchasing
 			$data[] = array(
 				$combhr,
 				$po_number,
-				$contact,
+				$vendor,
 				$this->Xin_model->set_date_format($r->date),
 				po_stats($r->status),
 				strlen($r->reference) >= 20 ? substr($r->reference, 0, 20) . '...' : $r->reference ?? '--',
@@ -336,11 +339,11 @@ class Purchase_orders extends Purchasing
 			redirect('admin/purchase_orders');
 		}
 
-		$contact = $this->Contact_model->get_contact($record->contact_id);
-		if (!is_null($contact)) {
-			$record->contact = "<a href='" . site_url() . 'admin/contacts/view/' . $contact->contact_id  . "' class='text-md font-weight-bold'>" . $contact->contact_name . "</a>";
+		$vendor = $this->Vendor_model->read_vendor_information($record->vendor_id);
+		if (!is_null($vendor)) {
+			$record->vendor = $vendor[0]->vendor_name;
 		} else {
-			$record->contact = "--";
+			$record->vendor = "--";
 		}
 
 		$data['title'] = $this->lang->line('ms_purchase_orders') . ' | ' . $this->Xin_model->site_title();
@@ -501,11 +504,11 @@ class Purchase_orders extends Purchasing
 			redirect('admin/purchase_orders');
 		}
 
-		$contact = $this->Contact_model->get_contact($record->contact_id);
-		if (!is_null($contact)) {
-			$record->contact = $contact->contact_name;
+		$vendor = $this->Vendor_model->read_vendor_information($record->vendor_id);
+		if (!is_null($vendor)) {
+			$record->vendor = $vendor[0]->vendor_name;
 		} else {
-			$record->contact = "--";
+			$record->vendor = "--";
 		}
 
 		$data['title'] = $this->lang->line('ms_purchase_orders') . ' | ' . $this->Xin_model->site_title();
@@ -663,8 +666,8 @@ class Purchase_orders extends Purchasing
 			$Return['csrf_hash'] = $this->security->get_csrf_hash();
 
 			/* Server side PHP input validation */
-			if ($this->input->post('contact_id') === '') {
-				$Return['error'] = $this->lang->z('ms_error_contact_field');
+			if ($this->input->post('vendor_id') === '') {
+				$Return['error'] = $this->lang->z('ms_error_vendor_field');
 			} else if ($this->input->post('warehouse_assign') === '') {
 				$Return['error'] = $this->lang->line('ms_error_warehouse_assign_field');
 			} else if ($this->input->post('faktur_number') === '') {
@@ -683,7 +686,7 @@ class Purchase_orders extends Purchasing
 
 			$id = $this->input->post('po_number');
 			$data = array(
-				'contact_id'			=> $this->input->post('contact_id'),
+				'vendor_id'			=> $this->input->post('vendor'),
 				'warehouse_assign'	=> $this->input->post('warehouse_assign'),
 				'faktur_number'		=> $this->input->post('faktur_number') ?? "--",
 				'date'				=> $this->input->post('date') ?? date("Y-m-d"),
@@ -768,4 +771,6 @@ class Purchase_orders extends Purchasing
 			$this->output($Return);
 		}
 	}
+
+	
 }

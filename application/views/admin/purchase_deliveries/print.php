@@ -3546,8 +3546,8 @@
 							</tr>
 							<tr>
 								<td>
-									<label><?php echo $this->lang->line('ms_title_contact'); ?></label><br>
-									<strong><?= $record->contact; ?></strong>
+									<label><?php echo $this->lang->line('ms_vendors'); ?></label><br>
+									<strong><?= $record->vendor; ?></strong>
 								</td>
 								<td>
 									<label><?php echo $this->lang->line('ms_purchase_number'); ?></label><br>

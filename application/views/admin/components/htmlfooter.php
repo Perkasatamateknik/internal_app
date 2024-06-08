@@ -508,7 +508,7 @@
 	<script script script src="<?php echo base_url(); ?>skin/hrsale_vendor/assets/vendor/libs/chartjs/chartjs.js"></script>
 
 <?php } ?>
-
+</script>
 <?php if (in_array($this->router->fetch_class(), ['purchase_requisitions', 'purchase_orders', 'purchase_deliveries', 'purchase_invoices'])) { ?>
 
 	<?php $this->load->view('admin/vendors/modal_vendor'); ?>
@@ -620,6 +620,26 @@
 	});
 </script>
 
+<script>
+	// Mendapatkan tanggal saat ini
+	var currentDate = new Date();
+
+	// Mendapatkan tahun saat ini
+	var currentYear = currentDate.getFullYear();
+
+	// Mendapatkan bulan saat ini (dalam format MM)
+	var currentMonth = ('0' + (currentDate.getMonth() + 1)).slice(-2);
+
+	// Mendapatkan tanggal saat ini (dalam format DD)
+	var currentDay = ('0' + currentDate.getDate()).slice(-2);
+
+	// Menggabungkan tahun, bulan, dan tanggal dalam format YYYY-MM-DD
+	var currentDateFormatted = currentYear + '-' + currentMonth + '-' + currentDay;
+
+	// Mengatur nilai awal input tanggal
+	document.getElementById('date').value = currentDateFormatted;
+	document.getElementById('delivery_date').value = currentDateFormatted;
+</script>
 
 <script>
 	$(document).ready(function() {
@@ -631,24 +651,4 @@
 		});
 	});
 	// $('input[type="number"]').addClass('number-separator');
-</script>
-
-<script>
-	function addContact() {
-		$.ajax({
-			type: "GET",
-			url: site_url + "contacts/ajax_modal_add",
-			dataType: "json",
-			success: function(response) {
-				$('select').hide();
-				$("#modal-view").html(response.data);
-				$("#modal-result").modal({
-					backdrop: "static",
-					keyboard: false,
-				});
-
-				$("#modal-result").modal("show");
-			},
-		});
-	}
 </script>

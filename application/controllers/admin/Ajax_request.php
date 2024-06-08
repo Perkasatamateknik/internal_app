@@ -25,8 +25,13 @@ class Ajax_request extends MY_Controller
 		$this->load->model("Account_categories_model");
 
 		$this->load->model("Expense_model");
-		$this->load->model("Contact_model");
-		$this->load->model("Liabilities_model");
+
+		// if (!$this->input->is_ajax_request()) {
+		// 	$this->output([
+		// 		'error' => 403
+		// 	]);
+		// 	exit('No direct script access allowed');
+		// }
 	}
 
 	/*Function to set JSON output*/
@@ -216,23 +221,6 @@ class Ajax_request extends MY_Controller
 			$data[] = array(
 				'id' => $r->vendor_id,
 				'text' => $r->vendor_name,
-				'html' => "<div><span>" . $r->vendor_name . "</span><br><small>vendor</small></div>",
-			);
-		}
-		echo $this->output($data);
-		exit();
-	}
-
-	public function find_contact()
-	{
-		$query = $this->input->get('query');
-		$res = $this->Contact_model->find_contact($query);
-		$data = [];
-		foreach ($res as $key => $r) {
-			$data[] = array(
-				'id' => $r->contact_id,
-				'text' => $r->contact_name,
-				'html' => "<div><span>" . $r->contact_name . "</span><br><small>" . $r->contact_type . "</small></div>",
 			);
 		}
 		echo $this->output($data);
@@ -450,10 +438,10 @@ class Ajax_request extends MY_Controller
 		exit();
 	}
 
-	public function find_contact_by_id()
+	public function find_vendor_by_id()
 	{
 		$query = $this->input->get('query');
-		$res = $this->Contact_model->find_contact_by_id($query);
+		$res = $this->Xin_model->find_vendor_by_id($query);
 		echo $this->output($res);
 		exit();
 	}
@@ -633,65 +621,5 @@ class Ajax_request extends MY_Controller
 			$this->output($Return);
 			exit;
 		}
-	}
-
-	public function delete_item_liabilities()
-	{
-		// if ($this->input->is_ajax_request()) {
-		if (true) {
-			$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
-			$Return['csrf_hash'] = $this->security->get_csrf_hash();
-
-			$id = $this->input->post('id') ?? 0;
-
-			try {
-				$del = $this->Liabilities_model->delete_item_by_id($id);
-
-				if ($del) {
-					$Return['result'] = $this->lang->line('ms_item_deleted');
-				} else {
-					$Return['error'] = $this->lang->line('xin_error_msg');
-				}
-			} catch (Throwable $e) {
-				$Return['error'] = $e->getMessage();
-			}
-
-			$this->output($Return);
-			exit;
-		}
-	}
-
-	public function find_contact_type()
-	{
-		if ($this->input->is_ajax_request()) {
-			$query = $this->input->get('query');
-			$res = $this->Contact_model->find_contact_type($query);
-			$data = [];
-			foreach ($res as $key => $r) {
-				$data[] = array(
-					'id' => $r->type_id,
-					'text' => $r->contact_type,
-				);
-			}
-			echo $this->output($data);
-			exit();
-		}
-	}
-
-	public function find_country()
-	{
-		// if ($this->input->is_ajax_request()) {
-		$query = $this->input->get('query');
-		$res = $this->Xin_model->find_country($query);
-		$data = [];
-		foreach ($res as $key => $r) {
-			$data[] = array(
-				'id' => $r->country_id,
-				'text' => $r->country_name,
-			);
-		}
-		echo $this->output($data);
-		exit();
-		// }
 	}
 }

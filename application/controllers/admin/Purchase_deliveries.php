@@ -12,7 +12,7 @@ class Purchase_deliveries extends Purchasing
 		$this->load->model("Tax_model");
 		$this->load->model("Exin_model");
 
-		$this->load->model("Contact_model");
+		$this->load->model("Vendor_model");
 		$this->load->model("Product_model");
 		$this->load->model("Project_model");
 		$this->load->model("Department_model");
@@ -101,7 +101,7 @@ class Purchase_deliveries extends Purchasing
 
 		$role_resources_ids = $this->Xin_model->user_role_resource();
 		// dd($data);
-		if (in_array('514', $role_resources_ids)) {
+		if (in_array('513', $role_resources_ids)) {
 			if (!empty($session)) {
 				$data['subview'] = $this->load->view("admin/purchase_deliveries/delivery_list", $data, TRUE);
 				$this->load->view('admin/layout/layout_main', $data); //page load
@@ -112,6 +112,25 @@ class Purchase_deliveries extends Purchasing
 			redirect('admin/dashboard');
 		}
 	}
+
+	// public function get_ajax_pr()
+	// {
+	// 	$po_number = $this->input->get('pr_number');
+	// 	$pr_data = $this->Purchase_model->read_pr_by_pr_number($pr_number);
+	// 	$pr_items = $this->Purchase_items_model->read_items_pr_by_pr_number($pr_number)->result();
+
+	// 	// dd($pr_data);
+	// 	if (!is_null($pr_data) && !is_null($pr_items)) {
+	// 		$output = [
+	// 			'data' => $pr_data,
+	// 			'items' => $pr_items
+	// 		];
+	// 	} else {
+	// 		$output = false;
+	// 	}
+	// 	echo json_encode($output);
+	// 	exit();
+	// }
 
 	public function insert()
 	{
@@ -127,8 +146,8 @@ class Purchase_deliveries extends Purchasing
 			$Return['csrf_hash'] = $this->security->get_csrf_hash();
 
 			/* Server side PHP input validation */
-			if ($this->input->post('contact_id') === '') {
-				$Return['error'] = $this->lang->line('ms_error_contact_field');
+			if ($this->input->post('vendor_id') === '') {
+				$Return['error'] = $this->lang->line('ms_error_vendor_field');
 			} else if ($this->input->post('warehouse_assign') === '') {
 				$Return['error'] = $this->lang->line('ms_error_warehouse_assign_field');
 			} else if ($this->input->post('faktur_number') === '') {
@@ -157,7 +176,7 @@ class Purchase_deliveries extends Purchasing
 
 			$delivery_fee = $this->input->post('delivery_fee');
 			$data_pd = array(
-				'contact_id'		=> $this->input->post('contact_id'),
+				'vendor_id'			=> $this->input->post('vendor'),
 				'po_number'			=> $po_number,
 				'pd_number'			=> $pd_number,
 				'added_by'			=> $user_id,
@@ -244,6 +263,22 @@ class Purchase_deliveries extends Purchasing
 					'attachment' => null,
 				];
 
+			// if ($delivery_fee > 0) {
+			// 	$trans[] =
+			// 		[
+			// 			'account_id' => 67,
+			// 			'user_id' => $user_id,
+			// 			'account_trans_cat_id' => 6, // = purchase_order
+			// 			'amount' => $delivery_fee,
+			// 			'date' => date('Y-m-d'),
+			// 			'type' => 'credit',
+			// 			'join_id' => $payment_number,
+			// 			'ref' => "Delivery fee",
+			// 			'note' => "Delivery fee from Purchase Delivery",
+			// 			'attachment' => null,
+			// 		];
+			// }
+
 			// insert data pd
 			$insert_pd = $this->Purchase_model->insert_pd($data_pd, $item_insert, $trans);
 
@@ -300,12 +335,13 @@ class Purchase_deliveries extends Purchasing
 				$delete = '';
 			}
 
-			/// get contact
-			$contact = $this->Contact_model->get_contact($r->contact_id);
-			if (!is_null($contact)) {
-				$contact = "<a href='" . site_url() . 'admin/contacts/view/' . $r->contact_id  . "' class='text-md font-weight-bold'>" . $contact->contact_name . "</a><br><small>" . $contact->billing_address . "</small>";
+			/// get vendor
+			$vendor = $this->Vendor_model->read_vendor_information($r->vendor_id);
+			// var_dump($vendor);
+			if (!is_null($vendor)) {
+				$vendor = $vendor[0]->vendor_name . '<br><small>' . $vendor[0]->vendor_address . '</small>';
 			} else {
-				$contact = '--';
+				$vendor = '--';
 			}
 
 			$combhr = $edit . $delete;
@@ -313,7 +349,7 @@ class Purchase_deliveries extends Purchasing
 			$data[] = array(
 				$combhr,
 				$pd_number,
-				$contact,
+				$vendor,
 				$this->Xin_model->set_date_format($r->date),
 				pd_stats($r->status),
 				strlen($r->reference) >= 20 ? substr($r->reference, 0, 20) . '...' : $r->reference ?? '--',
@@ -406,11 +442,11 @@ class Purchase_deliveries extends Purchasing
 		$log = $this->get_log('pd_number', $id);
 		$data['has_pi'] = is_null($log->pi_number);
 
-		$contact = $this->Contact_model->get_contact($record->contact_id);
-		if (!is_null($contact)) {
-			$record->contact = "<a href='" . site_url() . 'admin/contacts/view/' . $contact->contact_id  . "' class='text-md font-weight-bold'>" . $contact->contact_name . "</a>";
+		$vendor = $this->Vendor_model->read_vendor_information($record->vendor_id);
+		if (!is_null($vendor)) {
+			$record->vendor = $vendor[0]->vendor_name;
 		} else {
-			$record->contact = "--";
+			$record->vendor = "--";
 		}
 
 		$records = $this->Purchase_items_model->read_items_pd_by_pd_number($id);
@@ -474,11 +510,11 @@ class Purchase_deliveries extends Purchasing
 			redirect('admin/purchase_deliveries');
 		}
 
-		$contact = $this->Contact_model->get_contact($record->contact_id);
-		if (!is_null($contact)) {
-			$record->contact = $contact->contact_name;
+		$vendor = $this->Vendor_model->read_vendor_information($record->vendor_id);
+		if (!is_null($vendor)) {
+			$record->vendor = $vendor[0]->vendor_name;
 		} else {
-			$record->contact = "--";
+			$record->vendor = "--";
 		}
 
 		$records = $this->Purchase_items_model->read_items_po_by_po_number($id);
@@ -635,8 +671,8 @@ class Purchase_deliveries extends Purchasing
 			$Return['csrf_hash'] = $this->security->get_csrf_hash();
 
 			/* Server side PHP input validation */
-			if ($this->input->post('contact_id') === '') {
-				$Return['error'] = $this->lang->line('ms_error_contact_field');
+			if ($this->input->post('vendor_id') === '') {
+				$Return['error'] = $this->lang->line('ms_error_vendor_field');
 			} else if ($this->input->post('warehouse_assign') === '') {
 				$Return['error'] = $this->lang->line('ms_error_warehouse_assign_field');
 			} else if ($this->input->post('faktur_number') === '') {
@@ -651,7 +687,7 @@ class Purchase_deliveries extends Purchasing
 			}
 
 			$data = array(
-				'contact_id'			=> $this->input->post('contact_id'),
+				'vendor_id'			=> $this->input->post('vendor'),
 				'faktur_number'		=> $this->input->post('faktur_number'),
 				'warehouse_assign'	=> $this->input->post('warehouse_assign'),
 				'date'				=> $this->input->post('date'),

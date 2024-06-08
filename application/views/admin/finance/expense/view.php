@@ -16,7 +16,7 @@ if ($id == '') {
 			<div class="card-body">
 				<div class="row justify-content-between">
 					<div class="col-md-auto">
-						<a href="javascript:history.back()" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
+						<a href="<?= base_url('/admin/finance/expenses') ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
 					</div>
 					<div class="col-md-auto">
 						<div class="row">
@@ -53,7 +53,7 @@ if ($id == '') {
 							</tr>
 							<tr>
 								<td>
-									<span><?= $this->lang->line('ms_title_target_contact'); ?></span><br>
+									<span><?= $this->lang->line('ms_title_terget_account'); ?></span><br>
 									<strong><?= $record->beneficiary; ?></strong>
 								</td>
 								<td>
@@ -110,7 +110,7 @@ if ($id == '') {
 										}
 								?>
 										<tr>
-											<td><?= $r->account; ?></td>
+											<td><?= $r->account_name; ?></td>
 											<td><?= $r->note; ?></td>
 											<td><?= $r->tax_name; ?> <br>
 												<small><?= $this->Xin_model->currency_sign($r->tax_rate); ?></small>
@@ -204,7 +204,7 @@ if ($id == '') {
 						<div class="col-md-4">
 							<div class="form-group">
 								<label for="date"><?php echo $this->lang->line('ms_payment_date'); ?></label>
-								<input type="date" name="date" id="date" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_date'); ?>" value="<?= date('Y-m-d'); ?>" required>
+								<input type="date" name="date" id="date" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_date'); ?>" required>
 							</div>
 						</div>
 						<div class="col-md-4">
@@ -222,7 +222,7 @@ if ($id == '') {
 						<div class="col-md-4">
 							<div class="form-group">
 								<label for="account_source"><?php echo $this->lang->line('ms_payment_account_source'); ?></label>
-								<input type="text" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_account_source'); ?>" readonly value="<?= $record->source_account_name; ?>">
+								<input type="text" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_account_source'); ?>" readonly value="<?= $record->source_account; ?>">
 								<input type="hidden" name="source_payment_account" value="<?= $record->account_id; ?>">
 							</div>
 						</div>

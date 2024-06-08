@@ -41,7 +41,7 @@
 				</div>
 			</div>
 			<div class=" col-md-auto mx-0 px-1">
-				<a href="javascript:history.back()" class="btn btn-white"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
+				<a href="<?= base_url('admin/finance/accounts'); ?>" target="" class="btn btn-white"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
 			</div>
 			<div class="col-md-auto mx-0 px-1">
 				<div class="dropdown">
@@ -74,7 +74,7 @@
 			<div class="card-body">
 				<div class="row mb-3">
 					<div class="col-md-auto mx-0 px-1">
-						<a href="javascript:history.back()" class=" btn btn-light"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
+						<a href="<?= base_url('admin/finance/accounts'); ?>" target="" class="btn btn-light"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
 					</div>
 					<div class="col-md-auto mx-0 px-1">
 						<div class="dropdown">

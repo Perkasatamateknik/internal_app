@@ -89,7 +89,7 @@ if (!is_null($role_user)) {
 
 					<div class="<?php echo $val_container; ?>">
 						<?php
-						if (!in_array($this->router->fetch_class(), ['dashboard', 'chat', 'view_all', 'cash_bank', 'accounts', 'transactions', 'expenses', 'invoices', 'budgeting', 'contacts'])) { ?>
+						if (!in_array($this->router->fetch_class(), ['dashboard', 'chat', 'view_all', 'cash_bank', 'accounts', 'transactions', 'expenses', 'invoices', 'budgeting'])) { ?>
 							<!-- if ($this->router->fetch_class() != 'dashboard' && $this->router->fetch_class() != 'chat' && $this->router->fetch_method() != 'view_all') { ?> -->
 							<div class="d-flex justify-content-between align-items-center mb-3">
 								<div>
@@ -115,8 +115,6 @@ if (!is_null($role_user)) {
 
 						<?php echo $subview; ?>
 						<!-- / Content -->
-
-						<div id="modal-view"></div>
 					</div>
 
 					<!-- Layout footer -->

@@ -43,11 +43,6 @@ class MY_Controller extends CI_Controller
 		$this->load->model("Xin_model");
 		$this->load->model("Company_model");
 		$this->load->model("Purchase_model");
-		$this->load->helper("general_helper");
-		$this->load->model("Contact_model");
-
-		// prevous url
-		$this->session->set_flashdata('previous_url', current_url());
 
 		// set default timezone  
 		$system = $this->read_setting_info(1);

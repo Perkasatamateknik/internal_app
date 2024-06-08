@@ -2001,8 +2001,8 @@ $lang['xin_hr_m_project_task'] = 'Proyek & Tugas';
 $lang['xin_setting_module_project_details'] = 'Manajemen Proyek adalah fitur penting yang dibutuhkan setiap perusahaan untuk menyelesaikan berbagai proyek. Proyek telah disediakan dalam %s untuk memfasilitasi admin dan karyawan untuk membuat, melacak, dan mendiskusikan di antara berbagai proyek. ';
 $lang['xin_setting_module_task_details'] = 'Manajemen Tugas adalah fitur penting yang dibutuhkan setiap perusahaan untuk menyelesaikan berbagai tugas. Tugas telah disediakan dalam %s untuk memfasilitasi admin dan karyawan untuk membuat, melacak, dan mendiskusikan di antara berbagai tugas. ';
 $lang['xin_setting_module_assets_details'] = 'Simpan jejak aset organisasi Anda dan berikan kepada karyawan. Simpan dan simpan informasi aset yang komprehensif dan karyawan dapat mengajukan permintaan untuk mengganti atau memperbaiki aset yang telah berhenti bekerja. ';
-$lang['xin_hr_chat_box'] = 'Kotak Obrolan';
-// $lang['xin_hr_chat_box'] = "<span class='text-danger'>WEB SEDANG DALAM TAHAP DEVELOPMENT</span>";
+// $lang['xin_hr_chat_box'] = 'Kotak Obrolan';
+$lang['xin_hr_chat_box'] = "<span class='text-danger'>WEB SEDANG DALAM TAHAP DEVELOPMENT</span>";
 $lang['xin_hr_string_error'] = 'Hanya huruf yang diizinkan !!!';
 $lang['xin_hr_special_charactors_not_allowed'] = 'Karakter Khusus tidak diizinkan.';
 $lang['xin_hr_date_format_error'] = 'Format tanggal salah. Seharusnya Tahun-Bulan-Hari ';
@@ -2948,8 +2948,7 @@ $lang['xin_tab_menu'] = "";
 
 
 // cost
-// $lang['ms_cost'] = "Pembelian - Old Menu";
-$lang['ms_cost'] = "Pembelian Proyek";
+$lang['ms_cost'] = "Pembelian - Old Menu";
 $lang['ms_cost_dashboard'] = "Dashbor Pembelian";
 $lang['ms_cost_category'] = "Kategori";
 $lang['ms_error_invoice_number_field'] = "Bidang Invoice Number diperlukan.";
@@ -3140,7 +3139,7 @@ $lang['ms_error_issue_date_field'] = "Kolom tanggal pengajuan diperlukan!";
 $lang['ms_error_due_approval_date_field'] = "Kolom tanggal jatuh tempo diperlukan!";
 $lang['ms_error_purpose_field'] = "Kolom keperluan diperlukan!";
 $lang['ms_error_item_empty_data'] = "Item data diperlukan!";
-$lang['ms_error_contact_field'] = "Pilihan kontak diperlukan!";
+$lang['ms_error_vendor_field'] = "Pilihan Vendor diperlukan!";
 $lang['ms_error_warehouse_assign_field'] = "Kolom Gudang Ditugaskan diperlukan!";
 $lang['ms_error_faktur_number_field'] = "Kolom Faktur diperlukan!";
 $lang['ms_error_date_field'] = "Kolom Tanggal diperlukan!";
@@ -3180,7 +3179,7 @@ $lang['ms_delivery_number'] = "Nomor Pengiriman";
 
 $lang['ms_title_reject'] = "Reject";
 $lang['ms_title_open'] = "Dibuka";
-$lang['ms_title_billed'] = "Ditagihkan";
+$lang['ms_title_billed'] = "Dibayarkan";
 
 $lang['ms_title_categories'] = "Kategori";
 $lang['ms_title_sub_categories'] = "Sub-Kategori";
@@ -3215,7 +3214,6 @@ $lang['ms_title_budgeting'] = "Budgeting";
 $lang['ms_title_budget'] = "Budget";
 
 $lang['ms_title_total_balance'] = "Total Balance";
-$lang['ms_title_total'] = "Total";
 
 
 
@@ -3253,8 +3251,6 @@ $lang['ms_title_tax'] = "Pajak";
 $lang['ms_title_account'] = "Akun";
 
 $lang['ms_title_transfer'] = "Transfer Uang";
-$lang['ms_title_transfer_fee'] = "Transfer Fee";
-$lang['ms_title_note_transfer_fee'] = "Catatan Transfer Fee";
 $lang['ms_title_spend'] = "Belanjakan Uang";
 $lang['ms_title_receive'] = "Terima Uang";
 
@@ -3278,9 +3274,7 @@ $lang['ms_title_select_department'] = "-- Pilih Departemen --";
 
 $lang['ms_title_paid_expenses'] = "Beban Dibayar";
 $lang['ms_title_success_edited'] = "Data berhasil diperbarui!";
-$lang['ms_title_success_updated'] = "Data berhasil diperbarui!";
 $lang['ms_title_success_added'] = "Data berhasil ditambahkan";
-$lang['ms_title_success_deleted'] = "Data berhasil dihapus!";
 $lang['ms_title_error_server'] = "Server Internal Error";
 $lang['ms_title_error'] = "oops, Terjadi Kesalahan!";
 $lang['ms_title_doc'] = "Dokumen";
@@ -3362,52 +3356,6 @@ $lang['ms_title_add_year_budgeting'] = "Tambah Tahun Anggaran";
 $lang['ms_title_add_budget_data'] = "Tambah Data Anggaran";
 
 
-// kontak
-$lang['ms_title_contact_dashboard'] = "Dashboard Kontak";
-$lang['ms_title_name_and_type'] = "Nama dan Tipe";
-$lang['ms_title_company'] = "Perusahaan";
-$lang['ms_title_select_contact'] = "Pilih Kontak";
-$lang['ms_title_contact'] = "Kontak";
-$lang['ms_title_contacts'] = "Semua Kontak";
-$lang['ms_title_contact_name'] = "Nama Kontak";
-$lang['ms_title_contact_type'] = "Tipe Kontak";
-$lang['ms_title_target_contact'] = "Target Kontak";
-$lang['ms_title_billing_address'] = "Alamat Tagihan";
-$lang['ms_title_email_address'] = "Email";
-$lang['ms_title_tax_number'] = "Nomor Pajak";
-$lang['ms_title_date_of_birth'] = "Tanggal Lahir";
-$lang['ms_title_contact_detail'] = "Detail Kontak";
-$lang['ms_title_outstanding_receivables'] = "Piutang Tertunggak";
-$lang['ms_title_unpaid_debt'] = "Utang Tertunggak";
-$lang['ms_title_liabilities'] = "Utang";
-$lang['ms_title_liability_doc'] = "Surat Utang";
-$lang['ms_title_liability_due_date'] = "Utang Jatuh Tempo";
-$lang['ms_title_receivables'] = "Piutang";
-$lang['ms_title_receivable_doc'] = "Surat Piutang";
-$lang['ms_title_receivable_due_date'] = "Piutang Jatuh Tempo";
-$lang['ms_title_customer'] = "Pelanggan";
-$lang['ms_title_over_due_date'] = "Melewati jatuh tempo!";
-$lang['ms_title_due_date_today'] = "Jatuh tempo hari ini!";
-$lang['ms_title_is_editable'] = "Memungkinkan diubah?";
-
-$lang['ms_title_contact_type_error'] = "Tipe Kontak wajib di isi!";
-$lang['ms_title_contact_name_error'] = "Nama Kontak wajib di isi!";
-$lang['ms_title_company_name_error'] = "Nama Perusahaan wajib di isi!";
-$lang['ms_title_billing_address_error'] = "Alamat tagihan wajib di isi!";
-$lang['ms_title_country_error'] = "Negara wajib di isi!";
-
-
-// reports //
-$lang['ms_title_balance_sheet'] = "Balance Sheet";
-$lang['ms_title_executive_summary'] = "Exsecutive Summary";
-$lang['ms_title_budget_realization'] = "Budget Realization";
-$lang['ms_title_cash_flow'] = "Cash Flow";
-$lang['ms_title_payable_credit_for_contact'] = "Payable Credit";
-$lang['ms_title_profit_and_loss'] = "Profit and Loss";
-$lang['ms_title_equity_movement'] = "Equity Movement";
-$lang['ms_title_compare'] = "Compare";
-$lang['ms_title_period'] = "Periode";
-$lang['ms_title_month_year'] = "Month/Year";
 /////////////////////////////////////////////////// akhir hrsale v2.0.1
 
 /* End of file hrsale_lang.php */

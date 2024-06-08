@@ -31,7 +31,6 @@ class Accounts extends MY_Controller
 		$this->load->model('Employees_model');
 		$this->load->model('Finance_trans');
 		$this->load->model('Vendor_model');
-		$this->load->model('Contact_model');
 	}
 
 	function checkPattern($input, $prefix)
@@ -148,7 +147,7 @@ class Accounts extends MY_Controller
 			$receive_doc['data'] = [
 				'receive_id' => $manual_receive_id,
 				'user_id' => $user_id,
-				'contact_id' => $this->input->post('contact_id') ?? 0,
+				'vendor_id' => $this->input->post('vendor_id') ?? 0,
 				'trans_number' => $trans_number,
 				'date' => date('Y-m-d'),
 				'reference' => "#FirstDebit",
@@ -244,10 +243,9 @@ class Accounts extends MY_Controller
 			} else {
 				$color = "";
 			}
-			$href = "<a href='" . base_url('admin/finance/accounts/transactions?id=') . $r->account_id . "' class='font-weight-bold text-dark hoverable'>" . $r->account_name . "</a>";
 			$data[] = [
 				$r->account_code,
-				$href,
+				account_url(),
 				$category_name ?? "--",
 				"<span class='" . $color . "'>" . $this->Xin_model->currency_sign($saldo) . "</span>",
 			];
@@ -306,23 +304,17 @@ class Accounts extends MY_Controller
 	{
 		$id = $this->input->get('id');
 
-		$session = $this->session->userdata('username');
-		if (empty($session)) {
-			redirect('admin/');
-		}
-
 		$record = $this->Accounts_model->get($id)->row();
-		if (is_null($record)) {
-			redirect('admin/');
-		}
 
 		$role_resources_ids = $this->Xin_model->user_role_resource();
 
 		$data['title'] = $this->Xin_model->site_title();
+		$session = $this->session->userdata('username');
 		$data['breadcrumbs'] = "<strong>" . $this->lang->line('ms_title_transactions') . "</strong>" . "&nbsp;&nbsp;" . $record->account_code;
 		$data['path_url'] = 'finance/transaction';
-
-
+		if (empty($session)) {
+			redirect('admin/');
+		}
 		if (in_array('503', $role_resources_ids)) {
 			$data['subview'] = $this->load->view("admin/finance/accounts/transactions", $data, TRUE);
 			$this->load->view('admin/layout/layout_main', $data); //page load
@@ -390,7 +382,12 @@ class Accounts extends MY_Controller
 		$role_resources_ids = $this->Xin_model->user_role_resource();
 
 		$type = $this->input->get('type') ?? false;
+		// $id = $this->input->get('id');
+		// dd($id);
 
+		// regex only integer
+		// $id = preg_match('/^[0-9]+$/', $id) ? $id : false;
+		// dd($id);
 		if (in_array('503', $role_resources_ids)) {
 
 			// pilih menu
@@ -449,7 +446,7 @@ class Accounts extends MY_Controller
 
 			$data = [
 				'account_id' => $this->input->post('account_id'),
-				'target_account_id' => $this->input->post('target_account'),
+				'terget_account_id' => $this->input->post('target_account'),
 				'trans_number' => $this->input->post('trans_number'),
 				'date' => $this->input->post('date'),
 				'amount' => $this->input->post('amount'),
@@ -499,54 +496,24 @@ class Accounts extends MY_Controller
 			$to = $this->Accounts_model->get($this->input->post('target_account'))->row();
 
 			$desc = "Transfer from " . $from->account_name . " to " . $to->account_name;
+			$amount = $this->input->post('amount');
 			$trans_number = $this->input->post('trans_number');
+			$data = [
+				'user_id' => $user_id,
+				'account_id' => $this->input->post('account_id'),
+				'terget_account_id' => $this->input->post('target_account'),
+				'trans_number' => $trans_number,
+				'date' => $this->input->post('date'),
+				'amount' => $amount,
+				'ref' => $this->input->post('ref'),
+				'note' => $this->input->post('note'),
+				'status' => $action == 'save' ? 'draft' : 'unpaid',
+				'description' => $desc,
+			];
 
 			$trans = [];
 
 			$ref_trans_id = $trans_number . "-" . rand(100000, 999999);
-
-			$transfer_fee = $this->input->post('transfer_fee');
-			$date = $this->input->post('date');
-
-			if (!is_null($transfer_fee)) {
-
-				// catat ke akun komisi dan fee
-				$trans[] =
-					[
-						'account_id' => 71,
-						'user_id' => $user_id,
-						'account_trans_cat_id' => 1, // transfer
-						'amount' => $transfer_fee,
-						'date' => $date,
-						'type' => 'debit',
-						'join_id' => $trans_number, // po number
-						'ref' => "Fee Dokumen Transfer",
-						'note' => $this->input->post('note_transfer_fee'),
-						'attachment' => null,
-						'ref_trans_id' => $ref_trans_id
-					];
-
-				$amount = $this->input->post('amount') + $transfer_fee;
-			} else {
-				$amount = $this->input->post('amount');
-			}
-
-			$data = [
-				'user_id' 			=> $user_id,
-				'account_id' 		=> $this->input->post('account_id'),
-				'target_account_id' => $this->input->post('target_account'),
-				'trans_number' 		=> $trans_number,
-				'date' 				=> $date,
-				'amount' 			=> $this->input->post('amount'),
-				'transfer_amount'	=> $amount,
-				'ref' 				=> $this->input->post('ref'),
-				'note' 				=> $this->input->post('note'),
-				'transfer_fee' 		=> $this->input->post('transfer_fee'),
-				'status' 			=> $action == 'save' ? 'draft' : 'unpaid',
-				'description' 		=> $desc,
-			];
-
-
 			// masukan semua total ke akun Trade Payble = credit
 			$trans[] =
 				[
@@ -554,7 +521,7 @@ class Accounts extends MY_Controller
 					'user_id' => $user_id,
 					'account_trans_cat_id' => 1, // transfer
 					'amount' => $amount,
-					'date' => $date,
+					'date' => date('Y-m-d'),
 					'type' => 'credit',
 					'join_id' => $trans_number, // po number
 					'ref' => "Dokumen Transfer",
@@ -571,7 +538,7 @@ class Accounts extends MY_Controller
 					'user_id' => $user_id,
 					'account_trans_cat_id' => 1, // transfer
 					'amount' => $amount,
-					'date' => $date,
+					'date' => date('Y-m-d'),
 					'type' => 'debit',
 					'join_id' => $trans_number, // po number
 					'ref' => "Dokumen Transfer",
@@ -627,8 +594,6 @@ class Accounts extends MY_Controller
 				$file_attachments = null;
 			}
 
-			// var_dump($data);
-			// dd($trans);
 			$query = $this->Account_transfer_model->update_with_files($id, $data, $file_attachments, $trans);
 
 			if ($query) {
@@ -859,7 +824,7 @@ class Accounts extends MY_Controller
 			$trans_number = $this->input->post('trans_number');
 			$data = [
 				'user_id' => $user_id,
-				'contact_id' => $this->input->post('contact_id'),
+				'vendor_id' => $this->input->post('vendor_id'),
 				'receive_account_id' => $this->input->post('receive_account_id'),
 				'trans_number' => $trans_number,
 				'date' => $this->input->post('date'),
@@ -1094,7 +1059,7 @@ class Accounts extends MY_Controller
 			}
 
 			// dd($r);
-			$to_account = $this->Accounts_model->get($r->target_account_id)->row();
+			$to_account = $this->Accounts_model->get($r->terget_account_id)->row();
 			if (!is_null($to_account)) {
 				$to = "<b>$to_account->account_name</b>" . "  " . $to_account->account_code;
 			} else {
@@ -1207,16 +1172,9 @@ class Accounts extends MY_Controller
 
 		if (!is_null($record)) {
 			$from = $this->Accounts_model->get($record->account_id)->row();
-			$record->source_account = "<a href='" . site_url() . 'admin/finance/accounts/transactions?id=' . $record->account_id  . "' class='text-md font-weight-bold'><b>" . $record->account_name . "</b>  " . $record->account_code . "</a>";
-			$record->source_account_name = $record->account_name . " | " . $record->account_code;
-
-			$contact = $this->Contact_model->get_contact($record->beneficiary);
-			if (!is_null($contact)) {
-				$record->beneficiary = "<a href='" . site_url() . 'admin/contacts/view/' . $contact->contact_id  . "' class='text-md font-weight-bold'>" . $contact->contact_name . "</a>";
-			} else {
-				$record->beneficiary = "--";
-			}
-
+			$to = $this->Employees_model->read_employee_information($record->beneficiary);
+			$record->source_account = $from->account_name;
+			$record->beneficiary = $to[0]->first_name ?? "" . " " . $to[0]->last_name ?? "";
 			$data['payment'] = $this->Account_spend_model->get_payment(2, $record->trans_number);
 
 			//
@@ -1228,7 +1186,7 @@ class Accounts extends MY_Controller
 
 			// dd($record);
 			if (!is_null($items)) {
-				foreach ($items as $i => $item) {
+				foreach ($items as $item) {
 					$item->account_name = $this->Accounts_model->get($item->account_id)->row()->account_name;
 					$tax = $this->Tax_model->read_tax_information($item->tax_id); // return bool
 
@@ -1237,13 +1195,6 @@ class Accounts extends MY_Controller
 					} else {
 						$item->tax_name = "--";
 						$item->tax_rate = 0;
-					}
-
-					$from_account = $this->Accounts_model->get($item->account_id)->row();
-					if (!is_null($from_account)) {
-						$items[$i]->account = "<a href='" . site_url() . 'admin/finance/accounts/transactions?id=' . $from_account->account_id  . "' class='text-md font-weight-bold'><b>" . $from_account->account_name . "</b>  " . $from_account->account_code . "</a>";
-					} else {
-						$items[$i]->account = "--";
 					}
 				}
 			}
@@ -1287,11 +1238,10 @@ class Accounts extends MY_Controller
 
 		if (!is_null($record)) {
 			$from = $this->Accounts_model->get($record->account_id)->row();
-			$to = $this->Accounts_model->get($record->target_account_id)->row();
+			$to = $this->Accounts_model->get($record->terget_account_id)->row();
 
-			$record->source_account = "<a href='" . site_url() . 'admin/finance/accounts/transactions?id=' . $from->account_id  . "' class='text-md font-weight-bold'><b>" . $from->account_name . "</b>  " . $from->account_code . "</a>";
-			$record->source_account_name = $from->account_name . " | " . $from->account_code;
-			$record->target_account = "<a href='" . site_url() . 'admin/finance/accounts/transactions?id=' . $to->account_id  . "' class='text-md font-weight-bold'><b>" . $to->account_name . "</b>  " . $to->account_code . "</a>";
+			$record->source_account = $from->account_name;
+			$record->target_account = $to->account_name;
 
 			$make_payment = $this->Account_trans_model->open_payment($id, $record->account_id);
 
@@ -1325,24 +1275,24 @@ class Accounts extends MY_Controller
 
 		$role_resources_ids = $this->Xin_model->user_role_resource();
 		$record = $this->Account_receive_model->get_by_number_doc($id);
+		// dd($record);
 		if (!is_null($record)) {
-
-
-			$record->receive_account = "<a href='" . site_url() . 'admin/finance/accounts/transactions?id=' . $record->account_id  . "' class='text-md font-weight-bold'><b>" . $record->account_name . "</b>  " . $record->account_code . "</a>";
-			// get contact
-			$contact = $this->Contact_model->get_contact($record->contact_id);
-			if (!is_null($contact)) {
-				$record->contact = "<a href='" . site_url() . 'admin/contacts/view/' . $contact->contact_id  . "' class='text-md font-weight-bold'>" . $contact->contact_name . "</a>";
+			/// get vendor
+			$vendor = $this->Vendor_model->read_vendor_information($record->vendor_id);
+			if (!is_null($vendor)) {
+				$vendor = $vendor[0]->vendor_name . '<br><small>' . $vendor[0]->vendor_address . '</small>';
 			} else {
-				$record->contact = "--";
+				$vendor = "--";
 			}
+
+			$record->vendor = $vendor;
 
 			$attachments = $this->Files_ms_model->get_by_access_id(3, $record->receive_id)->result();
 			$data['attachments'] = $attachments;
 			//
 			$items = $this->Account_receive_items_model->get($record->trans_number);
 			if (!is_null($items)) {
-				foreach ($items as $i => $item) {
+				foreach ($items as $item) {
 					$item->account_name = $this->Accounts_model->get($item->account_id)->row()->account_name;
 					$tax = $this->Tax_model->read_tax_information($item->tax_id); // return bool
 
@@ -1352,13 +1302,6 @@ class Accounts extends MY_Controller
 					} else {
 						$item->tax_name = "--";
 						$item->tax_rate = 0;
-					}
-
-					$from_account = $this->Accounts_model->get($item->account_id)->row();
-					if (!is_null($from_account)) {
-						$items[$i]->account = "<a href='" . site_url() . 'admin/finance/accounts/transactions?id=' . $from_account->account_id  . "' class='text-md font-weight-bold'><b>" . $from_account->account_name . "</b>  " . $from_account->account_code . "</a>";
-					} else {
-						$items[$i]->account = "--";
 					}
 				}
 			}
@@ -1386,6 +1329,7 @@ class Accounts extends MY_Controller
 		}
 	}
 
+
 	public function transaction_view()
 	{
 		$data['title'] = $this->Xin_model->site_title();
@@ -1400,11 +1344,6 @@ class Accounts extends MY_Controller
 
 		$role_resources_ids = $this->Xin_model->user_role_resource();
 		$record = $this->Account_trans_model->get_trans($id);
-		dd($record);
-		if (is_null($record)) {
-			redirect('admin/');
-		}
-
 		$record->user_paid = $record->first_name . "  " . $record->last_name;
 
 		if (!is_null($record)) {
@@ -1449,6 +1388,7 @@ class Accounts extends MY_Controller
 				$r->trans_type = "--";
 			}
 
+
 			$credit = 0;
 			$debit = 0;
 			if ($r->type == 'credit') {
@@ -1459,13 +1399,18 @@ class Accounts extends MY_Controller
 				$balance += $r->amount;
 			}
 
-			// dd($r);
+			if ($r->account_trans_cat_id == 6) {
+				$ref = $r->ref . ' <a href="' . site_url() . 'admin/purchase_orders/view/' . $r->join_id . '/">' . $r->join_id . '</a>';
+			} else {
+				$ref = $r->ref;
+			}
+
 			$data[] = array(
 				"<a href='" . base_url('admin/finance/accounts/transaction_view?id=' . $r->account_trans_id . '&back_id=' . $r->account_id) . "' class='text-dark'><i class='fa fa-eye fa-fw' aria-hidden='true'></i></a>",
-				$this->Xin_model->set_date_format($r->date),
-				trans_doc_url($r->account_trans_cat_id, $r->join_id, $r->trans_type),
+				$this->Xin_model->set_date_format($r->created_at),
+				$r->trans_type,
 				$r->note,
-				$r->ref,
+				$ref,
 				$this->Xin_model->currency_sign($debit),
 				$this->Xin_model->currency_sign($credit),
 				$this->Xin_model->currency_sign($balance),
@@ -1511,7 +1456,7 @@ class Accounts extends MY_Controller
 			}
 
 			// dd($r);
-			$to_account = $this->Accounts_model->get($r->target_account_id)->row();
+			$to_account = $this->Accounts_model->get($r->terget_account_id)->row();
 			if (!is_null($to_account)) {
 				$to = "<b>$to_account->account_name</b>" . "  " . $to_account->account_code;
 			} else {
@@ -1520,7 +1465,7 @@ class Accounts extends MY_Controller
 
 			$data[] = array(
 				"<a href='" . base_url('admin/finance/accounts/transfer_view?id=' . $r->trans_number) . "' class='text-secondary'><i class='fa fa-eye fa-fw' aria-hidden='true'></i></a>",
-				$this->Xin_model->set_date_format($r->date),
+				$this->Xin_model->set_date_format($r->created_at),
 				$r->trans_number,
 				"<small>" . $from . "<br>To<br>" . $to . "</small>",
 				$r->ref,
@@ -1590,7 +1535,7 @@ class Accounts extends MY_Controller
 
 			$data[] = array(
 				"<a href='" . base_url('admin/finance/accounts/receive_view?id=' . $r->trans_number) . "' class='text-secondary'><i class='fa fa-eye fa-fw' aria-hidden='true'></i></a>",
-				$this->Xin_model->set_date_format($r->date),
+				$this->Xin_model->set_date_format($r->created_at),
 				$r->trans_number,
 				"<small>" . $from . "<br>To<br>" . $result_receives . "</small>",
 				$r->reference,
@@ -1634,25 +1579,26 @@ class Accounts extends MY_Controller
 
 			$from_account = $this->Accounts_model->get($r->account_id)->row();
 			if (!is_null($from_account)) {
-				$from = "<a href='" . site_url() . 'admin/finance/accounts/transactions?id=' . $from_account->account_id  . "' class='text-md font-weight-bold'><b>" . $from_account->account_name . "</b>  " . $from_account->account_code . "</a>";
+				$from = "<b>$from_account->account_name</b>" . "  " . $from_account->account_code;
 			} else {
 				$from = "--";
 			}
 
-			$to_account = $this->Accounts_model->get($r->target_account_id)->row();
+			// dd($r);
+			$to_account = $this->Accounts_model->get($r->terget_account_id)->row();
 			if (!is_null($to_account)) {
-				$to = "<a href='" . site_url() . 'admin/finance/accounts/transactions?id=' . $to_account->account_id  . "' class='text-md font-weight-bold'><b>" . $to_account->account_name . "</b>  " . $to_account->account_code . "</a>";
+				$to = "<b>$to_account->account_name</b>" . "  " . $to_account->account_code;
 			} else {
 				$to = "--";
 			}
 
 			if (in_array('99999', $role_resources_ids)) { //edit
-				$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" href="' . site_url() . 'admin/finance/accounts/transfer_edit?id=' . $r->trans_number  . '"><span class="fas fa-pencil-alt"></span></a></span>';
+				$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" href="' . site_url() . 'admin/purchase_requisitions/edit/' . $r->transfer_id  . '"><span class="fas fa-pencil-alt"></span></a></span>';
 			} else {
 				$edit = '';
 			}
 			if (in_array('99999', $role_resources_ids)) { // delete
-				$delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '"><button type="button" class="btn icon-btn btn-sm btn-outline-danger waves-effect waves-light delete" data-toggle="modal" data-target=".delete-modal" data-record-id="' . $r->trans_number . '" data-token_type="account_transfer"><span class="fas fa-trash-restore"></span></button></span>';
+				$delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '"><button type="button" class="btn icon-btn btn-sm btn-outline-danger waves-effect waves-light delete" data-toggle="modal" data-target=".delete-modal" data-record-id="' . $r->transfer_id . '" data-token_type="purchase_requisitions"><span class="fas fa-trash-restore"></span></button></span>';
 			} else {
 				$delete = '';
 			}
@@ -1663,7 +1609,7 @@ class Accounts extends MY_Controller
 			$data[] = array(
 				$combhr,
 				$this->Xin_model->set_date_format($r->created_at),
-				"<a href='" . base_url('admin/finance/accounts/transfer_view?id=' . $r->trans_number) . "' class=''>" . $r->trans_number . "</a>",
+				$r->trans_number,
 				"<small>" . $from . "<br>To<br>" . $to . "</small>",
 				$r->ref,
 				doc_stats($r->status, true),
@@ -1677,14 +1623,14 @@ class Accounts extends MY_Controller
 
 				$from_account = $this->Accounts_model->get($r->account_id)->row();
 				if (!is_null($from_account)) {
-					$from = "<a href='" . site_url() . 'admin/finance/accounts/transactions?id=' . $from_account->account_id  . "' class='text-md font-weight-bold'><b>" . $from_account->account_name . "</b>  " . $from_account->account_code . "</a>";
+					$from = "<b>$from_account->account_name</b>" . "  " . $from_account->account_code;
 				} else {
 					$from = "--";
 				}
 
-				$contact = $this->Contact_model->get_contact($r->beneficiary);
-				if (!is_null($contact)) {
-					$to = "<a href='" . site_url() . 'admin/contacts/view/' . $contact->contact_id  . "' class='text-md font-weight-bold'>" . $contact->contact_name . "</a>";
+				$to_beneficiary = $this->Employees_model->read_employee_information($r->beneficiary);
+				if (!is_null($to_beneficiary)) {
+					$to = $to_beneficiary[0]->first_name . "  " . $to_beneficiary[0]->last_name;
 				} else {
 					$to = "--";
 				}
@@ -1693,35 +1639,32 @@ class Accounts extends MY_Controller
 				$to = "--";
 			}
 
-			$amount = $this->Account_spend_items_model->get_total_amount($r->trans_number);
+
+			$amount = $this->Account_spend_items_model->get_total_amount($r->spend_id);
 			if (!is_null($amount)) {
 				$amount = $amount;
 			} else {
 				$amount = 0;
 			}
 
-
 			if (in_array('99999', $role_resources_ids)) { //edit
 				$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" href="' . site_url() . 'admin/purchase_requisitions/edit/' . $r->spend_id  . '"><span class="fas fa-pencil-alt"></span></a></span>';
 			} else {
 				$edit = '';
 			}
-
-			// jgn pake petik
 			if (in_array('99999', $role_resources_ids)) { // delete
-				$delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '"><button type="button" class="btn icon-btn btn-sm btn-outline-danger waves-effect waves-light delete" data-toggle="modal" data-target=".delete-modal" data-record-id="' . $r->trans_number . '" data-token_type="account_spend"><span class="fas fa-trash-restore"></span></button></span>';
+				$delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '"><button type="button" class="btn icon-btn btn-sm btn-outline-danger waves-effect waves-light delete" data-toggle="modal" data-target=".delete-modal" data-record-id="' . $r->spend_id . '" data-token_type="purchase_requisitions"><span class="fas fa-trash-restore"></span></button></span>';
 			} else {
 				$delete = '';
 			}
 
 			$href = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_view') . '"><a href="' . base_url('admin/finance/accounts/spend_view?id=' . $r->trans_number) . '" class="btn icon-btn btn-sm btn-outline-info waves-effect waves-light"><span class="fa fa-eye"></span></a></span>';
-
 			$combhr = $edit . $delete . $href;
 
 			$data[] = array(
 				$combhr,
 				$this->Xin_model->set_date_format($r->created_at),
-				"<a href='" . base_url('admin/finance/accounts/spend_view?id=' . $r->trans_number) . "' class=''>" . $r->trans_number . "</a>",
+				$r->trans_number,
 				"<small>" . $from . "<br>To<br>" . $to . "</small>",
 				$r->reference,
 				doc_stats($r->status, true),
@@ -1730,26 +1673,28 @@ class Accounts extends MY_Controller
 		}
 
 		foreach ($record_3->result() as $i => $r) {
-			$receives = $this->Account_receive_items_model->get_account_from_receive($r->trans_number);
+			$receives = $this->Account_receive_items_model->get_account_from_receive($r->receive_id);
 			$result_receives = "";
 			foreach ($receives as $key => $rev) {
-				$titik_kome = $key == array_key_last($receives) ? ". " : ",<br>";
-				$result_receives .= "<a href='" . site_url() . 'admin/finance/accounts/transactions?id=' . $rev->account_id  . "' class='text-md font-weight-bold'><b>" . $rev->account_name . "</b>  " . $rev->account_code . "</a>" . $titik_kome;
+				$titik_kome = $key == array_key_last($receives) ? ". " : ", ";
+				$result_receives .= "<b>$rev->account_name</b>" . "  " . $rev->account_code . $titik_kome;
 			}
 
-			$contact = $this->Contact_model->get_contact($r->contact_id);
-			if (!is_null($contact)) {
-				$from = "<a href='" . site_url() . 'admin/contacts/view/' . $contact->contact_id  . "' class='text-md font-weight-bold'>" . $contact->contact_name . "</a>";
+			$vendor = $this->Vendor_model->read_vendor_information($r->vendor_id);
+			if (!is_null($vendor)) {
+				$from = $vendor[0]->vendor_name;
 			} else {
 				$from = "--";
 			}
 
-			$amount = $this->Account_receive_items_model->get_total_amount($r->trans_number);
+
+			$amount = $this->Account_receive_items_model->get_total_amount($r->receive_id);
 			if (!is_null($amount)) {
 				$amount = $amount;
 			} else {
 				$amount = 0;
 			}
+
 
 			if (in_array('99999', $role_resources_ids)) { //edit
 				$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" href="' . site_url() . 'admin/purchase_requisitions/edit/' . $r->receive_id  . '"><span class="fas fa-pencil-alt"></span></a></span>';
@@ -1757,7 +1702,7 @@ class Accounts extends MY_Controller
 				$edit = '';
 			}
 			if (in_array('99999', $role_resources_ids)) { // delete
-				$delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '"><button type="button" class="btn icon-btn btn-sm btn-outline-danger waves-effect waves-light delete" data-toggle="modal" data-target=".delete-modal" data-record-id="' . $r->trans_number . '" data-token_type="account_receive"><span class="fas fa-trash-restore"></span></button></span>';
+				$delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '"><button type="button" class="btn icon-btn btn-sm btn-outline-danger waves-effect waves-light delete" data-toggle="modal" data-target=".delete-modal" data-record-id="' . $r->receive_id . '" data-token_type="purchase_requisitions"><span class="fas fa-trash-restore"></span></button></span>';
 			} else {
 				$delete = '';
 			}
@@ -1767,8 +1712,8 @@ class Accounts extends MY_Controller
 
 			$data[] = array(
 				$combhr,
-				$this->Xin_model->set_date_format($r->date),
-				"<a href='" . base_url('admin/finance/accounts/receive_view?id=' . $r->trans_number) . "' class=''>" . $r->trans_number . "</a>",
+				$this->Xin_model->set_date_format($r->created_at),
+				$r->trans_number,
 				"<small>" . $from . "<br>To<br>" . $result_receives . "</small>",
 				$r->reference,
 				doc_stats($r->status, true),
@@ -1778,8 +1723,8 @@ class Accounts extends MY_Controller
 
 		$output = array(
 			"draw" => $draw,
-			"recordsTotal" => count($data),
-			"recordsFiltered" => count($data),
+			"recordsTotal" => $record->num_rows(),
+			"recordsFiltered" => $record->num_rows(),
 			"data" => $data
 		);
 		echo json_encode($output);
@@ -1808,14 +1753,15 @@ class Accounts extends MY_Controller
 
 			$from_account = $this->Accounts_model->get($r->account_id)->row();
 			if (!is_null($from_account)) {
-				$from = "<a href='" . site_url() . 'admin/finance/accounts/transactions?id=' . $from_account->account_id  . "' class='text-md font-weight-bold'><b>" . $from_account->account_name . "</b>  " . $from_account->account_code . "</a>";
+				$from = "<b>$from_account->account_name</b>" . "  " . $from_account->account_code;
 			} else {
 				$from = "--";
 			}
 
-			$to_account = $this->Accounts_model->get($r->target_account_id)->row();
+			// dd($r);
+			$to_account = $this->Accounts_model->get($r->terget_account_id)->row();
 			if (!is_null($to_account)) {
-				$to = "<a href='" . site_url() . 'admin/finance/accounts/transactions?id=' . $to_account->account_id  . "' class='text-md font-weight-bold'><b>" . $to_account->account_name . "</b>  " . $to_account->account_code . "</a>";
+				$to = "<b>$to_account->account_name</b>" . "  " . $to_account->account_code;
 			} else {
 				$to = "--";
 			}
@@ -1836,8 +1782,8 @@ class Accounts extends MY_Controller
 
 			$data[] = array(
 				$combhr,
-				$this->Xin_model->set_date_format($r->date),
-				"<a href='" . base_url('admin/finance/accounts/transfer_view?id=' . $r->trans_number) . "' class=''>" . $r->trans_number . "</a>",
+				$this->Xin_model->set_date_format($r->created_at),
+				$r->trans_number,
 				"<small>" . $from . "<br>To<br>" . $to . "</small>",
 				$r->ref,
 				doc_stats($r->status, true),
@@ -1879,14 +1825,14 @@ class Accounts extends MY_Controller
 
 				$from_account = $this->Accounts_model->get($r->account_id)->row();
 				if (!is_null($from_account)) {
-					$from = "<a href='" . site_url() . 'admin/finance/accounts/transactions?id=' . $from_account->account_id  . "' class='text-md font-weight-bold'><b>" . $from_account->account_name . "</b>  " . $from_account->account_code . "</a>";
+					$from = "<b>$from_account->account_name</b>" . "  " . $from_account->account_code;
 				} else {
 					$from = "--";
 				}
 
-				$contact = $this->Contact_model->get_contact($r->beneficiary);
-				if (!is_null($contact)) {
-					$to = "<a href='" . site_url() . 'admin/contacts/view/' . $contact->contact_id  . "' class='text-md font-weight-bold'>" . $contact->contact_name . "</a>";
+				$to_beneficiary = $this->Employees_model->read_employee_information($r->beneficiary);
+				if (!is_null($to_beneficiary)) {
+					$to = $to_beneficiary[0]->first_name . "  " . $to_beneficiary[0]->last_name;
 				} else {
 					$to = "--";
 				}
@@ -1917,13 +1863,12 @@ class Accounts extends MY_Controller
 			}
 
 			$href = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_view') . '"><a href="' . base_url('admin/finance/accounts/spend_view?id=' . $r->trans_number) . '" class="btn icon-btn btn-sm btn-outline-info waves-effect waves-light"><span class="fa fa-eye"></span></a></span>';
-
 			$combhr = $edit . $delete . $href;
 
 			$data[] = array(
 				$combhr,
-				$this->Xin_model->set_date_format($r->date),
-				"<a href='" . base_url('admin/finance/accounts/spend_view?id=' . $r->trans_number) . "' class=''>" . $r->trans_number . "</a>",
+				$this->Xin_model->set_date_format($r->created_at),
+				$r->trans_number,
 				"<small>" . $from . "<br>To<br>" . $to . "</small>",
 				$r->reference,
 				doc_stats($r->status, true),
@@ -1964,15 +1909,16 @@ class Accounts extends MY_Controller
 			$result_receives = "";
 			foreach ($receives as $key => $rev) {
 				$titik_kome = $key == array_key_last($receives) ? ". " : ",<br>";
-				$result_receives .= "<a href='" . site_url() . 'admin/finance/accounts/transactions?id=' . $rev->account_id  . "' class='text-md font-weight-bold'><b>" . $rev->account_name . "</b>  " . $rev->account_code . "</a>" . $titik_kome;
+				$result_receives .= "<b>$rev->account_name</b>" . "  " . $rev->account_code . $titik_kome;
 			}
 
-			$contact = $this->Contact_model->get_contact($r->contact_id);
-			if (!is_null($contact)) {
-				$from = "<a href='" . site_url() . 'admin/contacts/view/' . $contact->contact_id  . "' class='text-md font-weight-bold'>" . $contact->contact_name . "</a>";
+			$vendor = $this->Vendor_model->read_vendor_information($r->vendor_id);
+			if (!is_null($vendor)) {
+				$from = $vendor[0]->vendor_name;
 			} else {
 				$from = "--";
 			}
+
 
 			$amount = $this->Account_receive_items_model->get_total_amount($r->trans_number);
 			if (!is_null($amount)) {
@@ -1997,8 +1943,8 @@ class Accounts extends MY_Controller
 
 			$data[] = array(
 				$combhr,
-				$this->Xin_model->set_date_format($r->date),
-				"<a href='" . base_url('admin/finance/accounts/receive_view?id=' . $r->trans_number) . "' class=''>" . $r->trans_number . "</a>",
+				$this->Xin_model->set_date_format($r->created_at),
+				$r->trans_number,
 				"<small>" . $from . "<br>To<br>" . $result_receives . "</small>",
 				$r->reference,
 				doc_stats($r->status, true),
@@ -2099,7 +2045,7 @@ class Accounts extends MY_Controller
 
 		if (!is_null($record)) {
 			$from = $this->Accounts_model->get($record->account_id)->row();
-			$to = $this->Accounts_model->get($record->target_account_id)->row();
+			$to = $this->Accounts_model->get($record->terget_account_id)->row();
 			$record->source_account = $from->account_code . " / " . $from->account_name;
 			$record->target_account = $to->account_code . " / " . $to->account_name;
 
@@ -2522,7 +2468,7 @@ class Accounts extends MY_Controller
 				'type' => 'credit',
 				'join_id' => $trans_number,
 				'ref' => $payment_ref,
-				'note' => "Kredit Pembayaran Spend Fund",
+				'note' => "Kredit Pembayaran Receive",
 				'attachment' => $file_attachment,
 			];
 
@@ -2563,6 +2509,120 @@ class Accounts extends MY_Controller
 		}
 	}
 
+	// public function store_receive_payment()
+	// {
+	// 	// receive id
+	// 	$id = $this->input->post('_token');
+	// 	$date = $this->input->post('date');
+	// 	$payment_ref = $this->input->post('payment_ref');
+	// 	$receive_account_id = $this->input->post('receive_account_id');
+
+	// 	// get user id
+	// 	$user_id = $this->session->userdata('username')['user_id'];
+
+	// 	// doing attachment
+	// 	$config['allowed_types'] = 'gif|jpg|png|pdf';
+	// 	$config['max_size'] = '10240'; // max_size in kb
+	// 	$config['upload_path'] = './uploads/finance/account_trans/';
+
+	// 	$filename = $_FILES['attachment']['name'];
+
+	// 	// get extention
+	// 	$extension = pathinfo($filename, PATHINFO_EXTENSION);
+
+	// 	$newName = date('YmdHis') . '_TRANS.' . $extension;
+
+	// 	$config['filename'] = $newName;
+
+	// 	//load upload class library
+	// 	$this->load->library('upload', $config);
+
+	// 	// $upload
+	// 	$this->upload->do_upload('attachment');
+
+	// 	// ambil tagihan
+	// 	$list_tagihan = $this->Account_receive_model->get_list_tagihan($id);
+
+	// 	// dd($list_tagihan);
+	// 	// uang yang dibayar
+	// 	$amount_paid = $this->input->post('amount_paid');
+
+	// 	$data = [];
+	// 	foreach ($list_tagihan as $bill) {
+
+	// 		// filter jika sudah paid
+	// 		if (true) {
+	// 			// $totalBillAmount = floatval($bill->tax_rate) + floatval($bill->amount) - floatval($bill->bill_paid);
+	// 			$totalBillAmount = $bill->bill_remaining;
+
+	// 			if ($amount_paid >= $totalBillAmount) {
+	// 				// Jika pembayaran cukup untuk tagihan saat ini
+	// 				$make_bill = $totalBillAmount;
+	// 				$amount_paid -= $totalBillAmount;
+	// 			} else {
+	// 				// Jika pembayaran tidak cukup untuk tagihan saat ini
+	// 				$make_bill = $amount_paid;
+	// 				$amount_paid = 0;
+	// 			}
+
+	// 			//
+	// 			$data[] =
+	// 				[
+	// 					'account_id' => $bill->account_id,
+	// 					'user_id' => $user_id,
+	// 					'account_trans_cat_id' => 3, //receive
+	// 					'amount' => $make_bill,
+	// 					'date' => $date,
+	// 					'type' => 'credit',
+	// 					'join_id' => $id, // receive_id
+	// 					'ref_trans_id' => $bill->receive_trans_id,
+	// 					'ref' => $payment_ref,
+	// 					'note' => "Kredit Pembayaran receive",
+	// 					'attachment' => $newName,
+	// 				];
+	// 			$data[] = [
+	// 				'account_id' => $receive_account_id,
+	// 				'user_id' => $user_id,
+	// 				'account_trans_cat_id' => 3, // receive
+	// 				'amount' => $make_bill,
+	// 				'date' => $date,
+	// 				'type' => 'debit',
+	// 				'join_id' => $id, // receive_id
+	// 				'ref_trans_id' => $bill->receive_trans_id,
+	// 				'ref' => $payment_ref,
+	// 				'note' => "Debit Pembayaran receive",
+	// 				'attachment' => $newName,
+	// 			];
+
+	// 			if ($amount_paid <= 0) {
+	// 				// Jika pembayaran sudah habis
+	// 				break;
+	// 			}
+	// 		}
+	// 	}
+
+	// 	// dd($data);
+	// 	$insert = $this->Account_trans_model->insert_payment($data);
+
+	// 	// check if all tagihan is paid or partially paid
+	// 	$check_tagihan = $this->Account_receive_model->get_trans_payment($id);
+
+	// 	if ($check_tagihan->sisa_tagihan == 0) {
+	// 		// update status receive
+	// 		$this->Account_receive_model->update($id, ['status' => 'paid']);
+	// 	} else {
+	// 		// update status receive
+	// 		$this->Account_receive_model->update($id, ['status' => 'partially_paid']);
+	// 	}
+
+	// 	if ($insert) {
+	// 		$Return['result'] = $this->lang->line('ms_title_payment_success');
+	// 		$this->output($Return);
+	// 	} else {
+	// 		$Return['error'] = $this->lang->line('ms_title_peyment_error');
+	// 		$this->output($Return);
+	// 	}
+	// }
 
 	public function get_list_tagihan($id)
 	{
@@ -2889,7 +2949,7 @@ class Accounts extends MY_Controller
 
 		if (!is_null($record)) {
 			$from = $this->Accounts_model->get($record->account_id)->row();
-			$to = $this->Accounts_model->get($record->target_account_id)->row();
+			$to = $this->Accounts_model->get($record->terget_account_id)->row();
 
 			$record->source_account = $from->account_code . " | " . $from->account_name;
 			$record->target_account = $to->account_code . " | " . $to->account_name;
@@ -2938,7 +2998,7 @@ class Accounts extends MY_Controller
 		if ($this->input->post('target_account') == $this->input->post('old_target_account')) {
 			$data = [
 				'account_id' => $this->input->post('account_id'),
-				'target_account_id' => $this->input->post('old_target_account'),
+				'terget_account_id' => $this->input->post('old_target_account'),
 				'trans_number' => $trans_number,
 				'date' => $this->input->post('date'),
 				'amount' => $amount,
@@ -2952,7 +3012,7 @@ class Accounts extends MY_Controller
 			$new_target_account = $this->input->post('target_account');
 			$data = [
 				'account_id' => $this->input->post('account_id'),
-				'target_account_id' => $this->input->post('target_account'),
+				'terget_account_id' => $this->input->post('target_account'),
 				'trans_number' => $trans_number,
 				'date' => $this->input->post('date'),
 				'amount' => $amount,

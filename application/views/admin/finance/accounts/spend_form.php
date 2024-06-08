@@ -4,7 +4,7 @@
 	</div>
 </div>
 
-<?php $attributes = array('name' => 'spend_form', 'id' => 'spend_form', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
+<?php $attributes = array('name' => 'spend_form', 'id' => 'spend_ford', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
 <?php $hidden = array('type' => 'spend', '_token' => $record->spend_id); ?>
 <?php echo form_open('admin/finance/accounts/store_trans', $attributes, $hidden); ?>
 <div class="row">
@@ -31,7 +31,7 @@
 					<div class="col-md-6">
 						<div class="form-group">
 							<label for="beneficiary"><?= $this->lang->line('ms_title_beneficiary'); ?></label>
-							<select name="beneficiary" id="beneficiary" class="form-control" data-plugin="target_contact" data-placeholder="<?= $this->lang->line('ms_title_terget_account'); ?>" required>
+							<select name="beneficiary" id="beneficiary" class="form-control" data-plugin="terget_account" data-placeholder="<?= $this->lang->line('ms_title_terget_account'); ?>" required>
 							</select>
 						</div>
 					</div>

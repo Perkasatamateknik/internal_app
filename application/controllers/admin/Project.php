@@ -42,7 +42,6 @@ class Project extends MY_Controller
 		$this->load->model("Vendor_model");
 		$this->load->model("Product_model");
 		$this->load->model("Tax_model");
-		$this->load->model("Purchase_items_model");
 	}
 
 	/*Function to set JSON output*/
@@ -393,31 +392,44 @@ class Project extends MY_Controller
 		$record = [];
 		$total = 0;
 
-		// $rp = $this->Xin_model->read_recently_product_by_id_project($id);
-
-		$rp = $this->Purchase_items_model->read_items_pi_by_project_id($id);
-
-		// dd($rp->result());?
+		$rp = $this->Xin_model->read_recently_product_by_id_project($id);
 		if (!is_null($rp)) {
 			foreach ($rp->result() as $r) {
 
+				$kategori = $this->Xin_model->read_product_sub_category($r->sub_category_id);
+				if ($kategori) {
+					$category_name = $kategori[0]->sub_category_name;
+				} else {
+					$category_name = "--";
+				}
+
+				$unit = $this->Xin_model->read_uom($r->uom_id);
+				if ($unit == true) {
+					$uom_name = $unit[0]->uom_name;
+				} else {
+					$uom_name = "--";
+				}
+
+				$d_project = $this->Project_model->read_project_information($r->project_id);
+				// dd($d_project);
+				if (!is_null($d_project)) {
+					$project_name = $d_project[0]->title;
+				} else {
+					$project_name = "--";
+				}
 
 				$res = new stdClass;
-				$res->category = $r->category_name;
+				$res->category = $category_name;
 				$res->product_name = $r->product_name;
 				$res->product_number = $r->product_number;
-				$res->uom = $r->uom_name;
-				$res->project_name = $r->title;
-				$res->quantity = $r->quantity;
-				$res->discount_type = $r->discount_type;
-				$res->discount_rate = $this->Xin_model->currency_sign($r->discount_rate);
-				$res->tax_type = $r->tax_type;
-				$res->tax_rate = $this->Xin_model->currency_sign($r->tax_rate);
+				$res->uom = $uom_name;
+				$res->project_name = $project_name;
+				$res->qty = $r->qty;
 				$res->price = $this->Xin_model->currency_sign($r->price);
 				$res->amount = $this->Xin_model->currency_sign($r->amount);
 
 				$record[] = $res;
-				$total = $total  + $r->amount;
+				$total = $total  + ($r->qty * $r->price);
 			}
 		} else {
 			$record = null;
@@ -450,7 +462,7 @@ class Project extends MY_Controller
 			'record' => $record,
 			'total' => $this->Xin_model->currency_sign($total),
 		);
-		// dd($record);
+		// dd($data);
 
 		//$role_resources_ids = $this->Xin_model->user_role_resource();
 		//if(in_array('7',$role_resources_ids)) {
@@ -520,7 +532,7 @@ class Project extends MY_Controller
 
 			// progress
 			$pbar = '<p class="m-b-0-5">' . $this->lang->line('xin_completed') . ' <span class="pull-xs-right">' . $r->project_progress . '%</span>
-				<div class="progress progress-xs"><div class="progress-bar ' . $progress_class . ' progress-bar-striped" role="progressbar" aria-valuenow="' . $r->project_progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $r->project_progress . '%"></div></div></p>';
+	<div class="progress progress-xs"><div class="progress-bar ' . $progress_class . ' progress-bar-striped" role="progressbar" aria-valuenow="' . $r->project_progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $r->project_progress . '%"></div></div></p>';
 
 
 			//status

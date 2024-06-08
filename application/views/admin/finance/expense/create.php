@@ -4,14 +4,14 @@
 	</div>
 </div>
 
-<?php $attributes = array('name' => 'expense_form', 'id' => 'expense_forms', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
+<?php $attributes = array('name' => 'expense_form', 'id' => 'expense_form', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
 <?php $hidden = array('type' => 'expense', '_token' => $record->trans_number); ?>
 <?php echo form_open('admin/finance/expenses/store', $attributes, $hidden); ?>
 <div class="row">
 	<div class="col-md-12">
 		<div class="card mb-3">
 			<div class="card-header">
-				<a href="javascript:history.back()" class=" btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
+				<a href="<?= base_url('admin/finance/expenses') ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
 			</div>
 			<div class="card-body">
 				<div class="row">
@@ -31,20 +31,20 @@
 					<div class="col-md-6">
 						<div class="form-group">
 							<label for="beneficiary"><?= $this->lang->line('ms_title_beneficiary'); ?></label>
-							<select name="beneficiary" id="beneficiary" class="form-control" data-plugin="target_contact" data-placeholder="<?= $this->lang->line('ms_title_terget_account'); ?>" required>
+							<select name="beneficiary" id="beneficiary" class="form-control" data-plugin="terget_account" data-placeholder="<?= $this->lang->line('ms_title_terget_account'); ?>" required>
 							</select>
 						</div>
 					</div>
 					<div class="col-md-6">
 						<div class="form-group">
 							<label for="reference"><?= $this->lang->line('ms_title_ref'); ?></label>
-							<input type="text" name="reference" id="reference" class="form-control" value="">
+							<input type="text" name="reference" id="reference" class="form-control">
 						</div>
 					</div>
 					<div class="col-md-4">
 						<div class="form-group">
 							<label for="date"><?= $this->lang->line('ms_title_transfer_date'); ?></label>
-							<input type="date" name="date" id="date" class="form-control" value="<?= date('Y-m-d'); ?>">
+							<input type="date" name="date" id="date" class="form-control" value="">
 						</div>
 					</div>
 					<div class="col-md-4">

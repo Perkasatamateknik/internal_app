@@ -15,31 +15,6 @@ class Vendor_model extends CI_Model
 		return $this->db->get("ms_vendors");
 	}
 
-
-	public function migrate()
-	{
-
-		$all = $this->gel_all_vendor()->result();
-
-		$data = [];
-
-		foreach ($all as $r) {
-			$data[] = [
-				'contact_id' => $r->vendor_id,
-				'contact_type_id' => 1,
-				'contact_name' => $r->vendor_name,
-				'company_name' => $r->vendor_name,
-				'billing_address' => $r->vendor_address,
-				'country' => $r->country,
-				'province' => $r->state,
-				'city' => $r->city,
-				'phone_number' => $r->vendor_contact,
-			];
-		}
-
-		$this->db->insert_batch('ms_contacts', $data);
-		// dd($data);
-	}
 	public function read_vendor_information($id)
 	{
 

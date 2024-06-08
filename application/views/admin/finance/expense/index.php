@@ -4,6 +4,29 @@
 			<h4><?= $breadcrumbs; ?></h4>
 		</div>
 	</div>
+	<!-- <div class="col-md-auto">
+		<style>
+			.has-search .form-control {
+				padding-left: 2.375rem;
+			}
+
+			.has-search .form-control-feedback {
+				position: absolute;
+				z-index: 2;
+				display: block;
+				width: 2.375rem;
+				height: 2.375rem;
+				line-height: 2.375rem;
+				text-align: center;
+				pointer-events: none;
+				color: #aaa;
+			}
+		</style>
+		<div class="form-group has-search">
+			<span class="fa fa-search form-control-feedback"></span>
+			<input type="text" class="form-control" placeholder="Search">
+		</div>
+	</div> -->
 	<div class="col-md-6">
 		<a href="<?= base_url('admin/finance/expenses/create'); ?>" target="" class="btn btn-white float-right"><i class="fa fa-plus" aria-hidden="true"></i> <?= $this->lang->line('ms_title_add_expense'); ?></a>
 	</div>
@@ -131,23 +154,14 @@
 			<input type="text" class="form-control" placeholder="Search" id="cari_data">
 		</div>
 	</div>
-	<?php
-	$data_filter = ['draft' => 'Draft', 'unpaid' => 'Unpaid', 'paid' => 'Paid', 'partially_paid' => 'Partially Paid'];
-	$filter = $this->input->get('filter') ?? '';
-	?>
-	<input type="hidden" name="filter" value="<?= $filter; ?>">
 	<div class="col-md-auto mx-0 px-1">
 		<div class="dropdown open">
 			<button class="btn btn-light dropdown-toggle" type="button" id="triggerId" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-				<?= $filter == '' ? 'Filter' : $data_filter[$filter]; ?>
+				Filter
 			</button>
 			<div class="dropdown-menu" aria-labelledby="triggerId">
-				<?php if ($filter != '') { ?>
-					<a class="dropdown-item" href="<?= base_url('/admin/finance/expenses') ?>">Filter</a>
-				<?php }; ?>
-				<?php foreach ($data_filter as $key => $val) { ?>
-					<a class="dropdown-item" href="?filter=<?= $key; ?>"><?= $val; ?></a>
-				<?php }; ?>
+				<button class="dropdown-item" href="#">Action</button>
+				<button class="dropdown-item disabled" href="#">Disabled action</button>
 			</div>
 		</div>
 	</div>

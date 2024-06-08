@@ -149,31 +149,6 @@ class Product_model extends CI_Model
 			$this->db->update('ms_products', ['product_number' => $kd], ['product_id' => $r->product_id]);
 		}
 
-
 		echo "success!";
-	}
-
-	public function set_po()
-	{
-		// Ambil semua data dari tabel ms_items_purchase_order
-		$purchase_orders = $this->db->get('ms_items_purchase_order')->result();
-
-		// Lakukan perulangan pada setiap baris data
-		foreach ($purchase_orders as $purchase_order) {
-			// Cari data produk berdasarkan product_id
-			$product_id = $purchase_order->product_id;
-			$product = $this->db->get_where('ms_products', array('product_id' => $product_id))->row();
-
-			// Perbarui product_number dalam ms_items_purchase_order dengan product_number dari ms_products
-			if ($product) {
-				$new_product_number = $product->product_number;
-				$this->db->set('product_number', $new_product_number);
-				$this->db->where('product_id', $product_id);
-				$this->db->update('ms_items_purchase_order');
-			}
-		}
-
-		// Mengembalikan jumlah baris yang diperbarui
-		return count($purchase_orders);
 	}
 }

@@ -56,5 +56,3 @@ $route['translate_uri_dashes'] = FALSE;
 //replace route
 $route['admin/finance'] = 'admin/finance/main/index';
 $route['admin/finance/dashboard'] = 'admin/finance/main/index';
-
-// $route['admin/contacts'] = 'admin/contacts/contact/index';

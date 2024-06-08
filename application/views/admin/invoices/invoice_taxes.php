@@ -37,7 +37,7 @@
 			<div class="card">
 				<div class="card-header with-elements"> <span class="card-header-title mr-2"><strong><?php echo $this->lang->line('xin_add_new'); ?></strong> <?php echo $this->lang->line('xin_title_tax'); ?></span> </div>
 				<div class="card-body">
-					<?php $attributes = array('name' => 'add_tax', 'id' => 'xin-formd', 'autocomplete' => 'off'); ?>
+					<?php $attributes = array('name' => 'add_tax', 'id' => 'xin-form', 'autocomplete' => 'off'); ?>
 					<?php $hidden = array('user_id' => $session['user_id']); ?>
 					<?php echo form_open('admin/invoices/add_tax', $attributes, $hidden); ?>
 					<div class="form-group">

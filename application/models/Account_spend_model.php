@@ -68,15 +68,11 @@ class Account_spend_model extends CI_Model
 
 	public function get_by_number_doc($id = false)
 	{
-		$this->db->select(['ms_finance_account_spends.*', 'COALESCE(ms_finance_accounts.account_code, "--") as account_code', 'COALESCE(ms_finance_accounts.account_name, "--") as account_name', 'ms_finance_accounts.account_id'])
-			->from('ms_finance_account_spends')
-			->join('ms_finance_accounts', 'ms_finance_account_spends.account_id=ms_finance_accounts.account_id');
-
 		if ($id) {
 			$this->db->where("trans_number", $id);
 		}
 
-		$res = $this->db->get();
+		$res = $this->db->get("ms_finance_account_spends");
 
 		if ($res->num_rows() > 0) {
 			return $res->row();

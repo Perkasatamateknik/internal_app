@@ -29,7 +29,6 @@ class Expenses extends MY_Controller
 		$this->load->model('Account_trans_model');
 		$this->load->model('Files_ms_model');
 		$this->load->model('Expense_items_model');
-		$this->load->model('Contact_model');
 
 		$this->redirect_uri = 'admin/finance/expense';
 		$this->redirect_access = 'admin/';
@@ -62,8 +61,7 @@ class Expenses extends MY_Controller
 		if (empty($session)) {
 			redirect('admin/');
 		}
-		$filter = $this->input->get('filter');
-		$record = $this->Expense_model->all($filter);
+		$record = $this->Expense_model->all();
 
 
 		// Datatables Variables
@@ -79,8 +77,15 @@ class Expenses extends MY_Controller
 
 			if (!in_array(null, [$r->account_id, $r->beneficiary], true)) {
 
-				$from = account_url($r->account_id);
-				$to = contact_url($r->beneficiary);
+				$from_account = $this->Accounts_model->get($r->account_id)->row();
+				if (!is_null($from_account)) {
+					$from = "<b>$from_account->account_name</b>" . "  " . $from_account->account_code;
+				}
+
+				$to_beneficiary = $this->Employees_model->read_employee_information($r->beneficiary);
+				if (!is_null($to_beneficiary)) {
+					$to = $to_beneficiary[0]->first_name . "  " . $to_beneficiary[0]->last_name;
+				}
 			}
 
 			// $sisa_tagihan = $this->Expense_model->get_sisa_tagihan($r->trans_number);
@@ -101,7 +106,7 @@ class Expenses extends MY_Controller
 
 			$data[] = array(
 				$this->Xin_model->set_date_format($r->date),
-				expense_url($r->trans_number),
+				"<a href='" . base_url('admin/finance/expenses/view?id=' . $r->trans_number) . "' class='text-secondary'>" . $r->trans_number . "</a>",
 				$r->reference ?? "--",
 				$from,
 				status_trans($r->status, true),
@@ -164,29 +169,16 @@ class Expenses extends MY_Controller
 
 		#
 		#
-		$date = $this->input->post('date');
-		$trans_number = $this->input->post('trans_number');
-
 		$data = [
-			'account_id' 	=> $this->input->post('account_id'),
-			'trans_number' 	=> $trans_number,
-			'beneficiary' 	=> $this->input->post('beneficiary'),
-			'date' 			=> $date,
-			'reference' 	=> post_data('reference'),
-			'due_date' 		=> $this->input->post('due_date'),
-			'term' 			=> $this->input->post('select_due_date'),
-			'status' 		=> $action == 'save' ? 'draft' : 'unpaid',
+			'account_id' => $this->input->post('account_id'),
+			'trans_number' => $this->input->post('trans_number'),
+			'beneficiary' => $this->input->post('beneficiary'),
+			'date' => $this->input->post('date'),
+			'reference' => $this->input->post('reference'),
+			'due_date' => $this->input->post('due_date'),
+			'term' => $this->input->post('select_due_date'),
+			'status' => $action == 'save' ? 'draft' : 'unpaid',
 		];
-
-		$contact = $this->Contact_model->get_contact($this->input->post('beneficiary'));
-		if (!is_null($contact)) {
-			$contact_name = $contact->contact_name;
-		} else {
-			$contact_name = "";
-		}
-
-		// ref trans id
-		$ref_trans_id = $trans_number . "-" . rand(100000, 999999);
 
 		$items = [];
 		$trans = [];
@@ -204,24 +196,50 @@ class Expenses extends MY_Controller
 				if ($check_tax[0]->is_withholding == 1) {
 					$tax_withholding += $this->input->post('row_tax_rate')[$i] ?? 0;
 					$set_withholding = 1;
+
+					// $trans[] = [
+					// 	'account_id' => $this->input->post('row_target_id')[$i], // account_id
+					// 	'user_id' => $user_id,
+					// 	'account_trans_cat_id' => 4,
+					// 	'amount' => $this->input->post('row_amount')[$i] - $this->input->post('row_tax_rate')[$i],
+					// 	'date' => date('Y-m-d'),
+					// 	'type' => 'debit',
+					// 	'join_id' => $trans_number,
+					// 	'ref' => "Dokumen Expense",
+					// 	'note' => "Payment Dokumen Expense",
+					// 	'attachment' => null,
+					// ];
 				} else {
 					$tax_no_withholding += $this->input->post('row_tax_rate')[$i] ?? 0;
 					$set_withholding = 0;
+
+					// $trans[] = [
+					// 	'account_id' => $this->input->post('row_target_id')[$i], // account_id
+					// 	'user_id' => $user_id,
+					// 	'account_trans_cat_id' => 4,
+					// 	'amount' => $this->input->post('row_amount')[$i] + $this->input->post('row_tax_rate')[$i],
+					// 	'date' => date('Y-m-d'),
+					// 	'type' => 'debit',
+					// 	'join_id' => $trans_number,
+					// 	'ref' => "Dokumen Expense",
+					// 	'note' => "Payment Dokumen Expense",
+					// 	'attachment' => null,
+					// ];
 				}
+				// } else {
 			}
 
 			$trans[] = [
-				'account_id' 			=> $this->input->post('row_target_id')[$i], // account_id
-				'user_id' 				=> $user_id,
-				'account_trans_cat_id' 	=> 4,
-				'amount' 				=> $this->input->post('row_amount')[$i],
-				'date' 					=> $date,
-				'type' 					=> 'debit',
-				'join_id' 				=> $trans_number,
-				'ref' 					=> "Expense",
-				'note' 					=> "Expense Payment: " . $contact_name,
-				'attachment' 			=> null,
-				'ref_trans_id' 			=> $ref_trans_id
+				'account_id' => $this->input->post('row_target_id')[$i], // account_id
+				'user_id' => $user_id,
+				'account_trans_cat_id' => 4,
+				'amount' => $this->input->post('row_amount')[$i],
+				'date' => date('Y-m-d'),
+				'type' => 'debit',
+				'join_id' => $trans_number,
+				'ref' => "Dokumen Expense",
+				'note' => "Payment Dokumen Expense",
+				'attachment' => null,
 			];
 
 			$items[] = [
@@ -232,42 +250,55 @@ class Expenses extends MY_Controller
 				'tax_type' 			=> $this->input->post('data_tax_type')[$i],
 				'tax_withholding' 	=> $set_withholding ?? 0,
 				'amount' 			=> $this->input->post('row_amount')[$i],
-				'note' 				=> force_string_null($this->input->post('row_note')[$i]),
+				'note' 				=> $this->input->post('row_note')[$i] ?? null,
 			];
 		}
+
 
 		// masukan semua total ke akun Trade Payble = credit
 		$trans[] =
 			[
-				'account_id' 			=> 34, // account_id trade payable
-				'user_id' 				=> $user_id,
-				'account_trans_cat_id' 	=> 4, // = expense
-				'amount' 				=> $amount_item + ($tax_no_withholding - $tax_withholding),
-				'date' 					=> $date,
-				'type' 					=> 'credit',
-				'join_id' 				=> $trans_number, // po number
-				'ref' 					=> "Expense",
-				'note' 					=> "Expense: " . $contact_name,
-				'attachment' 			=> null,
-				'ref_trans_id' 			=> $ref_trans_id
-
+				'account_id' => 34, // account_id trade payable
+				'user_id' => $user_id,
+				'account_trans_cat_id' => 4, // = expense
+				'amount' => $amount_item + ($tax_no_withholding - $tax_withholding),
+				'date' => date('Y-m-d'),
+				'type' => 'credit',
+				'join_id' => $trans_number, // po number
+				'ref' => "Dokumen Expense",
+				'note' => "Begin Dokumen Expense",
+				'attachment' => null,
 			];
+
+		// // masukan semua total ke akun pengirim = credit
+		// $trans[] =
+		// 	[
+		// 		'account_id' => $this->input->post('account_id'),
+		// 		'user_id' => $user_id,
+		// 		'account_trans_cat_id' => 4, // = spend
+		// 		'amount' => $amount_item + ($tax_no_withholding - $tax_withholding),
+		// 		'date' => date('Y-m-d'),
+		// 		'type' => 'credit',
+		// 		'join_id' => $trans_number, // po number
+		// 		'ref' => "Dokumen Spend",
+		// 		'note' => "Begin Dokumen Spend",
+		// 		'attachment' => null,
+		// 	];
 
 		if ($tax_withholding > 0) {
 			// masukan tax total ke akun VAT Out - withholding
 			$trans[] =
 				[
-					'account_id' 			=> 45,
-					'user_id' 				=> $user_id,
-					'account_trans_cat_id' 	=> 4,
-					'amount' 				=> $tax_withholding,
-					'date' 					=> $date,
-					'type' 					=> 'credit',
-					'join_id' 				=> $trans_number,
-					'ref' 					=> "Expense",
-					'note' 					=> "Expense Tax Withholding: " . $contact_name,
-					'attachment'			=> null,
-					'ref_trans_id' 			=> $ref_trans_id
+					'account_id' => 45,
+					'user_id' => $user_id,
+					'account_trans_cat_id' => 4,
+					'amount' => $tax_withholding,
+					'date' => date('Y-m-d'),
+					'type' => 'credit',
+					'join_id' => $trans_number,
+					'ref' => "Tax from",
+					'note' => "Tax from Dokumen Expense",
+					'attachment' => null,
 				];
 		}
 
@@ -275,19 +306,19 @@ class Expenses extends MY_Controller
 			// masukan tax total ke akun VAT In - no withholding
 			$trans[] =
 				[
-					'account_id' 			=> 14,
-					'user_id' 				=> $user_id,
-					'account_trans_cat_id' 	=> 4,
-					'amount' 				=> $tax_no_withholding,
-					'date' 					=> $date,
-					'type' 					=> 'debit',
-					'join_id' 				=> $trans_number,
-					'ref' 					=> "Expense",
-					'note' 					=> "Expense Tax: " . $contact_name,
-					'attachment' 			=> null,
-					'ref_trans_id' 			=> $ref_trans_id
+					'account_id' => 14,
+					'user_id' => $user_id,
+					'account_trans_cat_id' => 4,
+					'amount' => $tax_no_withholding,
+					'date' => date('Y-m-d'),
+					'type' => 'debit',
+					'join_id' => $trans_number,
+					'ref' => "Tax from",
+					'note' => "Tax from Dokumen Expense",
+					'attachment' => null,
 				];
 		}
+
 
 		if (!empty($_FILES["attachments"]["name"][0])) {
 			// upload file
@@ -363,10 +394,10 @@ class Expenses extends MY_Controller
 		$record = $this->Expense_model->get_by_number_doc($id);
 
 		if (!is_null($record)) {
-			$record->source_account = account_url($record->account_id, $record->account_name, $record->account_code);
-			$record->source_account_name = $record->account_name . " | " . $record->account_code;
-
-			$record->beneficiary = contact_url($record->beneficiary);
+			$from = $this->Accounts_model->get($record->account_id)->row();
+			$to = $this->Employees_model->read_employee_information($record->beneficiary);
+			$record->source_account = $from->account_name . " " . $from->account_code;
+			$record->beneficiary = $to[0]->first_name . " " . $to[0]->last_name;
 
 			// get payment
 			$data['payment'] = $this->Expense_model->get_payment(4, $record->trans_number);
@@ -377,20 +408,19 @@ class Expenses extends MY_Controller
 
 			//add expense items model
 			$items = $this->Expense_items_model->get_by_trans_number($record->trans_number);
-
+			// dd($items);
 			if (!is_null($items)) {
-				foreach ($items as $i => $item) {
+				foreach ($items as $item) {
+					$item->account_name = $this->Accounts_model->get($item->account_id)->row()->account_name;
 					$tax = $this->Tax_model->read_tax_information($item->tax_id); // return bool
 
 					if ($tax) {
 						$item->tax_name = $tax[0]->name;
-						$item->tax_rate = $item->tax_rate;
+						$item->tax_rate = $item->tax_rate;;
 					} else {
 						$item->tax_name = "--";
 						$item->tax_rate = 0;
 					}
-
-					$items[$i]->account = account_url($item->account_id);
 				}
 			}
 

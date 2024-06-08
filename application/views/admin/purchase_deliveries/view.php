@@ -8,7 +8,6 @@
 <?php $user_info = $this->Xin_model->read_user_info($session['user_id']); ?>
 <?php $vresult = $this->Vendor_model->gel_all_vendor()->result(); ?>
 <?php $presult = $this->Product_model->gel_all_product()->result(); ?>
-
 <?php if (in_array('516', $role_resources_ids)) { ?>
 	<div class="card <?php echo $get_animate; ?>">
 		<div class="card-header with-elements justify-content-end align-center">
@@ -30,8 +29,8 @@
 					<table class="table table-borderless">
 						<tr>
 							<td>
-								<label><?php echo $this->lang->line('ms_title_contact'); ?></label><br>
-								<strong><?= $record->contact; ?></strong>
+								<label><?php echo $this->lang->line('ms_vendors'); ?></label><br>
+								<strong><?= $record->vendor; ?></strong>
 							</td>
 							<td>
 								<label><?php echo $this->lang->line('ms_purchase_number'); ?></label><br>
@@ -206,4 +205,5 @@
 			</div>
 		</div>
 	</div>
+
 <?php } ?>

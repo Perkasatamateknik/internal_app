@@ -767,7 +767,5 @@ class Purchasing extends MY_Controller
 
 			return $trans;
 		}
-
-		return [];
 	}
 }

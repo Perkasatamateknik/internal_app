@@ -33,8 +33,6 @@ class Vendors extends MY_Controller
 		$data['breadcrumbs'] = $this->lang->line('ms_vendors');
 		$data['all_countries'] = $this->Xin_model->get_countries();
 
-		$vendors = $this->Vendor_model->migrate();
-		dd($vendors);
 		$data['path_url'] = 'vendors';
 		$role_resources_ids = $this->Xin_model->user_role_resource();
 		if (in_array('478', $role_resources_ids)) {

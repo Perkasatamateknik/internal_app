@@ -111,15 +111,6 @@ class Purchase_items_model extends CI_Model
 		return $this->db->select("*")->from("ms_items_purchase_invoice")->where('pi_number', $id)->get();
 	}
 
-	public function read_items_pi_by_project_id($id)
-	{
-		return $this->db->select(['ms_items_purchase_invoice.*', 'xin_projects.project_id', 'COALESCE(xin_projects.title, "--") as title'])
-			->from('ms_items_purchase_invoice')
-			->join('xin_projects', 'ms_items_purchase_invoice.project_id=xin_projects.project_id')
-			->where('ms_items_purchase_invoice.project_id', $id)
-			->get();
-	}
-
 	public function delete_item_pi_by_id($id)
 	{
 		return $this->db->where('item_pi_id', $id)->delete('ms_items_purchase_invoice');
@@ -181,5 +172,7 @@ class Purchase_items_model extends CI_Model
 
 		$res->total_amount += $record->service_fee + $record->delivery_fee;
 		return $res;
+
+		var_dump([$res]);
 	}
 }
