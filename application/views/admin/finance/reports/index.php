@@ -29,14 +29,66 @@
 							</div>
 							<div class="card-body">
 								<div class="row">
-									<?php for ($i = 0; $i < 10; $i++) { ?>
-										<div class="col-md-4">
-											<a href="#" class="btn btn-light btn-block mb-3">
-												<i class="fa fa-file fa-fw" aria-hidden="true"></i>
-												Balance Sheet
-											</a>
-										</div>
-									<?php }; ?>
+									<div class="col-md-4">
+										<a href="<?= base_url('admin/finance/reports/balance_sheet') ?>" class="btn btn-outline-secondary btn-block mb-3">
+											<i class="fa fa-file-text" aria-hidden="true"></i>
+											<?= $this->lang->line('ms_title_balance_sheet'); ?>
+										</a>
+									</div>
+									<div class="col-md-4">
+										<a href="<?= base_url('admin/finance/reports/executive_summary') ?>" class="btn btn-outline-secondary btn-block mb-3">
+											<i class="fas fa-chart-bar    "></i>
+											<?= $this->lang->line('ms_title_executive_summary'); ?>
+										</a>
+									</div>
+									<div class="col-md-4">
+										<a href="<?= base_url('admin/finance/reports/budget_realization') ?>" class="btn btn-outline-secondary btn-block mb-3">
+											<i class="fas fa-chart-pie fa-fw"></i>
+											<?= $this->lang->line('ms_title_budget_realization'); ?>
+										</a>
+									</div>
+								</div>
+								<div class="row">
+									<div class="col-md-4">
+										<a href="<?= base_url('admin/finance/reports/cash_flow') ?>" class="btn btn-outline-secondary btn-block mb-3">
+											<i class="fas fa-money-bill-alt fa-fw"></i>
+											<?= $this->lang->line('ms_title_cash_flow'); ?>
+										</a>
+									</div>
+									<div class="col-md-4">
+										<a href="<?= base_url('admin/finance/reports/payable_credit_for_contact') ?>" class="btn btn-outline-secondary btn-block mb-3">
+											<i class="fa fa-file fa-fw" aria-hidden="true"></i>
+											<?= $this->lang->line('ms_title_payable_credit_for_contact'); ?>
+										</a>
+									</div>
+								</div>
+								<div class="row">
+									<div class="col-md-4">
+										<a href="<?= base_url('admin/finance/reports/profit_and_loss') ?>" class="btn btn-outline-secondary btn-block mb-3">
+											<i class="fas fa-money-bill-alt"></i>
+											<?= $this->lang->line('ms_title_profit_and_loss'); ?>
+										</a>
+									</div>
+									<div class="col-md-4">
+										<a href="<?= base_url('admin/finance/reports/tax') ?>" class="btn btn-outline-secondary btn-block mb-3">
+											<i class="fas fa-dollar-sign    "></i>
+											<?= $this->lang->line('ms_title_tax'); ?>
+										</a>
+									</div>
+								</div>
+								<div class="row">
+									<div class="col-md-4">
+										<a href="<?= base_url('admin/finance/reports/equity_movement') ?>" class="btn btn-outline-secondary btn-block mb-3">
+											<i class="fas fa-balance-scale-left    "></i>
+											<?= $this->lang->line('ms_title_equity_movement'); ?>
+										</a>
+									</div>
+									<div class="col-md-4">
+										<a href="<?= base_url('admin/finance/reports/expense') ?>" class="btn btn-outline-secondary btn-block mb-3">
+											<i class="fas fa-coins    "></i>
+											<?= $this->lang->line('ms_title_expense'); ?>
+										</a>
+									</div>
 								</div>
 							</div>
 						</div>

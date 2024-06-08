@@ -216,6 +216,23 @@ class Ajax_request extends MY_Controller
 			$data[] = array(
 				'id' => $r->vendor_id,
 				'text' => $r->vendor_name,
+				'html' => "<div><span>" . $r->vendor_name . "</span><br><small>vendor</small></div>",
+			);
+		}
+		echo $this->output($data);
+		exit();
+	}
+
+	public function find_contact()
+	{
+		$query = $this->input->get('query');
+		$res = $this->Contact_model->find_contact($query);
+		$data = [];
+		foreach ($res as $key => $r) {
+			$data[] = array(
+				'id' => $r->contact_id,
+				'text' => $r->contact_name,
+				'html' => "<div><span>" . $r->contact_name . "</span><br><small>" . $r->contact_type . "</small></div>",
 			);
 		}
 		echo $this->output($data);
@@ -433,10 +450,10 @@ class Ajax_request extends MY_Controller
 		exit();
 	}
 
-	public function find_vendor_by_id()
+	public function find_contact_by_id()
 	{
 		$query = $this->input->get('query');
-		$res = $this->Xin_model->find_vendor_by_id($query);
+		$res = $this->Contact_model->find_contact_by_id($query);
 		echo $this->output($res);
 		exit();
 	}

@@ -16,7 +16,7 @@ if ($id == '') {
 			<div class="card-body">
 				<div class="row justify-content-between">
 					<div class="col-md-auto">
-						<a href="<?= base_url('/admin/finance/accounts/trans_doc') ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
+						<a href="javascript:history.back()" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
 					</div>
 					<div class="col-md-auto">
 						<div class="row">
@@ -44,11 +44,11 @@ if ($id == '') {
 							<tr>
 								<td>
 									<span><?= $this->lang->line('ms_title_source_account'); ?></span><br>
-									<strong><?= $record->source_account; ?></strong>
+									<?= $record->source_account; ?>
 								</td>
 								<td>
 									<span><?= $this->lang->line('ms_title_number_document'); ?></span><br>
-									<strong><?= $record->trans_number; ?></strong>
+									<?= $record->trans_number; ?>
 								</td>
 							</tr>
 							<tr>
@@ -109,6 +109,11 @@ if ($id == '') {
 									<td></td>
 									<td><strong><?= $this->lang->line('xin_amount'); ?></strong></td>
 									<td><strong><?= $this->Xin_model->currency_sign($record->amount); ?></strong></td>
+								</tr>
+								<tr>
+									<td></td>
+									<td><strong><?= $this->lang->line('ms_title_transfer_fee'); ?></strong></td>
+									<td><strong><?= $this->Xin_model->currency_sign($record->transfer_fee); ?></strong></td>
 								</tr>
 								<tr>
 									<td></td>
@@ -175,13 +180,13 @@ if ($id == '') {
 				</div>
 				<div class="card-body">
 					<?php $attributes = array('name' => 'payment_form', 'id' => 'payment_form', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
-					<?php $hidden = array('type' => 'transfer', '_token' => $record->transfer_id, 'target_account_id' => $record->terget_account_id, 'trans_number' => $record->trans_number); ?>
+					<?php $hidden = array('type' => 'transfer', '_token' => $record->transfer_id, 'target_account_id' => $record->target_account_id, 'trans_number' => $record->trans_number); ?>
 					<?php echo form_open('admin/finance/accounts/store_payment', $attributes, $hidden); ?>
 					<div class="row">
 						<div class="col-md-4">
 							<div class="form-group">
 								<label for="date"><?php echo $this->lang->line('ms_payment_date'); ?></label>
-								<input type="date" name="date" id="date" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_date'); ?>" required>
+								<input type="date" name="date" id="date" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_date'); ?>" value="<?= date('Y-m-d'); ?>" required>
 							</div>
 						</div>
 						<div class="col-md-4">
@@ -199,7 +204,7 @@ if ($id == '') {
 						<div class="col-md-4">
 							<div class="form-group">
 								<label for="account_source"><?php echo $this->lang->line('ms_payment_account_source'); ?></label>
-								<input type="text" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_account_source'); ?>" readonly value="<?= $record->source_account; ?>">
+								<input type="text" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_account_source'); ?>" readonly value="<?= $record->source_account_name; ?>">
 								<input type="hidden" name="source_payment_account" value="<?= $record->account_id; ?>">
 							</div>
 						</div>

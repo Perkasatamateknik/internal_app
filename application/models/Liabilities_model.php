@@ -85,6 +85,17 @@ class Liabilities_model extends CI_Model
 		return $this->db->trans_status();
 	}
 
+	public function insert_items($trans_number, $items, $trans)
+	{
+		$this->db->trans_start();
+		$this->db->insert_batch('ms_liability_trans', $items);
+		$this->db->insert_batch('ms_finance_account_transactions', $trans);
+		$this->db->trans_complete();
+
+		$this->calculate_total_payment($trans_number);
+		return $this->db->trans_status();
+	}
+
 	public function get_by_number_doc($id)
 	{
 		$this->db->where("trans_number", $id);
@@ -261,6 +272,9 @@ class Liabilities_model extends CI_Model
 		$data = $this->db->where('liability_trans_id', $id)->get('ms_liability_trans')->row();
 		$trans_number = $data->trans_number;
 
+		// hapus transaksi
+		$this->db->where('account_id', $data->account_id)->where('join_id', $trans_number)->delete('ms_finance_account_transactions');
+
 		// hapus data
 		$this->db->where('liability_trans_id', $id)->delete('ms_liability_trans');
 
@@ -303,6 +317,11 @@ class Liabilities_model extends CI_Model
 		$new_amount = $this->db->select_sum('amount')->where('trans_number', $trans_number)->get('ms_liability_trans')->row()->amount;
 
 		// update trade payable
-		$this->db->where('account_id', 34)->where('join_id', $trans_number)->update('ms_finance_account_transactions', ['amount' => $new_amount]);
+		$this->db->where('account_id', 34)->where('join_id', $trans_number)->update('ms_finance_account_transactions', ['amount' => $new_amount, 'updated_at' => date('Y-m-d H:i:s')]);
+	}
+
+	public function get_tagihan($trans_number)
+	{
+		return $this->db->where('account_id', 34)->where('account_trans_cat_id', 7)->where('join_id', $trans_number)->where('type', 'credit')->get('ms_finance_account_transactions')->row();
 	}
 }

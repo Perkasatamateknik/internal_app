@@ -15,7 +15,7 @@ $(function () {
 					results: data,
 				};
 			},
-			cache: true,
+			cache: false,
 			transport: function (params, success, failure) {
 				var $request = $.ajax(params);
 
@@ -28,24 +28,22 @@ $(function () {
 		width: "100%",
 	});
 
-	$('[data-plugin="terget_account"]').select2({
+	$('[data-plugin="target_contact"]').select2({
 		ajax: {
 			delay: 250,
-			url: site_url + "ajax_request/find_employe",
+			url: site_url + "ajax_request/find_contact",
 			data: function (params) {
 				var queryParameters = {
 					query: params.term,
 				};
 				return queryParameters;
 			},
-
 			processResults: function (data) {
-				console.log(data);
 				return {
 					results: data,
 				};
 			},
-			cache: true,
+			cache: false,
 			transport: function (params, success, failure) {
 				var $request = $.ajax(params);
 
@@ -54,6 +52,24 @@ $(function () {
 
 				return $request;
 			},
+		},
+		templateResult: function (data) {
+			return data.html;
+		},
+		templateSelection: function (data) {
+			return data.text;
+		},
+		language: {
+			noResults: function () {
+				return `</li><button style="width: 100%" type="button"
+        class="btn btn-transparent" 
+        onclick='addContact()'><span class="ion ion-md-add"></span> Add Contact</button>
+        </li>`;
+			},
+		},
+
+		escapeMarkup: function (markup) {
+			return markup;
 		},
 		width: "100%",
 	});

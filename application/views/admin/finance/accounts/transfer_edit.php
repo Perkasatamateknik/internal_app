@@ -7,7 +7,7 @@
 <?php $hidden = array('type' => 'transfer', '_token' => $record->trans_number); ?>
 <?php echo form_open('admin/finance/accounts/transfer_update', $attributes, $hidden); ?>
 <input type="hidden" value="<?= $record->account_id; ?>" name="account_id">
-<input type="hidden" value="<?= $record->terget_account_id; ?>" name="old_target_account">
+<input type="hidden" value="<?= $record->target_account_id; ?>" name="old_target_account">
 <div class="row">
 	<div class="col-md-12 mb-3">
 		<div class="card">
@@ -32,7 +32,7 @@
 						<div class="form-group">
 							<label for="terget_account"><?= $this->lang->line('ms_title_terget_account'); ?></label>
 							<select name="target_account" id="terget_account" class="form-control" data-plugin="terget_account" data-placeholder="<?= $this->lang->line('ms_title_terget_account'); ?>" required>
-								<option value="<?= $record->terget_account_id; ?>"><?= $record->target_account; ?></option>
+								<option value="<?= $record->target_account_id; ?>"><?= $record->target_account; ?></option>
 							</select>
 						</div>
 					</div>

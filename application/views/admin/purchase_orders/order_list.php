@@ -17,15 +17,15 @@
 				<div class="card-body">
 					<div class="row m-b-1">
 						<div class="col-md-12">
-							<?php $attributes = array('name' => 'purchase_orders', 'id' => 'purchase_orderss', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
+							<?php $attributes = array('name' => 'purchase_orders', 'id' => 'purchase_orders', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
 							<?php $hidden = array('purchase_orders' => 'INSERT',); ?>
 							<?php echo form_open('admin/purchase_orders/insert', $attributes, $hidden); ?>
 							<div class="form-body">
 								<div class="row mb-3">
 									<div class="col-md-6">
 										<div class="form-group">
-											<label for="vendor" class="control-label"><?php echo $this->lang->line('ms_vendor_name'); ?></label><br>
-											<select class="form-control" name="vendor" data-plugin="select_vendor" data-placeholder="<?php echo $this->lang->line('ms_vendor_name'); ?>" required>
+											<label for="contact_id" class="control-label"><?php echo $this->lang->line('ms_title_contact'); ?></label><br>
+											<select class="form-control" name="contact_id" data-plugin="select_contacts" data-placeholder="<?php echo $this->lang->line('ms_title_select_contact'); ?>" required>
 											</select>
 											<input id="pr_number" name="pr_number" type="hidden" value="<?= $pr_number; ?>">
 										</div>
@@ -45,7 +45,7 @@
 									<div class="col-md-6">
 										<div class="form-group">
 											<label for="reference"><?php echo $this->lang->line('ms_reference'); ?></label>
-											<input class="form-control" placeholder="<?php echo $this->lang->line('ms_reference'); ?>" id="reference" name="reference" type="text" value="<?= strtoupper(uniqid('PRC')); ?>">
+											<input class="form-control" placeholder="<?php echo $this->lang->line('ms_reference'); ?>" id="reference" name="reference" type="text">
 										</div>
 									</div>
 									<div class="col-md-4">
@@ -231,7 +231,7 @@
 					<tr>
 						<th><?php echo $this->lang->line('xin_action'); ?></th>
 						<th><?php echo $this->lang->line('ms_purchase_number'); ?></th>
-						<th><?php echo $this->lang->line('ms_vendors'); ?></th>
+						<th><?php echo $this->lang->line('ms_title_contact'); ?></th>
 						<th><?php echo $this->lang->line('ms_date'); ?></th>
 						<th><?php echo $this->lang->line('ms_status'); ?></th>
 						<th><?php echo $this->lang->line('ms_reference'); ?></th>

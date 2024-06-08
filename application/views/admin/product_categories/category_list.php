@@ -21,9 +21,9 @@ $reports_to = get_reports_team_data($session['user_id']); ?>
 					<div class="text-muted small"><?php echo $this->lang->line('xin_set_up'); ?> <?php echo $this->lang->line('ms_project_trans'); ?></div>
 				</a> </li>
 		<?php } ?>
-		<?php if (in_array('478', $role_resources_ids) || $reports_to > 0) { ?>
-			<li class="nav-item clickable"> <a href="<?php echo site_url('admin/vendors/'); ?>" data-link-data="<?php echo site_url('admin/vendors/'); ?>" class="mb-3 nav-link hrsale-link"> <span class="sw-done-icon fas fa-user-friends"></span> <span class="sw-icon fas fa-user-friends"></span> <?php echo $this->lang->line('ms_vendors'); ?>
-					<div class="text-muted small"><?php echo $this->lang->line('xin_set_up'); ?> <?php echo $this->lang->line('ms_vendors'); ?></div>
+		<?php if (in_array('531', $role_resources_ids) || $reports_to > 0) { ?>
+			<li class="nav-item clickable"> <a href="<?php echo site_url('admin/contacts/'); ?>" data-link-data="<?php echo site_url('admin/contacts/'); ?>" class="mb-3 nav-link hrsale-link"> <span class="sw-done-icon fas fa-user-friends"></span> <span class="sw-icon fas fa-user-friends"></span> <?php echo $this->lang->line('ms_title_contact'); ?>
+					<div class="text-muted small"><?php echo $this->lang->line('xin_set_up'); ?> <?php echo $this->lang->line('ms_title_contact'); ?></div>
 				</a> </li>
 		<?php } ?>
 		<?php if (in_array('482', $role_resources_ids) || $reports_to > 0) { ?>

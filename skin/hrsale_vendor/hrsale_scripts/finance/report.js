@@ -14,4 +14,12 @@ $(document).ready(function () {
 	$("#cari_data").keyup(function () {
 		otable.search($(this).val()).draw();
 	});
+
+	$('[data-plugin="select_hrm"]').select2();
+});
+
+$(document).ready(function () {
+	$(".filter-data").change(function () {
+		$("#form-filter").submit();
+	});
 });

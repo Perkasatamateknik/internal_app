@@ -19,8 +19,8 @@
 						<div class="row mb-3">
 							<div class="col-md-6">
 								<div class="form-group">
-									<label for="vendor" class="control-label"><?php echo $this->lang->line('ms_vendor_name'); ?></label><br>
-									<select class="form-control" name="vendor" data-plugin="select_vendor" data-placeholder="<?php echo $this->lang->line('ms_vendor_name'); ?>" required>
+									<label for="contact_id" class="control-label"><?php echo $this->lang->line('ms_title_contact'); ?></label><br>
+									<select class="form-control" name="contact_id" data-plugin="select_contacts" data-placeholder="<?php echo $this->lang->line('ms_title_select_contact'); ?>" required>
 									</select>
 								</div>
 							</div>

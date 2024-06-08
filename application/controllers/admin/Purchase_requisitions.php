@@ -49,7 +49,7 @@ class Purchase_requisitions extends Purchasing
 		$data['pr_number'] = $this->pr_number();
 		$role_resources_ids = $this->Xin_model->user_role_resource();
 		// dd($data);
-		if (in_array('500', $role_resources_ids)) {
+		if (in_array('501', $role_resources_ids)) {
 			if (!empty($session)) {
 				$data['subview'] = $this->load->view("admin/purchase_requisitions/requisition_list", $data, TRUE);
 				// $data['modal_product'] = $this->load->view("admin/products/add_product");

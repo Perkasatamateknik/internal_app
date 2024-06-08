@@ -2948,7 +2948,8 @@ $lang['xin_tab_menu'] = "";
 
 
 // cost
-$lang['ms_cost'] = "Pembelian - Old Menu";
+// $lang['ms_cost'] = "Pembelian - Old Menu";
+$lang['ms_cost'] = "Pembelian Proyek";
 $lang['ms_cost_dashboard'] = "Dashbor Pembelian";
 $lang['ms_cost_category'] = "Kategori";
 $lang['ms_error_invoice_number_field'] = "Bidang Invoice Number diperlukan.";
@@ -3139,7 +3140,7 @@ $lang['ms_error_issue_date_field'] = "Kolom tanggal pengajuan diperlukan!";
 $lang['ms_error_due_approval_date_field'] = "Kolom tanggal jatuh tempo diperlukan!";
 $lang['ms_error_purpose_field'] = "Kolom keperluan diperlukan!";
 $lang['ms_error_item_empty_data'] = "Item data diperlukan!";
-$lang['ms_error_vendor_field'] = "Pilihan Vendor diperlukan!";
+$lang['ms_error_contact_field'] = "Pilihan kontak diperlukan!";
 $lang['ms_error_warehouse_assign_field'] = "Kolom Gudang Ditugaskan diperlukan!";
 $lang['ms_error_faktur_number_field'] = "Kolom Faktur diperlukan!";
 $lang['ms_error_date_field'] = "Kolom Tanggal diperlukan!";
@@ -3252,6 +3253,8 @@ $lang['ms_title_tax'] = "Pajak";
 $lang['ms_title_account'] = "Akun";
 
 $lang['ms_title_transfer'] = "Transfer Uang";
+$lang['ms_title_transfer_fee'] = "Transfer Fee";
+$lang['ms_title_note_transfer_fee'] = "Catatan Transfer Fee";
 $lang['ms_title_spend'] = "Belanjakan Uang";
 $lang['ms_title_receive'] = "Terima Uang";
 
@@ -3363,10 +3366,12 @@ $lang['ms_title_add_budget_data'] = "Tambah Data Anggaran";
 $lang['ms_title_contact_dashboard'] = "Dashboard Kontak";
 $lang['ms_title_name_and_type'] = "Nama dan Tipe";
 $lang['ms_title_company'] = "Perusahaan";
+$lang['ms_title_select_contact'] = "Pilih Kontak";
 $lang['ms_title_contact'] = "Kontak";
 $lang['ms_title_contacts'] = "Semua Kontak";
 $lang['ms_title_contact_name'] = "Nama Kontak";
 $lang['ms_title_contact_type'] = "Tipe Kontak";
+$lang['ms_title_target_contact'] = "Target Kontak";
 $lang['ms_title_billing_address'] = "Alamat Tagihan";
 $lang['ms_title_email_address'] = "Email";
 $lang['ms_title_tax_number'] = "Nomor Pajak";
@@ -3391,6 +3396,18 @@ $lang['ms_title_company_name_error'] = "Nama Perusahaan wajib di isi!";
 $lang['ms_title_billing_address_error'] = "Alamat tagihan wajib di isi!";
 $lang['ms_title_country_error'] = "Negara wajib di isi!";
 
+
+// reports //
+$lang['ms_title_balance_sheet'] = "Balance Sheet";
+$lang['ms_title_executive_summary'] = "Exsecutive Summary";
+$lang['ms_title_budget_realization'] = "Budget Realization";
+$lang['ms_title_cash_flow'] = "Cash Flow";
+$lang['ms_title_payable_credit_for_contact'] = "Payable Credit";
+$lang['ms_title_profit_and_loss'] = "Profit and Loss";
+$lang['ms_title_equity_movement'] = "Equity Movement";
+$lang['ms_title_compare'] = "Compare";
+$lang['ms_title_period'] = "Periode";
+$lang['ms_title_month_year'] = "Month/Year";
 /////////////////////////////////////////////////// akhir hrsale v2.0.1
 
 /* End of file hrsale_lang.php */

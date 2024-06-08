@@ -35,26 +35,33 @@
 		.fa {
 			transition: transform 0.5s ease-in-out;
 		}
+	</style>
 
-		/* Custom CSS to disable button hover for btn-transparent class */
-		.btn-transparent {
-			pointer-events: none;
-			/* Disable pointer events */
-			background-color: transparent !important;
-			/* Transparent background */
-			border-color: transparent !important;
-			/* Transparent border */
-			color: inherit !important;
-			/* Inherit text color */
+	<style>
+		.item-container {
+			display: flex;
+			align-items: baseline;
+			/* Align items by their baselines */
+			margin-bottom: 0px !important;
 		}
 
-		.btn-transparent:hover {
-			background-color: transparent !important;
-			/* Transparent background on hover */
-			border-color: transparent !important;
-			/* Transparent border on hover */
-			color: inherit !important;
-			/* Inherit text color on hover */
+		.item-box {
+			width: 12px;
+			/* Width of the box */
+			height: 12px;
+			/* Height of the box */
+			margin-right: 5px;
+			/* Space between box and text */
+			display: inline-block;
+			vertical-align: middle;
+			/* Ensure box aligns with text */
+			border-radius: 50%;
+		}
+
+		.item-text {
+			display: inline-block;
+			vertical-align: middle;
+			/* Ensure text aligns with box */
 		}
 	</style>
 	<!-- Icon fonts -->

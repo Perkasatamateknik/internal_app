@@ -42,12 +42,28 @@ $reports_to = get_reports_team_data($session['user_id']); ?>
 							<div class="col-md-auto mx-0 px-1">
 								<div class="dropdown open">
 									<button class="btn btn-light dropdown-toggle" type="button" id="triggerId" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-										Filter
+										<?php
+										$contactFilter = $this->input->get('filter') ?? 0;
+										foreach ($types as $t) {
+											if ($t->type_id == $contactFilter) {
+												echo $t->contact_type;
+											}
+										}
+
+										if ($contactFilter == 0) {
+											echo "Filter";
+										}
+										?>
+
 									</button>
 									<div class="dropdown-menu" aria-labelledby="triggerId">
-										<button class="dropdown-item" href="#">Action</button>
-										<button class="dropdown-item disabled" href="#">Disabled action</button>
+										<?php foreach ($types as $t) { ?>
+											<a class="dropdown-item" href="?filter=<?= $t->type_id; ?>"><?= $t->contact_type; ?></a>
+										<?php }; ?>
 									</div>
+
+									<!-- // filter contact  -->
+									<input type="hidden" name="filter_contact" value="<?= $contactFilter; ?>">
 								</div>
 							</div>
 							<div class="col-md-auto">
@@ -56,12 +72,15 @@ $reports_to = get_reports_team_data($session['user_id']); ?>
 							</div>
 						</div>
 					</div>
-					<div class="col-md-2">
-						<a name="" id="" class="btn btn-primary" href="#" role="button" onclick="modalAdd()">
-							<i class="fa fa-plus" aria-hidden="true"></i>
-							<?= $this->lang->line('xin_add_new'); ?>
-						</a>
-					</div>
+					<?php if (in_array('532', $role_resources_ids)) { ?>
+
+						<div class="col-md-2">
+							<a name="" id="" class="btn btn-primary" href="#" role="button" onclick="modalAdd()">
+								<i class="fa fa-plus" aria-hidden="true"></i>
+								<?= $this->lang->line('xin_add_new'); ?>
+							</a>
+						</div>
+					<?php }; ?>
 				</div>
 			</div>
 		</div>
@@ -92,3 +111,8 @@ $reports_to = get_reports_team_data($session['user_id']); ?>
 </div>
 
 <div id="modal-view"></div>
+
+<script>
+	let contactFilter = <?= $contactFilter; ?>
+	$(document).ready(function() {});
+</script>

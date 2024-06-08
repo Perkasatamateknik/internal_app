@@ -142,23 +142,22 @@ $(document).ready(function () {
 });
 
 $(function () {
-	$('[data-plugin="select_vendor"]').select2({
+	$('[data-plugin="select_contacts"]').select2({
 		ajax: {
 			delay: 250,
-			url: site_url + "ajax_request/find_vendor",
+			url: site_url + "ajax_request/find_contact",
 			data: function (params) {
 				var queryParameters = {
 					query: params.term,
 				};
 				return queryParameters;
 			},
-
 			processResults: function (data) {
 				return {
 					results: data,
 				};
 			},
-			cache: true,
+			cache: false,
 			transport: function (params, success, failure) {
 				var $request = $.ajax(params);
 
@@ -168,26 +167,38 @@ $(function () {
 				return $request;
 			},
 		},
-		width: "100%",
+		templateResult: function (data) {
+			return data.html;
+		},
+		templateSelection: function (data) {
+			return data.text;
+		},
 		language: {
 			noResults: function () {
 				return `</li><button style="width: 100%" type="button"
         class="btn btn-transparent" 
-        onclick='addVendor()'><span class="ion ion-md-add"></span> Add Vendor</button>
+        onclick='addContact()'><span class="ion ion-md-add"></span> Add Contact</button>
         </li>`;
 			},
 		},
-	});
 
+		escapeMarkup: function (markup) {
+			return markup;
+		},
+		width: "100%",
+	});
+});
+
+$(function () {
 	// set selected vendor
 	$.get({
-		url: site_url + "ajax_request/find_vendor_by_id",
-		data: "query=" + $("[name='selected_vendor']").val(),
+		url: site_url + "ajax_request/find_contact_by_id",
+		data: "query=" + $("[name='selected_contact']").val(),
 		dataType: "JSON",
 		success: function (res) {
 			if (res != null) {
-				var selectedOptionId = res.vendor_id;
-				var selectedOptionText = res.vendor_name;
+				var selectedOptionId = res.contact_id;
+				var selectedOptionText = res.contact_name;
 
 				var option = new Option(
 					selectedOptionText,
@@ -195,7 +206,7 @@ $(function () {
 					true,
 					true
 				);
-				$("[name='vendor']").append(option).trigger("change");
+				$("[name='contact_id']").append(option).trigger("change");
 			}
 		},
 		error: function (xhr, status, error) {

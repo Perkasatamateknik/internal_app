@@ -100,7 +100,7 @@ class Payments extends MY_Controller
 				}
 
 				// dd($r);
-				$to_account = $this->Accounts_model->get($r->terget_account_id)->row();
+				$to_account = $this->Accounts_model->get($r->target_account_id)->row();
 				if (!is_null($to_account)) {
 					$to = "<b>$to_account->account_name</b>" . "  " . $to_account->account_code;
 				} else {

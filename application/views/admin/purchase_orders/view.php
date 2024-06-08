@@ -12,7 +12,7 @@
 			<div class="card <?php echo $get_animate; ?>">
 				<div class="card-header with-elements justify-content-end align-center">
 					<span class="card-header-title mr-2 my-0">
-						<a name="" id="" class="btn btn-sm btn-transparent pl-2" href="<?= base_url('admin/purchase_orders'); ?>" role="button"><i class="fa fa-arrow-left" aria-hidden="true"></i> <?php echo $this->lang->line('ms_title_back'); ?></a>
+						<a name="" id="" class="btn btn-sm pl-2" href="<?= base_url('admin/purchase_orders'); ?>" role="button"><i class="fa fa-arrow-left" aria-hidden="true"></i> <?php echo $this->lang->line('ms_title_back'); ?></a>
 					</span>
 					<div class="ml-md-auto">
 						<?php if (in_array('515', $role_resources_ids) and $has_pd and $has_pi) { ?>
@@ -30,8 +30,8 @@
 							<table class="table table-borderless">
 								<tr>
 									<td>
-										<label><?php echo $this->lang->line('ms_vendors'); ?></label><br>
-										<strong><?= $record->vendor; ?></strong>
+										<label><?php echo $this->lang->line('ms_title_contact'); ?></label><br>
+										<a href="<?= base_url('admin/contacts/view/' . $record->contact_id) ?>" class="font-weight-bold"><?= $record->contact; ?></a>
 									</td>
 									<td>
 										<label><?php echo $this->lang->line('ms_order_number'); ?></label><br>
@@ -44,10 +44,6 @@
 
 								</tr>
 								<tr>
-									<!-- <td>
-									<label><?php echo $this->lang->line('ms_purchase_faktur_number'); ?></label><br>
-									<strong><?= $record->faktur_number; ?></strong>
-								</td> -->
 									<td>
 										<label><?php echo $this->lang->line('ms_warehouse_assign'); ?></label><br>
 										<strong><?= $record->warehouse_assign; ?></strong>
@@ -71,9 +67,6 @@
 										<strong><?= dateDiff($record->date, $record->due_date); ?></strong>
 									</td>
 								</tr>
-								<!-- <tr>
-								
-							</tr> -->
 								<tr>
 									<td colspan="3">
 										<label><?php echo $this->lang->line('ms_purchase_delivery_name'); ?></label><br>

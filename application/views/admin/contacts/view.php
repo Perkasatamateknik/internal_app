@@ -35,7 +35,11 @@
 	<div class="col-md-3">
 		<div class="card">
 			<div class="card-header mb-0 pb-0">
-				<h4><?= $this->lang->line('ms_title_contact_detail'); ?> <button onclick="modalEdit(<?= $record->contact_id; ?>)" id="" class="btn btn-default border-0 px-1 py-0 pb-1" role="button"><i class="fa fa-pencil" aria-hidden="true"></i></button></h4>
+				<h4><?= $this->lang->line('ms_title_contact_detail'); ?>
+					<?php if (in_array('534', $role_resources_ids)) { ?>
+						<button onclick="modalEdit(<?= $record->contact_id; ?>)" id="" class="btn btn-default border-0 px-1 py-0 pb-1" role="button"><i class="fa fa-pencil" aria-hidden="true"></i></button>
+					<?php }; ?>
+				</h4>
 			</div>
 			<div class="card-body">
 				<div class="table-responsive">
@@ -78,19 +82,26 @@
 		<div class="card">
 			<div class="card-body">
 				<div class="row justify-content-end">
-					<div class="col-md-auto pr-1">
-						<div class="dropdown">
-							<button class="btn btn-primary dropdown-toggle" type="button" id="triggerTrans" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-								<i class="fa fa-plus" aria-hidden="true"></i> <?= $this->lang->line('ms_title_add_trans'); ?>
-							</button>
-							<div class="dropdown-menu" aria-labelledby="triggerTrans">
-								<a class="dropdown-item" href="<?= base_url('admin/contacts/create_trans?type=utang&back_id=' . $record->contact_id) ?>"><i class="fas fa-file-invoice-dollar fa-fw mr-3" aria-hidden="true"></i><?= $this->lang->line('ms_title_liabilities'); ?></a>
-								<!-- <br> -->
-								<a class="dropdown-item" href="<?= base_url('admin/contacts/create_trans?type=piutang&back_id=' . $record->contact_id) ?>" class="btn btn-block btn-white text-left"><i class="fas fa-hand-holding-usd fa-fw mr-3" aria-hidden="true"></i><?= $this->lang->line('ms_title_receivables'); ?></a>
-								<!-- <br> -->
+					<?php if (in_array('542', $role_resources_ids) || in_array('547', $role_resources_ids)) {; ?>
+						<div class="col-md-auto pr-1">
+							<div class="dropdown">
+								<button class="btn btn-primary dropdown-toggle" type="button" id="triggerTrans" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+									<i class="fa fa-plus" aria-hidden="true"></i> <?= $this->lang->line('ms_title_add_trans'); ?>
+								</button>
+								<div class="dropdown-menu" aria-labelledby="triggerTrans">
+									<?php if (in_array('542', $role_resources_ids)) { ?>
+
+										<a class="dropdown-item" href="<?= base_url('admin/contacts/create_trans?type=utang&back_id=' . $record->contact_id) ?>"><i class="fas fa-file-invoice-dollar fa-fw mr-3" aria-hidden="true"></i><?= $this->lang->line('ms_title_liabilities'); ?></a>
+									<?php }; ?>
+									<?php if (in_array('547', $role_resources_ids)) { ?>
+
+										<a class="dropdown-item" href="<?= base_url('admin/contacts/create_trans?type=piutang&back_id=' . $record->contact_id) ?>" class="btn btn-block btn-white text-left"><i class="fas fa-hand-holding-usd fa-fw mr-3" aria-hidden="true"></i><?= $this->lang->line('ms_title_receivables'); ?></a>
+									<?php }; ?>
+									<!-- <br> -->
+								</div>
 							</div>
 						</div>
-					</div>
+					<?php }; ?>
 					<div class="col-md-auto pl-1">
 						<a name="" id="" class="btn btn-primary mx-1" href="<?= base_url('/admin/contacts/print') ?>" role="button">
 							<i class="fa fa-print" aria-hidden="true"></i>

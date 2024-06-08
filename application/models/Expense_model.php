@@ -27,9 +27,14 @@ class Expense_model extends CI_Model
 		return sprintf("EXP-%05d", $nextNumericPart);
 	}
 	// get all expenses
-	public function all()
+	public function all($filter = false)
 	{
-		return $this->db->order_by('trans_number', 'asc')->where('status !=', "draft")->get("ms_finance_expenses");
+		if ($filter) {
+			$this->db->where('status', $filter);
+		} else {
+			$this->db->where('status !=', "draft");
+		}
+		return $this->db->order_by('trans_number', 'asc')->get("ms_finance_expenses");
 	}
 
 	public function get($id)
@@ -87,8 +92,10 @@ class Expense_model extends CI_Model
 
 	public function get_by_number_doc($id)
 	{
-		$this->db->where("trans_number", $id);
-		$res = $this->db->get("ms_finance_expenses");
+		$res = $this->db->select(['ms_finance_expenses.*', 'COALESCE(ms_finance_accounts.account_code, "--") as account_code', 'COALESCE(ms_finance_accounts.account_name, "--") as account_name', 'ms_finance_accounts.account_id'])
+			->from('ms_finance_expenses')
+			->join('ms_finance_accounts', 'ms_finance_expenses.account_id=ms_finance_accounts.account_id')
+			->where("trans_number", $id)->get();
 
 		if ($res->num_rows() > 0) {
 			return $res->row();

@@ -7,6 +7,9 @@ $(document).ready(function () {
 		ajax: {
 			url: base_url + "/ajax_contact_list/",
 			type: "GET",
+			data: {
+				filter: $('input[name="filter_contact"]').val(),
+			},
 		},
 		fnDrawCallback: function (settings) {
 			$('[data-toggle="tooltip"]').tooltip();

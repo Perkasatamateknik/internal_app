@@ -82,7 +82,7 @@ if (!is_null($this->input->get('back_id'))) {
 							<tbody>
 							</tbody>
 						</table>
-						<button type="button" class="btn btn-secondary ml-2 mt-3" onclick="addRow()"><?= $this->lang->line('xin_add_more'); ?></button>
+						<button type="button" class="btn btn-secondary ml-2 mt-3" onclick="ajaxItem('<?= $record->trans_number; ?>')"><?= $this->lang->line('xin_add_more'); ?></button>
 					</div>
 				</div>
 				<style>
@@ -124,8 +124,10 @@ if (!is_null($this->input->get('back_id'))) {
 				</div>
 			</div>
 		</div>
+		<div id="modal-view"></div>
 	</div>
 </div>
+
 <div class="row pb-3">
 	<div class="col-12">
 		<div class="card">

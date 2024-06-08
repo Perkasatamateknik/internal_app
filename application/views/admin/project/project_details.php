@@ -681,19 +681,21 @@ $projectBugs = $this->Project_model->completed_project_bugs($project_id);
 	</div>
 
 	<div class="col current-tab" id="cost" aria-expanded="false" style="display:none;">
-		<div class="card mt-4">
+		<div class="card">
 			<h6 class="card-header"><?php echo $this->lang->line('ms_cost'); ?></h6>
 			<div class="card-body">
 				<div class="card-datatable table-responsive">
 					<table class="datatables-demo table table-striped table-borderles" id="ms_cost_project">
 						<thead>
 							<tr>
-								<th><?php echo $this->lang->line('ms_product_name'); ?></th>
-								<th><?php echo $this->lang->line('ms_product_category'); ?></th>
-								<th><?php echo $this->lang->line('ms_product_price'); ?></th>
-								<th><?php echo $this->lang->line('ms_product_qty'); ?></th>
-								<th><?php echo $this->lang->line('ms_product_uom'); ?></th>
-								<th><?php echo $this->lang->line('ms_amount'); ?></th>
+								<th style="min-width:20%;"><?php echo $this->lang->line('xin_title_item'); ?></th>
+								<th style="min-width:10%;"><?php echo $this->lang->line('ms_product_category'); ?></th>
+								<th style="min-width:10%;"><?php echo $this->lang->line('ms_product_uom'); ?></th>
+								<th style="min-width:5%"><?php echo $this->lang->line('xin_title_qty'); ?></th>
+								<th style="min-width:15%"><?php echo $this->lang->line('ms_title_unit_price'); ?></th>
+								<th style="min-width:10%;"><?php echo $this->lang->line('xin_discount'); ?></th>
+								<th style="min-width:10%;"><?php echo $this->lang->line('xin_title_taxes'); ?></th>
+								<th style="min-width:10%;"><?php echo $this->lang->line('ms_amount'); ?></th>
 							</tr>
 						</thead>
 						<?php if (!is_null($record)) { ?>
@@ -707,9 +709,11 @@ $projectBugs = $this->Project_model->completed_project_bugs($project_id);
 											<small><strong><?php echo $this->lang->line('ms_product_number'); ?>: </strong><?= $r->product_number; ?></small>
 										</td>
 										<td><?= $r->category; ?></td>
-										<td><?= $r->price; ?></td>
-										<td><?= $r->qty; ?></td>
 										<td><?= $r->uom; ?></td>
+										<td><?= $r->quantity; ?></td>
+										<td><?= $r->price; ?></td>
+										<td><?= $r->discount_rate; ?></td>
+										<td><?= $r->tax_rate; ?></td>
 										<td><?= $r->amount; ?></td>
 									</tr>
 								<?php } ?>
@@ -717,8 +721,8 @@ $projectBugs = $this->Project_model->completed_project_bugs($project_id);
 							</tbody>
 							<tfoot>
 								<tr>
-									<td colspan="5" align="right"><strong>Total</strong></td>
-									<td><?= $total; ?></td>
+									<td colspan="6" align="right"><strong><?php echo $this->lang->line('xin_amount'); ?> <?php echo $this->lang->line('ms_cost'); ?></strong></td>
+									<td colspan="2"><?= $total; ?></td>
 								</tr>
 							</tfoot>
 						<?php }; ?>

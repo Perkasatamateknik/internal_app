@@ -44,11 +44,11 @@ if ($id == '') {
 							<tr>
 								<td width="30%">
 									<span><?= $this->lang->line('ms_title_fund_source'); ?></span><br>
-									<strong><?= $record->vendor; ?></strong>
+									<strong><?= $record->contact; ?></strong>
 								</td>
 								<td width="40%">
 									<span><?= $this->lang->line('ms_title_receive_account'); ?></span><br>
-									<strong><?= $record->account_name; ?></strong> <?= $record->account_code; ?>
+									<?= $record->receive_account; ?>
 								</td>
 								<td width="30%">
 									<span><?= $this->lang->line('ms_title_number_document'); ?></span><br>
@@ -108,7 +108,7 @@ if ($id == '') {
 										}
 								?>
 										<tr>
-											<td><?= $r->account_name; ?></td>
+											<td><?= $r->account; ?></td>
 											<td><?= $r->note; ?></td>
 											<td><?= $r->tax_name; ?> <br>
 												<small><?= $this->Xin_model->currency_sign($r->tax_rate); ?></small>

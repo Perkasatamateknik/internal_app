@@ -803,7 +803,19 @@ class Xin_model extends CI_Model
 
 	public function read_recently_product_by_id_project($id)
 	{
+		$sql = 'SELECT * FROM ms_recently_products WHERE project_id = ?';
+		$binds = array($id);
+		$query = $this->db->query($sql, $binds);
 
+		if ($query->num_rows() > 0) {
+			return $query;
+		} else {
+			return null;
+		}
+	}
+
+	public function read_pi_item_by_id_project($id)
+	{
 		$sql = 'SELECT * FROM ms_recently_products WHERE project_id = ?';
 		$binds = array($id);
 		$query = $this->db->query($sql, $binds);
@@ -3154,6 +3166,12 @@ class Xin_model extends CI_Model
 		$session = $this->session->userdata('username');
 		// get userinfo and role
 		$user = $this->read_user_info($session['user_id']);
+
+		// dd($user)
+
+		if (is_null($user)) {
+			redirect(base_url());
+		}
 		$role_user = $this->read_user_role_info($user[0]->user_role_id);
 
 		$role_resources_ids = explode(',', $role_user[0]->role_resources);
@@ -4424,11 +4442,11 @@ ORDER BY `expiry_date`");
 		$this->db->where('discount_id', $query);
 		return $this->db->get('ms_discounts')->row();
 	}
-	public function find_vendor_by_id($query)
-	{
-		$this->db->where('vendor_id', $query);
-		return $this->db->get('ms_vendors')->row();
-	}
+	// public function find_vendor_by_id($query)
+	// {
+	// 	$this->db->where('vendor_id', $query);
+	// 	return $this->db->get('ms_vendors')->row();
+	// }
 
 	public function find_project_by_id($query)
 	{

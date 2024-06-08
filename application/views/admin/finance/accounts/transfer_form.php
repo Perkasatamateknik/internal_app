@@ -43,7 +43,7 @@
 					<div class="col-md-6">
 						<div class="form-group">
 							<label for="date"><?= $this->lang->line('ms_title_transfer_date'); ?></label>
-							<input type="date" name="date" id="date" class="form-control" value="<?= date('d/m/Y H:i'); ?>" required>
+							<input type="date" name="date" id="date" class="form-control" value="<?= date('Y-m-d'); ?>" required>
 						</div>
 					</div>
 					<div class="col-md-6">
@@ -66,6 +66,29 @@
 							<label for="note"><?= $this->lang->line('ms_title_note'); ?></label>
 							<textarea name="note" id="note" cols="30" rows="3" class="form-control"></textarea>
 						</div>
+						<div class="form-group">
+							<div class="text-right">
+								<a href="#" class="btn-transpernt" data-toggle="collapse" data-target="#transfer_fee_toggle" aria-expanded="false">
+									<i class="fa fa-plus" aria-hidden="true"></i> <?php echo $this->lang->line('xin_add'); ?> <?php echo $this->lang->line('ms_title_transfer_fee'); ?>
+								</a>
+							</div>
+							<div class="collapse mt-2" id="transfer_fee_toggle">
+								<div class="row">
+									<div class="col-md-6">
+										<div class="form-group">
+											<label for="note_transfer_fee"><?= $this->lang->line('ms_title_note_transfer_fee'); ?></label>
+											<input type="text" class="form-control note_transfer_fee" name="note_transfer_fee" placeholder="<?= $this->lang->line('ms_title_note_transfer_fee'); ?>" id="ref_transfer_fee">
+										</div>
+									</div>
+									<div class="col-md-6">
+										<div class="form-group">
+											<label for="transfer_fee"><?= $this->lang->line('ms_title_transfer_fee'); ?></label>
+											<input type="number" min="0" class="form-control" name="transfer_fee" placeholder="<?= $this->lang->line('ms_title_transfer_fee'); ?>" value="0" id="transfer_fee">
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
 				<div class="row">
@@ -73,6 +96,7 @@
 						<div id="fileUpload" class="file-container">
 						</div>
 					</div>
+
 				</div>
 			</div>
 		</div>

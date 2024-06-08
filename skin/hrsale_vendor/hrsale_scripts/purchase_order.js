@@ -466,7 +466,7 @@ function addRow() {
 		language: {
 			noResults: function () {
 				return `<button style="width: 100%" type="button"
-            class="btn btn-tranparent btn-sm" 
+            class="" 
             onClick='addItemProduct()'><span class="ion ion-md-add"></span> Add Product</button>
             </li>`;
 			},
@@ -726,25 +726,24 @@ $(window).on("load", function () {
 });
 /* ----------------------- END ADD ITEMS ----------------------------- */
 
-//selected vendor
+//selected contact
 $(function () {
-	$('[data-plugin="select_vendor"]').select2({
+	$('[data-plugin="select_contacts"]').select2({
 		ajax: {
 			delay: 250,
-			url: site_url + "ajax_request/find_vendor",
+			url: site_url + "ajax_request/find_contact",
 			data: function (params) {
 				var queryParameters = {
 					query: params.term,
 				};
 				return queryParameters;
 			},
-
 			processResults: function (data) {
 				return {
 					results: data,
 				};
 			},
-			cache: true,
+			cache: false,
 			transport: function (params, success, failure) {
 				var $request = $.ajax(params);
 
@@ -754,11 +753,17 @@ $(function () {
 				return $request;
 			},
 		},
+		templateResult: function (data) {
+			return data.html;
+		},
+		templateSelection: function (data) {
+			return data.text;
+		},
 		language: {
 			noResults: function () {
 				return `</li><button style="width: 100%" type="button"
         class="btn btn-transparent" 
-        onclick='addVendor()'><span class="ion ion-md-add"></span> Add Vendor</button>
+        onclick='addContact()'><span class="ion ion-md-add"></span> Add Contact</button>
         </li>`;
 			},
 		},
@@ -1044,15 +1049,15 @@ $(window).on("load", function () {
 						row.find(".row_item_po_id").val(value.item_po_id);
 					});
 
-					// set selected vendor
+					// set selected contact
 					$.get({
-						url: site_url + "ajax_request/find_vendor_by_id",
-						data: "query=" + response.data.vendor_id,
+						url: site_url + "ajax_request/find_contact_by_id",
+						data: "query=" + response.data.contact_id,
 						dataType: "JSON",
 						success: function (res) {
 							if (res != null) {
-								var selectedOptionId = res.vendor_id;
-								var selectedOptionText = res.vendor_name;
+								var selectedOptionId = res.contact_id;
+								var selectedOptionText = res.contact_name;
 
 								var option = new Option(
 									selectedOptionText,
@@ -1060,7 +1065,7 @@ $(window).on("load", function () {
 									true,
 									true
 								);
-								$("[name='vendor']").append(option).trigger("change");
+								$("[name='contact_id']").append(option).trigger("change");
 							}
 						},
 						error: function (xhr, status, error) {

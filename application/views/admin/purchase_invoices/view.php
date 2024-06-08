@@ -10,7 +10,7 @@
 	<div class="card <?php echo $get_animate; ?>">
 		<div class="card-header with-elements justify-content-end align-center">
 			<span class="card-header-title mr-2 my-0">
-				<a class="btn btn-sm btn-transparent pl-2" href="<?= base_url('admin/purchase_invoices'); ?>" role="button"><i class="fa fa-arrow-left" aria-hidden="true"></i>
+				<a class="btn btn-sm pl-2" href="<?= base_url('admin/purchase_invoices'); ?>" role="button"><i class="fa fa-arrow-left" aria-hidden="true"></i>
 					<?php echo $this->lang->line('ms_title_back'); ?>
 				</a>
 			</span>
@@ -24,8 +24,8 @@
 					<table class="table table-borderless">
 						<tr>
 							<td>
-								<label><?php echo $this->lang->line('ms_vendors'); ?></label><br>
-								<strong><?= $record->vendor; ?></strong>
+								<label><?php echo $this->lang->line('ms_title_contact'); ?></label><br>
+								<strong><?= $record->contact; ?></strong>
 							</td>
 							<td>
 								<label><?php echo $this->lang->line('ms_order_number'); ?></label><br>

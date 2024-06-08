@@ -41,9 +41,12 @@ class Contacts extends MY_Controller
 		$data['title'] = $this->Xin_model->site_title();
 		$data['breadcrumbs'] = $this->lang->line('ms_title_contacts');
 		$data['path_url'] = 'contacts/contact';
-		$data['count_contacts'] = $this->Contact_model->count_contacts();
 
-		if (in_array('503', $role_resources_ids)) {
+		$filter = $this->input->get('filter') ?? 0;
+		$data['count_contacts'] = $this->Contact_model->count_contacts($filter);
+		$data['types'] = $this->Contact_model->get_all_contact_type()->result();
+
+		if (in_array('531', $role_resources_ids)) {
 			$data['subview'] = $this->load->view("admin/contacts/contact_list", $data, TRUE);
 			$this->load->view('admin/layout/layout_main', $data); //page load
 		} else {
@@ -66,26 +69,27 @@ class Contacts extends MY_Controller
 		$start = intval($this->input->get("start"));
 		$length = intval($this->input->get("length"));
 
-
-		$records = $this->Contact_model->get_all_contact();
+		$filter = $this->input->get("filter");
+		$records = $this->Contact_model->get_all_contact($filter);
 
 		$data = array();
 
 		foreach ($records->result() as $r) {
 
-			if (true) { //view
+			//view
+			if (in_array('533', $role_resources_ids)) {
 				$view = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_view') . '"><a class="btn icon-btn btn-sm btn-outline-info waves-effect waves-light" href="' . site_url() . 'admin/contacts/view/' . $r->contact_id  . '"><span class="fa fa-eye"></span></a></span>';
 			} else {
 				$view = '';
 			}
 
-			if (true) { //edit
+			if (in_array('534', $role_resources_ids)) { //edit
 				$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" onclick="modalEdit(' . $r->contact_id  . ')"><span class="fas fa-pencil-alt"></span></a></span>';
 			} else {
 				$edit = '';
 			}
 
-			if (true) { // delete
+			if (in_array('535', $role_resources_ids)) { // delete
 				$delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '"><button type="button" class="btn icon-btn btn-sm btn-outline-danger waves-effect waves-light delete" data-toggle="modal" data-target=".delete-modal" data-record-id="' . $r->contact_id . '" data-record-name="' . $r->contact_name . '" data-token_type="contacts" data-warning="Semua data tertaut akan terhapus!"><span class="fas fa-trash-restore"></span></button></span>';
 			} else {
 				$delete = '';
@@ -111,7 +115,7 @@ class Contacts extends MY_Controller
 			$email_address = $r->email_address ?? "--";
 			$data[] = array(
 				$combhr,
-				"<a href='" . site_url() . 'admin/contacts/view/' . $r->contact_id  . "' class='text-md font-weight-bold text-link'>$r->contact_name</a><br><span>$contact_type</span>",
+				"<a href='" . site_url() . 'admin/contacts/view/' . $r->contact_id  . "' class='text-md font-weight-bold'>$r->contact_name</a><br><span>$contact_type</span>",
 				"<b class='text-md'>$r->company_name</b><br><span>$country</span>",
 				"<b class='text-md'>$r->phone_number</b><br><span>$email_address</span>",
 			);
@@ -203,7 +207,7 @@ class Contacts extends MY_Controller
 			redirect('admin/');
 		}
 
-		if (in_array('503', $role_resources_ids)) {
+		if (in_array('531', $role_resources_ids)) {
 			$data['subview'] = $this->load->view("admin/contacts/dashboard", $data, TRUE);
 			$this->load->view('admin/layout/layout_main', $data); //page load
 		} else {
@@ -236,11 +240,11 @@ class Contacts extends MY_Controller
 		$data['liabilities'] = $this->Liabilities_model->get_list_data($id);
 		$data['receivables'] = $this->Receivables_model->get_list_data($id);
 
-		if (!empty($session)) {
+		if (in_array('533', $role_resources_ids)) {
 			$data['subview'] = $this->load->view("admin/contacts/view", $data, TRUE);
 			$this->load->view('admin/layout/layout_main', $data); //page load
 		} else {
-			redirect('admin/');
+			redirect('admin/contacts');
 		}
 	}
 
@@ -264,7 +268,7 @@ class Contacts extends MY_Controller
 		$data['path_url'] = 'contacts/contact';
 		$data['record'] = $contact;
 
-		if (!empty($session)) {
+		if (in_array('534', $role_resources_ids)) {
 			$data['subview'] = $this->load->view("admin/contacts/edit", $data, TRUE);
 			$this->load->view('admin/layout/layout_main', $data); //page load
 		} else {
@@ -390,7 +394,7 @@ class Contacts extends MY_Controller
 		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
 		$Return['csrf_hash'] = $this->security->get_csrf_hash();
 
-		if (in_array(505, $role_resources_ids)) {
+		if (in_array(535, $role_resources_ids)) {
 			$id = $this->input->post('_token');
 
 			$del_attachment = $this->input->post('del_attachment') ?? false; // bool
@@ -435,7 +439,11 @@ class Contacts extends MY_Controller
 			$data['record'] = $init;
 			$data['breadcrumbs'] = $this->lang->line('ms_title_liabilities');
 			$data['contact'] = $contact;
-			$data['subview'] = $this->load->view("admin/contacts/liabilities/create", $data, TRUE);
+			if (in_array(542, $role_resources_ids)) {
+				$data['subview'] = $this->load->view("admin/contacts/liabilities/create", $data, TRUE);
+			} else {
+				redirect('admin/');
+			}
 			#
 		} else if ($type == 'piutang') {
 			#
@@ -446,7 +454,12 @@ class Contacts extends MY_Controller
 			$data['record'] = $init;
 			$data['contact'] = $contact;
 			$data['breadcrumbs'] = $this->lang->line('ms_title_receivables');
-			$data['subview'] = $this->load->view("admin/contacts/receivables/create", $data, TRUE);
+
+			if (in_array(547, $role_resources_ids)) {
+				$data['subview'] = $this->load->view("admin/contacts/receivables/create", $data, TRUE);
+			} else {
+				redirect('admin/');
+			}
 		}
 
 		$this->load->view('admin/layout/layout_main', $data); //page load
@@ -465,7 +478,7 @@ class Contacts extends MY_Controller
 		$data['breadcrumbs'] = $this->lang->line('ms_title_liabilities');
 		$data['path_url'] = 'liabilities';
 
-		if (in_array('503', $role_resources_ids)) {
+		if (in_array('541', $role_resources_ids)) {
 			$data['subview'] = $this->load->view("admin/contacts/liabilities/index", $data, TRUE);
 			$this->load->view('admin/layout/layout_main', $data); //page load
 		} else {
@@ -504,18 +517,22 @@ class Contacts extends MY_Controller
 
 			$trans_number = '<a href="' . base_url('/admin/contacts/liability_view/' . $r->trans_number) . '" class="font-weight-bold">' . $r->trans_number . '</a>';
 
-			if (true) { //edit
+			if (in_array('544', $role_resources_ids)) { //edit
 				$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" href="' . site_url() . 'admin/contacts/liability_edit/' . $r->trans_number  . '"><span class="fas fa-pencil-alt"></span></a></span>';
 			} else {
 				$edit = '';
 			}
-			if (true) { // delete
+			if (in_array('545', $role_resources_ids)) { // delete
 				$delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '"><button type="button" class="btn icon-btn btn-sm btn-outline-danger waves-effect waves-light delete" data-toggle="modal" data-target=".delete-modal" data-record-id="' . $r->trans_number . '" data-token_type="account_transfer"><span class="fas fa-trash-restore"></span></button></span>';
 			} else {
 				$delete = '';
 			}
+			if (in_array('543', $role_resources_ids)) { // view
+				$href = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_view') . '"><a href="' . base_url('admin/contacts/liability_view/' . $r->trans_number) . '" class="btn icon-btn btn-sm btn-outline-info waves-effect waves-light"><span class="fa fa-eye"></span></a></span>';
+			} else {
+				$href = '';
+			}
 
-			$href = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_view') . '"><a href="' . base_url('admin/contacts/liability_view/' . $r->trans_number) . '" class="btn icon-btn btn-sm btn-outline-info waves-effect waves-light"><span class="fa fa-eye"></span></a></span>';
 			$combhr = $edit . $delete . $href;
 
 			$data[] = array(
@@ -665,15 +682,70 @@ class Contacts extends MY_Controller
 		}
 	}
 
+	public function liability_store_item()
+	{
+		/* Define return | here result is used to return user data and error for error message */
+		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
+		$Return['csrf_hash'] = $this->security->get_csrf_hash();
+
+		$trans_number = $this->input->post('_token');
+		$user_id = $this->session->userdata()['username']['user_id'] ?? 0;
+
+
+		// get old tagihan
+		$tagihan = $this->Liabilities_model->get_tagihan($trans_number);
+
+		// tampung ref_trans_id
+		$ref_trans_id = $tagihan->ref_trans_id;
+
+		$items = [];
+		$trans = [];
+
+		for ($i = 0; $i < count($this->input->post('row_amount')); $i++) {
+
+			$trans[] = [
+				'account_id' => $this->input->post('row_target_id')[$i], // account_id
+				'user_id' => $user_id,
+				'account_trans_cat_id' => 7,
+				'amount' => $this->input->post('row_amount')[$i],
+				'date' => date('Y-m-d'),
+				'type' => 'debit',
+				'join_id' => $trans_number,
+				'ref' => "Dokumen Utang",
+				'note' => "Begin Dokumen Utang",
+				'attachment' => null,
+				'ref_trans_id' => $ref_trans_id
+			];
+
+			$items[] = [
+				'trans_number' 		=> $trans_number,
+				'account_id' 		=> $this->input->post('row_target_id')[$i],
+				'amount' 			=> $this->input->post('row_amount')[$i],
+				'note' 				=> $this->input->post('row_note')[$i] ?? null,
+			];
+		}
+
+		$query = $this->Liabilities_model->insert_items($trans_number, $items, $trans);
+
+		if ($query) {
+			$Return['result'] = $this->lang->line('ms_title_success_added');
+			$Return['path'] = "";
+			$this->output($Return);
+		} else {
+			$Return['error'] = $this->lang->line('ms_title_error');
+			$this->output($Return);
+		}
+	}
+
 	public function liability_view($id)
 	{
 		$data['title'] = $this->Xin_model->site_title();
 		$session = $this->session->userdata('username');
-		$data['path_url'] = 'liabilities';
 		if (empty($session)) {
 			redirect('admin/');
 		}
 
+		$data['path_url'] = 'liabilities';
 		$data['breadcrumbs'] = $this->lang->line('ms_title_liabilities');
 		$role_resources_ids = $this->Xin_model->user_role_resource();
 		$record = $this->Liabilities_model->get_by_number_doc($id);
@@ -697,7 +769,7 @@ class Contacts extends MY_Controller
 
 		// dd($data['payment']);
 		$data['record'] = $record;
-		if (true) {
+		if (in_array('543', $role_resources_ids)) { // view
 			$data['subview'] = $this->load->view("admin/contacts/liabilities/view", $data, TRUE);
 			$this->load->view('admin/layout/layout_main', $data); //page load
 		} else {
@@ -709,11 +781,11 @@ class Contacts extends MY_Controller
 	{
 		$data['title'] = $this->Xin_model->site_title();
 		$session = $this->session->userdata('username');
-		$data['path_url'] = 'liabilities';
 		if (empty($session)) {
 			redirect('admin/');
 		}
 
+		$data['path_url'] = 'liabilities';
 		$data['breadcrumbs'] = $this->lang->line('ms_title_liabilities');
 		$role_resources_ids = $this->Xin_model->user_role_resource();
 
@@ -739,7 +811,7 @@ class Contacts extends MY_Controller
 		}
 
 		$data['record'] = $record;
-		if (true) {
+		if (in_array('544', $role_resources_ids)) { // view
 			$data['subview'] = $this->load->view("admin/contacts/liabilities/edit", $data, TRUE);
 			$this->load->view('admin/layout/layout_main', $data); //page load
 		} else {
@@ -783,7 +855,7 @@ class Contacts extends MY_Controller
 		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
 		$Return['csrf_hash'] = $this->security->get_csrf_hash();
 
-		if (in_array(505, $role_resources_ids)) {
+		if (in_array(545, $role_resources_ids)) {
 			$id = $this->input->post('_token');
 
 			$del_attachment = $this->input->post('del_attachment') ?? false; // bool
@@ -847,7 +919,7 @@ class Contacts extends MY_Controller
 		if ($this->input->post('target_account') == $this->input->post('old_target_account')) {
 			$data = [
 				'account_id' => $this->input->post('account_id'),
-				'terget_account_id' => $this->input->post('old_target_account'),
+				'target_account_id' => $this->input->post('old_target_account'),
 				'trans_number' => $trans_number,
 				'date' => $this->input->post('date'),
 				'amount' => $amount,
@@ -861,7 +933,7 @@ class Contacts extends MY_Controller
 			$new_target_account = $this->input->post('target_account');
 			$data = [
 				'account_id' => $this->input->post('account_id'),
-				'terget_account_id' => $this->input->post('target_account'),
+				'target_account_id' => $this->input->post('target_account'),
 				'trans_number' => $trans_number,
 				'date' => $this->input->post('date'),
 				'amount' => $amount,
@@ -880,6 +952,17 @@ class Contacts extends MY_Controller
 			$Return['error'] = $this->lang->line('ms_title_error');
 			$this->output($Return);
 		}
+	}
+
+	public function ajax_modal_liability_item()
+	{
+
+		$id = $this->input->get('_token');
+		$html = $this->load->view("admin/contacts/liabilities/modal_add_item", ['_token' => $id], TRUE);
+
+		return $this->output([
+			'data' => $html
+		]);
 	}
 
 	/* terakhir sampai edit, tapi blm save data */
@@ -1050,7 +1133,7 @@ class Contacts extends MY_Controller
 
 
 		$data['record'] = $record;
-		if (in_array('503', $role_resources_ids)) {
+		if (in_array('548', $role_resources_ids)) {
 			$data['subview'] = $this->load->view("admin/contacts/receivables/view", $data, TRUE);
 			$this->load->view('admin/layout/layout_main', $data); //page load
 		} else {
@@ -1071,7 +1154,7 @@ class Contacts extends MY_Controller
 		$data['breadcrumbs'] = $this->lang->line('ms_title_receivables');
 		$data['path_url'] = 'receivables';
 
-		if (in_array('503', $role_resources_ids)) {
+		if (in_array('546', $role_resources_ids)) {
 			$data['subview'] = $this->load->view("admin/contacts/receivables/index", $data, TRUE);
 			$this->load->view('admin/layout/layout_main', $data); //page load
 		} else {
@@ -1110,18 +1193,22 @@ class Contacts extends MY_Controller
 
 			$trans_number = '<a href="' . base_url('/admin/contacts/receivable_view/' . $r->trans_number) . '" type="button" class="font-weight-bold">' . $r->trans_number . '</a>';
 
-			if (true) { //edit
+			if (in_array('549', $role_resources_ids)) { //edit
 				$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" href="' . site_url() . 'admin/contacts/receivable_view/' . $r->trans_number  . '"><span class="fas fa-pencil-alt"></span></a></span>';
 			} else {
 				$edit = '';
 			}
-			if (true) { // delete
+			if (in_array('550', $role_resources_ids)) { // delete
 				$delete = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_delete') . '"><button type="button" class="btn icon-btn btn-sm btn-outline-danger waves-effect waves-light delete" data-toggle="modal" data-target=".delete-modal" data-record-id="' . $r->trans_number . '" data-token_type="account_transfer"><span class="fas fa-trash-restore"></span></button></span>';
 			} else {
 				$delete = '';
 			}
+			if (in_array('548', $role_resources_ids)) { // view
+				$href = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_view') . '"><a href="' . base_url('admin/contacts/receivable_view/' . $r->trans_number) . '" class="btn icon-btn btn-sm btn-outline-info waves-effect waves-light"><span class="fa fa-eye"></span></a></span>';
+			} else {
+				$href = '';
+			}
 
-			$href = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_view') . '"><a href="' . base_url('admin/contacts/receivable_view/' . $r->trans_number) . '" class="btn icon-btn btn-sm btn-outline-info waves-effect waves-light"><span class="fa fa-eye"></span></a></span>';
 			$combhr = $edit . $delete . $href;
 
 			$data[] = array(
@@ -1153,7 +1240,7 @@ class Contacts extends MY_Controller
 		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
 		$Return['csrf_hash'] = $this->security->get_csrf_hash();
 
-		if (in_array(505, $role_resources_ids)) {
+		if (in_array(550, $role_resources_ids)) {
 			$id = $this->input->post('_token');
 
 			$del_attachment = $this->input->post('del_attachment') ?? false; // bool
@@ -1169,7 +1256,6 @@ class Contacts extends MY_Controller
 	}
 
 
-
 	// Type of contacts //
 	public function types()
 	{
@@ -1178,12 +1264,22 @@ class Contacts extends MY_Controller
 			redirect('admin/contacts');
 		}
 
+		$role_resources_ids = $this->Xin_model->user_role_resource();
+
 		$edit = $this->input->get('edit');
 		$get_type = $this->Contact_model->get_contact_type($edit);
 		if (!is_null($get_type)) {
-			$data['form'] = $this->load->view("admin/contacts/types/edit", ['record' => $get_type], TRUE);
+			if (in_array('539', $role_resources_ids)) {
+				$data['form'] = $this->load->view("admin/contacts/types/edit", ['record' => $get_type], TRUE);
+			} else {
+				$data['form'] = false;
+			}
 		} else {
-			$data['form'] = $this->load->view("admin/contacts/types/create", [], TRUE);
+			if (in_array('538', $role_resources_ids)) {
+				$data['form'] = $this->load->view("admin/contacts/types/create", [], TRUE);
+			} else {
+				$data['form'] = false;
+			}
 		}
 
 		$role_resources_ids = $this->Xin_model->user_role_resource();
@@ -1193,7 +1289,7 @@ class Contacts extends MY_Controller
 		$data['path_url'] = 'contacts/contact_type';
 		$data['records'] = $this->Contact_model->get_all_contact_type();
 
-		if (in_array('503', $role_resources_ids)) {
+		if (in_array('537', $role_resources_ids)) {
 			$data['subview'] = $this->load->view("admin/contacts/types/index", $data, TRUE);
 			$this->load->view('admin/layout/layout_main', $data); //page load
 		} else {
@@ -1231,7 +1327,8 @@ class Contacts extends MY_Controller
 		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
 		$Return['csrf_hash'] = $this->security->get_csrf_hash();
 
-		if (true) {
+		if (in_array('540', $role_resources_ids)) {
+
 			$id = $this->input->post('_token');
 
 			$result = $this->Contact_model->delete_type($id);

@@ -10,8 +10,11 @@ class Contact_model extends CI_Model
 		$this->load->database();
 	}
 
-	public function get_all_contact()
+	public function get_all_contact($filter = false)
 	{
+		if ($filter) {
+			$this->db->where('contact_type_id', $filter);
+		}
 		return $this->db->get("ms_contacts");
 	}
 	public function get_contact($id)
@@ -24,9 +27,36 @@ class Contact_model extends CI_Model
 			->get()->row();
 	}
 
-	public function count_contacts()
+	public function get($id)
 	{
-		$query = $this->db->select('COUNT(ms_contacts.contact_id) as count')->get('ms_contacts')->row()->count;
+		return $this->db->where('contact_id', $id)
+			->get('ms_contacts');
+	}
+
+	public function find_contact($query)
+	{
+		return $this->db->select(['ms_contacts.*', 'ms_contact_types.contact_type'])
+			->from('ms_contacts')
+			->join('ms_contact_types', 'ms_contacts.contact_type_id=ms_contact_types.type_id')
+			->like('contact_name', $query)->get()->result();
+	}
+	public function find_contact_by_id($query)
+	{
+		return $this->db->select(['ms_contacts.*', 'ms_contact_types.contact_type'])
+			->from('ms_contacts')
+			->join('ms_contact_types', 'ms_contacts.contact_type_id=ms_contact_types.type_id')
+			->where('contact_id', $query)->get()->row();
+		// $this->db->where('contact_id', $query);
+		// return $this->db->get('ms_vendors')->row();
+	}
+
+	public function count_contacts($filter = false)
+	{
+		if ($filter) {
+			$query = $this->db->select('COUNT(ms_contacts.contact_id) as count')->where('contact_type_id', $filter)->get('ms_contacts')->row()->count;
+		} else {
+			$query = $this->db->select('COUNT(ms_contacts.contact_id) as count')->get('ms_contacts')->row()->count;
+		}
 		return sprintf("%03d", $query);
 	}
 
@@ -169,6 +199,61 @@ class Contact_model extends CI_Model
 				->join('ms_finance_account_trans_categories', 'ms_finance_account_transactions.account_trans_cat_id=ms_finance_account_trans_categories.trans_cat_id', 'inner')
 				->where('ms_finance_account_transactions.join_id', $r->trans_number)
 				->where('ms_finance_account_transactions.type', 'debit')
+				->get()->result() as $ri) {
+				$trans[] = $ri;
+			}
+		}
+
+		$purchase_invoices = $this->db->select('pi_number')->where('contact_id', $contact_id)->get('ms_purchase_invoices')->result();
+		foreach ($purchase_invoices as $r) {
+			$log = $this->db->select('payment_number')->where('pi_number', $r->pi_number)->get('ms_purchase_logs')->row();
+			// var_dump($log);
+			if (!is_null($log)) {
+				foreach ($this->db->select(['ms_finance_account_transactions.*', 'ms_finance_account_trans_categories.trans_type'])
+					->from('ms_finance_account_transactions')
+					->join('ms_finance_account_trans_categories', 'ms_finance_account_transactions.account_trans_cat_id=ms_finance_account_trans_categories.trans_cat_id', 'left')
+					->where('ms_finance_account_transactions.join_id', $log->payment_number)
+					->where('ms_finance_account_transactions.type', 'credit')
+					->get()->result() as $pi) {
+
+					// var_dump($pi);
+					$trans[] = $pi;
+				}
+			}
+		}
+
+
+		$expenses = $this->db->select('trans_number')->where('beneficiary', $contact_id)->get('ms_finance_expenses')->result();
+		foreach ($expenses as $ex) {
+			foreach ($this->db->select(['ms_finance_account_transactions.*', 'ms_finance_account_trans_categories.trans_type'])
+				->from('ms_finance_account_transactions')
+				->join('ms_finance_account_trans_categories', 'ms_finance_account_transactions.account_trans_cat_id=ms_finance_account_trans_categories.trans_cat_id', 'inner')
+				->where('ms_finance_account_transactions.join_id', $ex->trans_number)
+				->where('ms_finance_account_transactions.type', 'credit')
+				->get()->result() as $ri) {
+				$trans[] = $ri;
+			}
+		}
+
+		$spends = $this->db->select('trans_number')->where('beneficiary', $contact_id)->get('ms_finance_account_spends')->result();
+		foreach ($spends as $ex) {
+			foreach ($this->db->select(['ms_finance_account_transactions.*', 'ms_finance_account_trans_categories.trans_type'])
+				->from('ms_finance_account_transactions')
+				->join('ms_finance_account_trans_categories', 'ms_finance_account_transactions.account_trans_cat_id=ms_finance_account_trans_categories.trans_cat_id', 'inner')
+				->where('ms_finance_account_transactions.join_id', $ex->trans_number)
+				->where('ms_finance_account_transactions.type', 'credit')
+				->get()->result() as $ri) {
+				$trans[] = $ri;
+			}
+		}
+
+		$receives = $this->db->select('trans_number')->where('contact_id', $contact_id)->get('ms_finance_account_receives')->result();
+		foreach ($receives as $re) {
+			foreach ($this->db->select(['ms_finance_account_transactions.*', 'ms_finance_account_trans_categories.trans_type'])
+				->from('ms_finance_account_transactions')
+				->join('ms_finance_account_trans_categories', 'ms_finance_account_transactions.account_trans_cat_id=ms_finance_account_trans_categories.trans_cat_id', 'inner')
+				->where('ms_finance_account_transactions.join_id', $re->trans_number)
+				->where('ms_finance_account_transactions.type', 'credit')
 				->get()->result() as $ri) {
 				$trans[] = $ri;
 			}

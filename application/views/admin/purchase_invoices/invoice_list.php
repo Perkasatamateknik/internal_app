@@ -7,7 +7,7 @@
 <?php $role_resources_ids = $this->Xin_model->user_role_resource(); ?>
 <?php if (in_array('521', $role_resources_ids)) { ?>
 	<?php $attributes = array('name' => 'purchase_invoices', 'id' => 'purchase_invoices', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
-	<?php $hidden = array('purchase_invoices' => 'INSERT', 'selected_vendor' => $record->vendor_id ?? false); ?>
+	<?php $hidden = array('purchase_invoices' => 'INSERT', 'selected_contact' => $record->contact_id ?? false); ?>
 	<?php echo form_open('admin/purchase_invoices/insert', $attributes, $hidden); ?>
 	<div class="card <?php echo $get_animate; ?>">
 		<div id="accordion">
@@ -26,8 +26,8 @@
 								<div class="row mb-3">
 									<div class="col-md-6">
 										<div class="form-group">
-											<label for="vendor" class="control-label"><?php echo $this->lang->line('ms_vendor_name'); ?></label><br>
-											<select class="form-control" name="vendor" data-plugin="select_vendor" data-placeholder="<?php echo $this->lang->line('ms_vendor_name'); ?>" required>
+											<label for="contact_id" class="control-label"><?php echo $this->lang->line('ms_title_select_contact'); ?></label><br>
+											<select class="form-control" name="contact_id" data-plugin="select_contact" data-placeholder="<?php echo $this->lang->line('ms_title_select_contact'); ?>" required>
 											</select>
 											<input id="po_number" name="po_number" type="hidden" value="<?= $po_number; ?>">
 										</div>
@@ -249,7 +249,7 @@
 					<tr>
 						<th><?php echo $this->lang->line('xin_action'); ?></th>
 						<th><?php echo $this->lang->line('ms_purchase_number'); ?></th>
-						<th><?php echo $this->lang->line('ms_vendors'); ?></th>
+						<th><?php echo $this->lang->line('ms_title_contact'); ?></th>
 						<th><?php echo $this->lang->line('ms_date'); ?></th>
 						<th><?php echo $this->lang->line('ms_status'); ?></th>
 						<th><?php echo $this->lang->line('ms_purchase_paid_date'); ?></th>

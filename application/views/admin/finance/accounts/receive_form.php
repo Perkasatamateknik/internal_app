@@ -17,8 +17,8 @@
 				<div class="row">
 					<div class="col-md-6">
 						<div class="form-group">
-							<label for="vendor_id"><?= $this->lang->line('ms_title_fund_source'); ?></label>
-							<select name="vendor_id" id="vendor_id" class="form-control select2" data-plugin="select_vendor" data-placeholder="<?= $this->lang->line('ms_title_select_options'); ?>" required>
+							<label for="contact_id"><?= $this->lang->line('ms_title_fund_source'); ?></label>
+							<select name="contact_id" id="contact_id" class="form-control" data-plugin="select_contact" data-placeholder="<?= $this->lang->line('ms_title_select_options'); ?>" required>
 							</select>
 						</div>
 					</div>

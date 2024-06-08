@@ -53,7 +53,7 @@ if ($id == '') {
 							</tr>
 							<tr>
 								<td>
-									<span><?= $this->lang->line('ms_title_terget_account'); ?></span><br>
+									<span><?= $this->lang->line('ms_title_beneficiary'); ?></span><br>
 									<strong><?= $record->beneficiary; ?></strong>
 								</td>
 								<td>
@@ -111,7 +111,7 @@ if ($id == '') {
 										}
 								?>
 										<tr>
-											<td><?= $r->account_name; ?></td>
+											<td><?= $r->account; ?></td>
 											<td><?= $r->note; ?></td>
 											<td><?= $r->tax_name; ?> <br>
 												<small><?= $this->Xin_model->currency_sign($r->tax_rate); ?></small>
@@ -223,7 +223,7 @@ if ($id == '') {
 						<div class="col-md-4">
 							<div class="form-group">
 								<label for="account_source"><?php echo $this->lang->line('ms_payment_account_source'); ?></label>
-								<input type="text" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_account_source'); ?>" readonly value="<?= $record->source_account; ?>">
+								<input type="text" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_account_source'); ?>" readonly value="<?= $record->source_account_name; ?>">
 								<input type="hidden" name="source_payment_account" value="<?= $record->account_id; ?>">
 							</div>
 						</div>

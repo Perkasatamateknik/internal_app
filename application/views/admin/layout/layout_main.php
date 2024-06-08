@@ -115,6 +115,8 @@ if (!is_null($role_user)) {
 
 						<?php echo $subview; ?>
 						<!-- / Content -->
+
+						<div id="modal-view"></div>
 					</div>
 
 					<!-- Layout footer -->

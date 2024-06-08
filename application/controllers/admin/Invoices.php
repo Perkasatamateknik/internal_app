@@ -348,13 +348,14 @@ class Invoices extends MY_Controller
 			'rate' => $this->input->post('tax_rate'),
 			'type' => $this->input->post('tax_type'),
 			'is_active' => 1,
-			'is_withholding' => $this->input->post('is_withholding'),
+			'is_withholding' => $this->input->post('is_withholding') ?? 0,
 			'pembelian_account_id' => $this->input->post('pembelian_account_id'),
 			'penjualan_account_id' => $this->input->post('penjualan_account_id'),
 			'description' => $qt_description,
 			'created_at' => date('d-m-Y h:i:s'),
 		);
 
+		dd($data);
 		$result = $this->Invoices_model->add_tax_record($data);
 
 		if ($result == TRUE) {

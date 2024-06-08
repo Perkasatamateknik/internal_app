@@ -332,23 +332,22 @@ $(document).ready(function () {
 });
 
 $(function () {
-	$('[data-plugin="select_vendor"]').select2({
+	$('[data-plugin="select_contact"]').select2({
 		ajax: {
 			delay: 250,
-			url: site_url + "ajax_request/find_vendor",
+			url: site_url + "ajax_request/find_contact",
 			data: function (params) {
 				var queryParameters = {
 					query: params.term,
 				};
 				return queryParameters;
 			},
-
 			processResults: function (data) {
 				return {
 					results: data,
 				};
 			},
-			cache: true,
+			cache: false,
 			transport: function (params, success, failure) {
 				var $request = $.ajax(params);
 
@@ -358,45 +357,55 @@ $(function () {
 				return $request;
 			},
 		},
-		width: "100%",
+		templateResult: function (data) {
+			return data.html;
+		},
+		templateSelection: function (data) {
+			return data.text;
+		},
 		language: {
 			noResults: function () {
-				return `<li><button style="width: 100%" type="button"
-            class="btn btn-tranparent btn-sm" 
-            onClick='addVendor()'><span class="ion ion-md-add"></span> Add Vendor</button>
-            </li>`;
+				return `</li><button style="width: 100%" type="button"
+        class="btn btn-transparent" 
+        onclick='addContact()'><span class="ion ion-md-add"></span> Add Contact</button>
+        </li>`;
 			},
 		},
+
+		escapeMarkup: function (markup) {
+			return markup;
+		},
+		width: "100%",
 	});
 
-	var selected_vendor = $("[name='selected_vendor']").val();
-	if (selected_vendor) {
-		// set selected vendor
-		$.get({
-			url: site_url + "ajax_request/find_vendor_by_id",
-			data: "query=" + selected_vendor,
-			dataType: "JSON",
-			success: function (res) {
-				var selectedOptionId = res.vendor_id;
-				var selectedOptionText = res.vendor_name;
+	// var selected_contact = $("[name='selected_contact']").val();
+	// if (selected_contact != null) {
+	// 	// set selected vendor
+	// 	$.get({
+	// 		url: site_url + "ajax_request/find_contact_by_id",
+	// 		data: "query=" + selected_contact,
+	// 		dataType: "JSON",
+	// 		success: function (res) {
+	// 			var selectedOptionId = res.contact_id;
+	// 			var selectedOptionText = res.contact_name;
 
-				var option = new Option(
-					selectedOptionText,
-					selectedOptionId,
-					true,
-					true
-				);
-				$("[name='vendor']").append(option).trigger("change");
-			},
-			error: function (xhr, status, error) {
-				toastr.error("Error: " + status + " | " + error);
-				$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
-				$(".icon-spinner3").hide();
-				$(".save").prop("disabled", false);
-				Ladda.stopAll();
-			},
-		});
-	}
+	// 			var option = new Option(
+	// 				selectedOptionText,
+	// 				selectedOptionId,
+	// 				true,
+	// 				true
+	// 			);
+	// 			$("[name='contact_id']").append(option).trigger("change");
+	// 		},
+	// 		error: function (xhr, status, error) {
+	// 			toastr.error("Error: " + status + " | " + error);
+	// 			$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
+	// 			$(".icon-spinner3").hide();
+	// 			$(".save").prop("disabled", false);
+	// 			Ladda.stopAll();
+	// 		},
+	// 	});
+	// }
 });
 
 /* ----------------------- ADD ITEMS ----------------------------- */
@@ -1120,13 +1129,13 @@ $(window).on("load", function () {
 
 				// set vendor
 				$.get({
-					url: site_url + "ajax_request/find_vendor_by_id",
-					data: "query=" + response.data.vendor_id,
+					url: site_url + "ajax_request/find_contact_by_id",
+					data: "query=" + response.data.contact_id,
 					dataType: "JSON",
 					success: function (res) {
 						if (res != null) {
-							var selectedOptionId = res.vendor_id;
-							var selectedOptionText = res.vendor_name;
+							var selectedOptionId = res.contact_id;
+							var selectedOptionText = res.contact_name;
 
 							var option = new Option(
 								selectedOptionText,
@@ -1134,7 +1143,7 @@ $(window).on("load", function () {
 								true,
 								true
 							);
-							$("[name='vendor']").append(option).trigger("change");
+							$("[name='contact_id']").append(option).trigger("change");
 						}
 					},
 					error: function (xhr, status, error) {

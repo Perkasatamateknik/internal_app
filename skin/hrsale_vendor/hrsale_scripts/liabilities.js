@@ -210,6 +210,7 @@ function update_total() {
 	$("#amount").val(total);
 	$("#amount_show").text(formatCurrency(total));
 }
+
 $(document).ready(function () {
 	$("#payment_form").submit(function (e) {
 		e.preventDefault();
@@ -329,11 +330,7 @@ $(window).on("load", function () {
 						row.find(".row_type").val("UPDATE"); // set the type of item (UPDATE)
 					});
 
-					// // set another
-					// $("#ref_delivery_fee").val(response.data.ref_delivery_fee);
-					// $("#amount").val(response.data.amount);
-					// $("#amount_show").text(formatCurrency(response.data.amount));
-					// update_total();
+					update_total();
 				}
 			},
 		});
@@ -366,7 +363,7 @@ $(document).on("click", ".remove-item", function () {
 					} else {
 						row.fadeOut(300, function () {
 							$(this).remove();
-							// update_total();
+							update_total();
 						});
 						toastr.success(JSON.result);
 						$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
@@ -419,3 +416,23 @@ $(document).ready(function () {
 		width: "100%",
 	});
 });
+
+function ajaxItem(id) {
+	$.ajax({
+		type: "GET",
+		url: base_url + "/ajax_modal_liability_item",
+		data: {
+			_token: id,
+		},
+		dataType: "json",
+		success: function (response) {
+			$("#modal-view").html(response.data);
+			$("#modal-result").modal({
+				backdrop: "static",
+				keyboard: false,
+			});
+
+			$("#modal-result").modal("show");
+		},
+	});
+}

@@ -104,7 +104,7 @@ class Account_transfer_model extends CI_Model
 	{
 		$last = $this->get_last_transfer();
 
-		if (is_null($last) or !in_array(null, [$last->account_id, $last->terget_account_id], true)) {
+		if (is_null($last) or !in_array(null, [$last->account_id, $last->target_account_id], true)) {
 			$trans_number = $this->trans_number();
 			$this->db->insert('ms_finance_account_transfers', ['trans_number' => $trans_number]);
 			$last_id = $this->db->insert_id();
@@ -193,7 +193,7 @@ class Account_transfer_model extends CI_Model
 			->update('ms_finance_account_transactions', ['amount' => $data['amount']]);
 
 		// update debit yang ke trade payable
-		$this->db->update('ms_finance_account_transactions', ['amount' => $data['amount']], ['join_id' => $trans_number, 'type' => 'credit', 'account_id' => $data['terget_account_id'], 'ref_trans_id' => $ref_trans_id]);
+		$this->db->update('ms_finance_account_transactions', ['amount' => $data['amount']], ['join_id' => $trans_number, 'type' => 'credit', 'account_id' => $data['target_account_id'], 'ref_trans_id' => $ref_trans_id]);
 
 		// update transaction account id penerima setalh punya tf
 		if ($new_target_account) {
