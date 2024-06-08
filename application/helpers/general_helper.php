@@ -2052,9 +2052,21 @@ if (!function_exists('get_termin')) {
 }
 
 if (!function_exists('dateDiff')) {
-	function dateDiff($startDate, $endDate, $prefix = "")
+	function dateDiff($startDate, $endDate)
 	{
-		$CI = &get_instance();
+		// $start = new DateTime($startDate);
+		// $end = new DateTime($endDate);
+		// $interval = $start->diff($end);
+
+		// if ($interval->y >= 1) {
+		// 	return $interval->y . " year" . ($interval->y > 1 ? "s" : "");
+		// } elseif ($interval->m >= 1) {
+		// 	return $interval->m . " month" . ($interval->m > 1 ? "s" : "");
+		// } elseif ($interval->d >= 1) {
+		// 	return $interval->d . " day" . ($interval->d > 1 ? "s" : "");
+		// } else {
+		// 	return "Less than a day";
+		// }
 
 		$date1_obj = date_create_from_format('Y-m-d', $startDate);
 		$date2_obj = date_create_from_format('Y-m-d', $endDate);
@@ -2065,16 +2077,6 @@ if (!function_exists('dateDiff')) {
 
 		$interval = $date2_obj->diff($date1_obj);
 
-		// Check if the end date is in the past
-		if ($interval->invert === 0) {
-			return $CI->lang->line('ms_title_over_due_date');
-		}
-
-		// Check if the end date is in the past
-		if ($date2_obj == date_create_from_format('Y-m-d', date('Y-m-d'))) {
-			return $CI->lang->line('ms_title_due_date_today');
-		}
-
 		$years = $interval->y;
 		$months = $interval->m;
 		$days = $interval->d;
@@ -2082,22 +2084,17 @@ if (!function_exists('dateDiff')) {
 		$result = "";
 
 		if ($years > 0) {
-			$result .= "$years year" . ($years > 1 ? "s" : "") . " ";
+			$result .= "$years years";
 		}
 
 		if ($months > 0) {
-			$result .= "$months month" . ($months > 1 ? "s" : "") . " ";
+			$result .= ($result ? ", " : "") . "$months months";
 		}
 
 		if ($days > 0) {
-			$result .= "$days day" . ($days > 1 ? "s" : "") . " ";
+			$result .= ($result ? ", " : "") . "$days days";
 		}
 
-		if (empty($result)) {
-			return "0 days left";
-		}
-
-		$result = trim($result) . $prefix;
 		return $result;
 	}
 }
@@ -2554,173 +2551,5 @@ if (!function_exists('count_tax_expenses')) {
 		}
 
 		return $data;
-	}
-}
-
-
-if (!function_exists('account_url')) {
-	function account_url($account_id, $account_name = false, $account_code = false)
-	{
-		if ($account_name && $account_code) {
-			return "<a href='" . site_url() . 'admin/finance/accounts/transactions?id=' . $account_id  . "' class='text-md font-weight-bold'><b>" . $account_name . "</b> | " . $account_code . "</a>";
-		} else {
-			$CI = &get_instance();
-			$account = $CI->Accounts_model->get($account_id)->row();
-			if (!is_null($account)) {
-				return "<a href='" . site_url() . 'admin/finance/accounts/transactions?id=' . $account->account_id  . "' class='text-md font-weight-bold'><b>" . $account->account_name . "</b> | " . $account->account_code . "</a>";
-			}
-		}
-
-		return "--";
-	}
-}
-
-if (!function_exists('contact_url')) {
-	function contact_url($contact_id, $contact_name = false)
-	{
-		if ($contact_name) {
-			return "<a href='" . site_url() . 'admin/contacts/view/' . $contact_id  . "' class='text-md font-weight-bold'>" . $contact_name . "</a>";
-		} else {
-			$CI = &get_instance();
-			$contact = $CI->Contact_model->get($contact_id)->row();
-			if (!is_null($contact)) {
-				return "<a href='" . site_url() . 'admin/contacts/view/' . $contact->contact_id  . "' class='text-md font-weight-bold'>" . $contact->contact_name . "</a>";
-			}
-		}
-
-		return "--";
-	}
-}
-
-if (!function_exists('expense_url')) {
-	function expense_url($trans_number)
-	{
-		return "<a href='" . base_url('admin/finance/expenses/view?id=' . $trans_number) . "' class='font-weight-bold'>" . $trans_number . "</a>";
-	}
-}
-
-if (!function_exists('transfer_url')) {
-	function transfer_url($trans_number)
-	{
-		return "<a href='" . base_url('admin/finance/accounts/transfer_view?id=' . $trans_number) . "' class='font-weight-bold'>" . $trans_number . "</a>";
-	}
-}
-
-if (!function_exists('spend_url')) {
-	function spend_url($trans_number)
-	{
-		return "<a href='" . base_url('admin/finance/accounts/spend_view?id=' . $trans_number) . "' class='font-weight-bold'>" . $trans_number . "</a>";
-	}
-}
-
-if (!function_exists('receive_url')) {
-	function receive_url($trans_number)
-	{
-		return "<a href='" . base_url('admin/finance/accounts/receive_view?id=' . $trans_number) . "' class='font-weight-bold'>" . $trans_number . "</a>";
-	}
-}
-
-if (!function_exists('invoice_url')) {
-	function invoice_url($trans_number)
-	{
-		return "<a href='" . base_url('admin/finance/invoices/view/' . $trans_number) . "' class='font-weight-bold'>" . $trans_number . "</a>";
-	}
-}
-
-if (!function_exists('pi_url')) {
-	function pi_url($trans_number)
-	{
-		return "<a href='" . base_url('admin/purchasing_invoices/view/' . $trans_number) . "' class='font-weight-bold'>" . $trans_number . "</a>";
-	}
-}
-
-if (!function_exists('utang_url')) {
-	function utang_url($trans_number)
-	{
-		return "<a href='" . base_url('admin/contacts/liability_view/' . $trans_number) . "' class='font-weight-bold'>" . $trans_number . "</a>";
-	}
-}
-
-if (!function_exists('piutang_url')) {
-	function piutang_url($trans_number)
-	{
-		return "<a href='" . base_url('admin/contacts/receivable_view/' . $trans_number) . "' class='font-weight-bold'>" . $trans_number . "</a>";
-	}
-}
-
-if (!function_exists('type_trans')) {
-	function type_trans($type_trans_id, $trans_type_name)
-	{
-		if ($type_trans_id == 1) { //transfer
-			$color = "#D754DA";
-		} elseif ($type_trans_id == 2) {
-			$color = "#5C44B8";
-		} elseif ($type_trans_id == 3) {
-			$color  = "#FF2323";
-		} elseif ($type_trans_id == 4) {
-			$color  = "#FF8540";
-		} elseif ($type_trans_id == 5) {
-			$color  = "#65DA63";
-		} elseif ($type_trans_id == 6) {
-			$color = "#FBF01E";
-		} elseif ($type_trans_id == 7) {
-			$color = "#00B3CF";
-		} elseif ($type_trans_id == 8) {
-			$color  = "#FF0CBA";
-		} else {
-			$color = "black";
-		}
-
-		return '<div class="item-container"><span class="item-box" style="background-color:' . $color . '"></span><span class="item-text">' . $trans_type_name . '</span></div>';
-	}
-}
-
-if (!function_exists('post_data')) {
-	function post_data($field_name)
-	{
-		$CI = &get_instance(); // Mendapatkan instance CodeIgniter
-		$value = $CI->input->post($field_name);
-		return $value === '' ? NULL : $value;
-	}
-}
-
-if (!function_exists('trans_doc_url')) {
-	function trans_doc_url($type_trans_id, $trans_number, $trans_type_name = false)
-	{
-
-		if ($trans_type_name) {
-			$res = type_trans($type_trans_id, $trans_type_name);
-		} else {
-			$res = "";
-		}
-
-		if ($type_trans_id == 1) { //transfer
-			$res .= transfer_url($trans_number);
-		} elseif ($type_trans_id == 2) {
-			$res .= spend_url($trans_number);
-		} elseif ($type_trans_id == 3) {
-			$res .= receive_url($trans_number);
-		} elseif ($type_trans_id == 4) {
-			$res .= expense_url($trans_number);
-		} elseif ($type_trans_id == 5) {
-			$res .= invoice_url($trans_number);
-		} elseif ($type_trans_id == 6) {
-			$res .= pi_url($trans_number);
-		} elseif ($type_trans_id == 7) {
-			$res .= utang_url($trans_number);
-		} elseif ($type_trans_id == 8) {
-			$res .= piutang_url($trans_number);
-		} else {
-			$res .= $trans_number;
-		}
-
-		return $res;
-	}
-}
-
-if (!function_exists('force_string_null')) {
-	function force_string_null($value)
-	{
-		return $value === '' ? NULL : $value;
 	}
 }
