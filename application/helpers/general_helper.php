@@ -2052,9 +2052,21 @@ if (!function_exists('get_termin')) {
 }
 
 if (!function_exists('dateDiff')) {
-	function dateDiff($startDate, $endDate, $prefix = "")
+	function dateDiff($startDate, $endDate)
 	{
-		$CI = &get_instance();
+		// $start = new DateTime($startDate);
+		// $end = new DateTime($endDate);
+		// $interval = $start->diff($end);
+
+		// if ($interval->y >= 1) {
+		// 	return $interval->y . " year" . ($interval->y > 1 ? "s" : "");
+		// } elseif ($interval->m >= 1) {
+		// 	return $interval->m . " month" . ($interval->m > 1 ? "s" : "");
+		// } elseif ($interval->d >= 1) {
+		// 	return $interval->d . " day" . ($interval->d > 1 ? "s" : "");
+		// } else {
+		// 	return "Less than a day";
+		// }
 
 		$date1_obj = date_create_from_format('Y-m-d', $startDate);
 		$date2_obj = date_create_from_format('Y-m-d', $endDate);
@@ -2065,16 +2077,6 @@ if (!function_exists('dateDiff')) {
 
 		$interval = $date2_obj->diff($date1_obj);
 
-		// Check if the end date is in the past
-		if ($interval->invert === 0) {
-			return $CI->lang->line('ms_title_over_due_date');
-		}
-
-		// Check if the end date is in the past
-		if ($date2_obj == date_create_from_format('Y-m-d', date('Y-m-d'))) {
-			return $CI->lang->line('ms_title_due_date_today');
-		}
-
 		$years = $interval->y;
 		$months = $interval->m;
 		$days = $interval->d;
@@ -2082,22 +2084,17 @@ if (!function_exists('dateDiff')) {
 		$result = "";
 
 		if ($years > 0) {
-			$result .= "$years year" . ($years > 1 ? "s" : "") . " ";
+			$result .= "$years years";
 		}
 
 		if ($months > 0) {
-			$result .= "$months month" . ($months > 1 ? "s" : "") . " ";
+			$result .= ($result ? ", " : "") . "$months months";
 		}
 
 		if ($days > 0) {
-			$result .= "$days day" . ($days > 1 ? "s" : "") . " ";
+			$result .= ($result ? ", " : "") . "$days days";
 		}
 
-		if (empty($result)) {
-			return "0 days left";
-		}
-
-		$result = trim($result) . $prefix;
 		return $result;
 	}
 }
