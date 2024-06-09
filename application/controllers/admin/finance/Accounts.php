@@ -244,10 +244,9 @@ class Accounts extends MY_Controller
 			} else {
 				$color = "";
 			}
-			$href = "<a href='" . base_url('admin/finance/accounts/transactions?id=') . $r->account_id . "' class='font-weight-bold text-dark hoverable'>" . $r->account_name . "</a>";
 			$data[] = [
 				$r->account_code,
-				$href,
+				account_url($r->account_id, $r->account_name),
 				$category_name ?? "--",
 				"<span class='" . $color . "'>" . $this->Xin_model->currency_sign($saldo) . "</span>",
 			];
@@ -498,7 +497,7 @@ class Accounts extends MY_Controller
 			$from = $this->Accounts_model->get($this->input->post('account_id'))->row();
 			$to = $this->Accounts_model->get($this->input->post('target_account'))->row();
 
-			$desc = "Transfer from " . $from->account_name . " to " . $to->account_name;
+			$desc = "Transfer money from " . $from->account_name . " to " . $to->account_name;
 			$trans_number = $this->input->post('trans_number');
 
 			$trans = [];
@@ -520,7 +519,7 @@ class Accounts extends MY_Controller
 						'date' => $date,
 						'type' => 'debit',
 						'join_id' => $trans_number, // po number
-						'ref' => "Fee Dokumen Transfer",
+						'ref' => "Fee " . $desc,
 						'note' => $this->input->post('note_transfer_fee'),
 						'attachment' => null,
 						'ref_trans_id' => $ref_trans_id
@@ -542,6 +541,7 @@ class Accounts extends MY_Controller
 				'ref' 				=> $this->input->post('ref'),
 				'note' 				=> $this->input->post('note'),
 				'transfer_fee' 		=> $this->input->post('transfer_fee'),
+				'notetransfer_fee'	=> $this->input->post('notetransfer_fee'),
 				'status' 			=> $action == 'save' ? 'draft' : 'unpaid',
 				'description' 		=> $desc,
 			];
@@ -558,7 +558,7 @@ class Accounts extends MY_Controller
 					'type' => 'credit',
 					'join_id' => $trans_number, // po number
 					'ref' => "Dokumen Transfer",
-					'note' => "Begin Dokumen Transfer",
+					'note' => $desc,
 					'attachment' => null,
 					'ref_trans_id' => $ref_trans_id
 
@@ -575,7 +575,7 @@ class Accounts extends MY_Controller
 					'type' => 'debit',
 					'join_id' => $trans_number, // po number
 					'ref' => "Dokumen Transfer",
-					'note' => "Transfer Dokumen Transfer",
+					'note' => $desc,
 					'attachment' => null,
 					'ref_trans_id' => $ref_trans_id
 				];
@@ -615,8 +615,8 @@ class Accounts extends MY_Controller
 							'file_size' => $files['size'][$key],
 							'file_type' => $files['type'][$key],
 							'file_ext' => $extension,
-							'file_access' => 2, // spend
-							'access_id' => $id
+							'file_access' => 1, // spend
+							'access_id' => $trans_number
 						);
 					} else {
 						$Return['error'] = $this->upload->display_errors();
@@ -627,8 +627,6 @@ class Accounts extends MY_Controller
 				$file_attachments = null;
 			}
 
-			// var_dump($data);
-			// dd($trans);
 			$query = $this->Account_transfer_model->update_with_files($id, $data, $file_attachments, $trans);
 
 			if ($query) {
@@ -1287,11 +1285,9 @@ class Accounts extends MY_Controller
 
 		if (!is_null($record)) {
 			$from = $this->Accounts_model->get($record->account_id)->row();
-			$to = $this->Accounts_model->get($record->target_account_id)->row();
-
-			$record->source_account = "<a href='" . site_url() . 'admin/finance/accounts/transactions?id=' . $from->account_id  . "' class='text-md font-weight-bold'><b>" . $from->account_name . "</b>  " . $from->account_code . "</a>";
+			$record->source_account = account_url($from->account_id, $from->account_name, $from->account_code);
 			$record->source_account_name = $from->account_name . " | " . $from->account_code;
-			$record->target_account = "<a href='" . site_url() . 'admin/finance/accounts/transactions?id=' . $to->account_id  . "' class='text-md font-weight-bold'><b>" . $to->account_name . "</b>  " . $to->account_code . "</a>";
+			$record->target_account = account_url($record->target_account_id);
 
 			$make_payment = $this->Account_trans_model->open_payment($id, $record->account_id);
 
@@ -1464,8 +1460,8 @@ class Accounts extends MY_Controller
 				"<a href='" . base_url('admin/finance/accounts/transaction_view?id=' . $r->account_trans_id . '&back_id=' . $r->account_id) . "' class='text-dark'><i class='fa fa-eye fa-fw' aria-hidden='true'></i></a>",
 				$this->Xin_model->set_date_format($r->date),
 				trans_doc_url($r->account_trans_cat_id, $r->join_id, $r->trans_type),
-				$r->note,
-				$r->ref,
+				force_string_null($r->note),
+				force_string_null($r->ref),
 				$this->Xin_model->currency_sign($debit),
 				$this->Xin_model->currency_sign($credit),
 				$this->Xin_model->currency_sign($balance),
@@ -2448,7 +2444,7 @@ class Accounts extends MY_Controller
 				'type' => 'credit',
 				'join_id' => $trans_number,
 				'ref' => $payment_ref,
-				'note' => "Kredit Pembayaran Transfer",
+				'note' => "Transfer money from account name to account name",
 				'attachment' => $file_attachment,
 				'ref_trans_id' => $ref_trans_id
 			],
@@ -2461,7 +2457,7 @@ class Accounts extends MY_Controller
 				'type' => 'debit',
 				'join_id' => $trans_number,
 				'ref' => $payment_ref,
-				'note' => "Debit Pembayaran Transfer",
+				'note' => "Transfer money from account name to account name",
 				'attachment' => $file_attachment,
 				'ref_trans_id' => $ref_trans_id
 			]
@@ -2931,36 +2927,143 @@ class Accounts extends MY_Controller
 		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
 		$Return['csrf_hash'] = $this->security->get_csrf_hash();
 
-		$desc = "Transfer Doc";
-		$amount = $this->input->post('amount');
-		$trans_number = $this->input->post('_token');
+		// get user id
+		$user_id = $this->session->userdata('username')['user_id'];
 
-		if ($this->input->post('target_account') == $this->input->post('old_target_account')) {
-			$data = [
-				'account_id' => $this->input->post('account_id'),
-				'target_account_id' => $this->input->post('old_target_account'),
-				'trans_number' => $trans_number,
-				'date' => $this->input->post('date'),
-				'amount' => $amount,
-				'ref' => $this->input->post('ref'),
-				'note' => $this->input->post('note'),
-				'description' => $desc,
-			];
+		$from = $this->Accounts_model->get($this->input->post('account_id'))->row();
+		$to = $this->Accounts_model->get($this->input->post('target_account'))->row();
 
-			$new_target_account = false;
+		$desc = "Transfer money from " . $from->account_name . " to " . $to->account_name;
+		$trans_number = $this->input->post('trans_number');
+
+		$trans = [];
+
+		$ref_trans_id = $trans_number . "-" . rand(100000, 999999);
+
+		$transfer_fee = $this->input->post('transfer_fee');
+		$date = $this->input->post('date');
+
+		if (!is_null($transfer_fee)) {
+
+			// catat ke akun komisi dan fee
+			$trans[] =
+				[
+					'account_id' => 71,
+					'user_id' => $user_id,
+					'account_trans_cat_id' => 1, // transfer
+					'amount' => $transfer_fee,
+					'date' => $date,
+					'type' => 'debit',
+					'join_id' => $trans_number, // po number
+					'ref' => "Fee " . $desc,
+					'note' => $this->input->post('note_transfer_fee'),
+					'attachment' => null,
+					'ref_trans_id' => $ref_trans_id
+				];
+
+			$amount = $this->input->post('amount') + $transfer_fee;
 		} else {
-			$new_target_account = $this->input->post('target_account');
-			$data = [
-				'account_id' => $this->input->post('account_id'),
-				'target_account_id' => $this->input->post('target_account'),
-				'trans_number' => $trans_number,
-				'date' => $this->input->post('date'),
-				'amount' => $amount,
-				'ref' => $this->input->post('ref'),
-				'note' => $this->input->post('note'),
-				'description' => $desc,
-			];
+			$amount = $this->input->post('amount');
 		}
+
+		$data = [
+			'user_id' 			=> $user_id,
+			'account_id' 		=> $this->input->post('account_id'),
+			'target_account_id' => $this->input->post('target_account'),
+			'trans_number' 		=> $trans_number,
+			'date' 				=> $date,
+			'amount' 			=> $this->input->post('amount'),
+			'transfer_amount'	=> $amount,
+			'ref' 				=> $this->input->post('ref'),
+			'note' 				=> $this->input->post('note'),
+			'transfer_fee' 		=> $this->input->post('transfer_fee'),
+			'notetransfer_fee'	=> $this->input->post('notetransfer_fee'),
+			'status' 			=> 'unpaid',
+			'description' 		=> $desc,
+		];
+
+
+		// masukan semua total ke akun Trade Payble = credit
+		$trans[] =
+			[
+				'account_id' => 34, // account_id trade payable
+				'user_id' => $user_id,
+				'account_trans_cat_id' => 1, // transfer
+				'amount' => $amount,
+				'date' => $date,
+				'type' => 'credit',
+				'join_id' => $trans_number, // po number
+				'ref' => "Dokumen Transfer",
+				'note' => $desc,
+				'attachment' => null,
+				'ref_trans_id' => $ref_trans_id
+
+			];
+
+		// masukan semua total ke akun penerima
+		$trans[] =
+			[
+				'account_id' => $this->input->post('target_account'),
+				'user_id' => $user_id,
+				'account_trans_cat_id' => 1, // transfer
+				'amount' => $amount,
+				'date' => $date,
+				'type' => 'debit',
+				'join_id' => $trans_number, // po number
+				'ref' => "Dokumen Transfer",
+				'note' => $desc,
+				'attachment' => null,
+				'ref_trans_id' => $ref_trans_id
+			];
+
+		if (!empty($_FILES["attachments"]["name"][0])) {
+			// upload file
+			$config['allowed_types'] = 'gif|jpg|png|pdf';
+			$config['max_size'] = '10240'; // max_size in kb
+
+			$config['upload_path'] = './uploads/finance/account_transfer/';
+
+			//load upload class library
+			$this->load->library('upload', $config);
+
+			$files = $_FILES['attachments'];
+			$file_attachments = array();
+
+			foreach ($files['name'] as $key => $filename) {
+
+				// Get the file extension
+				$extension = pathinfo($filename, PATHINFO_EXTENSION);
+				$newName = $this->input->post('trans_number') . "_" . time() . "_" . $key . "." . $extension;
+
+				$_FILES['attachments'] = array(
+					'name'     => $newName,
+					'type'     => $files['type'][$key],
+					'tmp_name' => $files['tmp_name'][$key],
+					'error'    => $files['error'][$key],
+					'size'     => $files['size'][$key]
+				);
+
+				if ($this->upload->do_upload('attachments')) {
+					$this->upload->data();
+
+					$file_attachments[] = array(
+						'file_name' => $newName,
+						'file_size' => $files['size'][$key],
+						'file_type' => $files['type'][$key],
+						'file_ext' => $extension,
+						'file_access' => 1, // spend
+						'access_id' => $trans_number
+					);
+				} else {
+					$Return['error'] = $this->upload->display_errors();
+					$this->output($Return);
+				}
+			}
+		} else {
+			$file_attachments = null;
+		}
+
+		$query = $this->Account_transfer_model->update_with_files($id, $data, $file_attachments, $trans);
 
 		$query = $this->Account_transfer_model->update_by_trans_number($trans_number, $data, $new_target_account);
 

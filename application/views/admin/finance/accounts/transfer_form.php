@@ -127,9 +127,9 @@
 		<div class="card">
 			<div class="card-body">
 				<div class="row">
-					<div class="col-12">
-						<button class="btn btn-primary" type="submit" name="act_type" value="submit"><?= $this->lang->line('ms_title_process'); ?></button>
+					<div class="col-12 text-right">
 						<button class="btn btn-secondary" type="submit" name="act_type" value="save"><?= $this->lang->line('ms_title_save_draft'); ?></button>
+						<button class="btn btn-primary px-4" type="submit" name="act_type" value="submit"><?= $this->lang->line('ms_title_process'); ?></button>
 					</div>
 				</div>
 			</div>

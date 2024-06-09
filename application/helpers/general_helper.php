@@ -2563,6 +2563,8 @@ if (!function_exists('account_url')) {
 	{
 		if ($account_name && $account_code) {
 			return "<a href='" . site_url() . 'admin/finance/accounts/transactions?id=' . $account_id  . "' class='text-md font-weight-bold'><b>" . $account_name . "</b> | " . $account_code . "</a>";
+		} else if ($account_name) {
+			return "<a href='" . site_url() . 'admin/finance/accounts/transactions?id=' . $account_id  . "' class='text-md font-weight-bold'><b>" . $account_name . "</b></a>";
 		} else {
 			$CI = &get_instance();
 			$account = $CI->Accounts_model->get($account_id)->row();
@@ -2652,9 +2654,9 @@ if (!function_exists('type_trans')) {
 	function type_trans($type_trans_id, $trans_type_name)
 	{
 		if ($type_trans_id == 1) { //transfer
-			$color = "#D754DA";
+			$color = "#FB07FF";
 		} elseif ($type_trans_id == 2) {
-			$color = "#5C44B8";
+			$color = "#02F2FF";
 		} elseif ($type_trans_id == 3) {
 			$color  = "#FF2323";
 		} elseif ($type_trans_id == 4) {

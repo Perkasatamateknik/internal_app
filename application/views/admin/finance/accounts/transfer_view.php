@@ -48,7 +48,7 @@ if ($id == '') {
 								</td>
 								<td>
 									<span><?= $this->lang->line('ms_title_number_document'); ?></span><br>
-									<?= $record->trans_number; ?>
+									<?= trans_doc_url(1, $record->trans_number); ?>
 								</td>
 							</tr>
 							<tr>
@@ -86,10 +86,10 @@ if ($id == '') {
 									<th style="width: 30%;">
 										<strong><?= $this->lang->line('ms_title_desc'); ?></strong>
 									</th>
-									<th>
+									<th style="width: 50%;">
 										<strong><?= $this->lang->line('ms_title_note'); ?></strong>
 									</th>
-									<th>
+									<th style="width: 20%;">
 										<strong><?= $this->lang->line('ms_title_amount'); ?></strong>
 									</th>
 								</tr>
@@ -112,7 +112,7 @@ if ($id == '') {
 								</tr>
 								<tr>
 									<td></td>
-									<td><strong><?= $this->lang->line('ms_title_transfer_fee'); ?></strong></td>
+									<td><strong><?= $record->note_transfer_fee ?></strong></td>
 									<td><strong><?= $this->Xin_model->currency_sign($record->transfer_fee); ?></strong></td>
 								</tr>
 								<tr>
@@ -255,7 +255,7 @@ if ($id == '') {
 												<td><?= $value->first_name . "  " . $value->last_name; ?></td>
 												<td><?= $value->note; ?></td>
 												<td>
-													<a href="<?= base_url('admin/finance/accounts/transactions?id=') . $value->account_id ?>" class='text-dark hoverable'><?= "<b>$value->account_name</b>" . "  " . $value->account_code; ?></a>
+													<?= account_url($value->account_id, $value->account_name, $value->account_code); ?>
 												</td>
 												<td><?= $this->Xin_model->currency_sign($value->amount); ?></td>
 											</tr>

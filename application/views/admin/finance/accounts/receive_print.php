@@ -253,16 +253,11 @@
 
 <body>
 	<div class="container">
-		<table>
-			<tr>
-				<td>
-					<img src="https://i.ibb.co/Dg85Lc9/Header-Print.png" alt="Header Print" width="20mm">
-				</td>
-				<td>
-					<span style="color:#2E3192;font-family:'Alice';font-size:xx-large;">&nbsp;&nbsp;CV. PERKASATAMA TEKNIK</span>
-				</td>
-			</tr>
-		</table>
+		<div class="row">
+			<div class="col-md-12">
+				<img src="https://i.ibb.co.com/2q8sBDD/new-header.png" alt="Header Print" width="100%">
+			</div>
+		</div>
 		<br>
 		<hr>
 		<br>

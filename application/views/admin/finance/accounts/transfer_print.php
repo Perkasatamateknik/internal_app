@@ -7,7 +7,6 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<title><?php echo $title; ?></title>
-	<!-- Tell the browser to be responsive to screen width -->
 	<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
 	<link rel="icon" type="image/x-icon" href="<?php echo $favicon; ?>">
 	<style>
@@ -102,106 +101,10 @@
 			margin-left: 0
 		}
 
-		.card>.list-group:first-child .list-group-item:first-child {
-			border-top-left-radius: .25rem;
-			border-top-right-radius: .25rem
-		}
-
-		.card>.list-group:last-child .list-group-item:last-child {
-			border-bottom-right-radius: .25rem;
-			border-bottom-left-radius: .25rem
-		}
-
 		.card-body {
 			-ms-flex: 1 1 auto;
 			flex: 1 1 auto;
 			padding: 1.5rem
-		}
-	</style>
-	<style>
-		.justify-content-start {
-			-ms-flex-pack: start !important;
-			justify-content: flex-start !important;
-		}
-
-		.justify-content-end {
-			-ms-flex-pack: end !important;
-			justify-content: flex-end !important;
-		}
-
-		.justify-content-center {
-			-ms-flex-pack: center !important;
-			justify-content: center !important;
-		}
-
-		.justify-content-between {
-			-ms-flex-pack: justify !important;
-			justify-content: space-between !important;
-		}
-
-		.justify-content-around {
-			-ms-flex-pack: distribute !important;
-			justify-content: space-around !important;
-		}
-
-		.align-items-start {
-			-ms-flex-align: start !important;
-			align-items: flex-start !important;
-		}
-
-		.align-items-end {
-			-ms-flex-align: end !important;
-			align-items: flex-end !important;
-		}
-
-		.align-items-center {
-			-ms-flex-align: center !important;
-			align-items: center !important;
-		}
-
-		.align-items-baseline {
-			-ms-flex-align: baseline !important;
-			align-items: baseline !important;
-		}
-
-		.align-items-stretch {
-			-ms-flex-align: stretch !important;
-			align-items: stretch !important;
-		}
-
-		.align-content-start {
-			-ms-flex-line-pack: start !important;
-			align-content: flex-start !important;
-		}
-
-		.align-content-end {
-			-ms-flex-line-pack: end !important;
-			align-content: flex-end !important;
-		}
-
-		.align-content-center {
-			-ms-flex-line-pack: center !important;
-			align-content: center !important;
-		}
-
-		.align-content-between {
-			-ms-flex-line-pack: justify !important;
-			align-content: space-between !important;
-		}
-
-		.align-content-around {
-			-ms-flex-line-pack: distribute !important;
-			align-content: space-around !important;
-		}
-
-		.align-content-stretch {
-			-ms-flex-line-pack: stretch !important;
-			align-content: stretch !important;
-		}
-
-		.d-flex {
-			display: -ms-flexbox !important;
-			display: flex !important;
 		}
 
 		.text-danger {
@@ -215,9 +118,7 @@
 		.text-success {
 			color: #02BC77 !important
 		}
-	</style>
 
-	<style>
 		.td-70 {
 			width: 70% !important;
 		}
@@ -250,16 +151,11 @@
 
 <body>
 	<div class="container">
-		<table>
-			<tr>
-				<td>
-					<img src="https://i.ibb.co/Dg85Lc9/Header-Print.png" alt="Header Print" width="20mm">
-				</td>
-				<td>
-					<span style="color:#2E3192;font-family:'Alice';font-size:xx-large;">&nbsp;&nbsp;CV. PERKASATAMA TEKNIK</span>
-				</td>
-			</tr>
-		</table>
+		<div class="row">
+			<div class="col-md-12">
+				<img src="https://i.ibb.co.com/2q8sBDD/new-header.png" alt="Header Print" width="100%">
+			</div>
+		</div>
 		<br>
 		<hr>
 		<br>
@@ -293,7 +189,7 @@
 					<tr>
 						<td class="td-40"><strong><?= $this->lang->line('ms_title_source_account'); ?></strong></td>
 						<td rowspan="2" class="td-20">
-							<img src="https://i.ibb.co/p0s4Kpb/transfer.png" alt="transfer" width="25mm">
+							<img src="https://i.ibb.co.com/p0s4Kpb/transfer.png" alt="transfer" width="25mm">
 						</td>
 						<td class="td-40">
 							<strong><?= $this->lang->line('ms_title_terget_account'); ?></strong>
