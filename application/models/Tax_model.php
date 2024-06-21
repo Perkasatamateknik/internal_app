@@ -15,6 +15,23 @@ class Tax_model extends CI_Model
 		return $this->db->get("xin_tax_types");
 	}
 
+	public function find_best_match($tax_name)
+	{
+		$taxes = $this->get_taxes()->result();
+		$bestMatch = null;
+		$shortestDistance = PHP_INT_MAX;
+
+		foreach ($taxes as $tax) {
+			$distance = levenshtein($tax_name, $tax->name);
+			if ($distance < $shortestDistance) {
+				$shortestDistance = $distance;
+				$bestMatch = $tax;
+			}
+		}
+
+		return $bestMatch;
+	}
+
 	public function read_tax_information($id)
 	{
 

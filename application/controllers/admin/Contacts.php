@@ -301,7 +301,10 @@ class Contacts extends MY_Controller
 			$Return['error'] = $this->lang->line('ms_title_country_error');
 		}
 
+		$contact_id = $this->Contact_model->generate_contact_id($type);
+
 		$data = [
+			'contact_id' => $contact_id,
 			'contact_type_id' => $type,
 			'contact_name' => $contact_name,
 			'company_name' => $company_name,
@@ -315,6 +318,7 @@ class Contacts extends MY_Controller
 			'date_of_birth' => $this->input->post('date_of_birth'),
 		];
 
+		// dd($data);
 		if ($Return['error'] != '') {
 			$this->output($Return);
 		}

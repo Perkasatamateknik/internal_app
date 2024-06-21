@@ -10,6 +10,65 @@ class Contact_model extends CI_Model
 		$this->load->database();
 	}
 
+	public function generate_contact_id($kategori_id)
+	{
+		$prefix = $this->get_contact_type($kategori_id)->prefix;
+
+		$last_contact = $this->get_last_contact_id($kategori_id);
+
+		if ($last_contact) {
+			$last_number = intval(substr($last_contact->contact_id, 4));
+			$new_number = $last_number + 1;
+		} else {
+			$new_number = 1;
+		}
+
+		return $prefix . sprintf('%05d', $new_number);  //  digit padding dengan nol
+	}
+
+	public function get_last_contact_id($type)
+	{
+		$this->db->where('contact_type_id', $type);
+		$this->db->order_by('contact_id', 'DESC');
+		$this->db->limit(1);
+		$query = $this->db->get('ms_contacts');
+		return $query->row();
+	}
+
+	public function find_best_match($contact_name, $threshold = 70)
+	{
+		$contacts = $this->get_all_contact()->result();
+		$bestMatch = null;
+		$highestSimilarity = 0;
+
+		$contact_name_preprocessed = preprocess_string($contact_name);
+
+		foreach ($contacts as $contact) {
+			$contact_preprocessed = preprocess_string($contact->contact_name);
+			$similarity = $this->levenshtein_similarity($contact_name_preprocessed, $contact_preprocessed);
+			if ($similarity > $highestSimilarity) {
+				$highestSimilarity = $similarity;
+				$bestMatch = $contact;
+			}
+		}
+
+		if ($highestSimilarity >= $threshold) {
+			return $bestMatch;
+		} else {
+			return null; // Tidak ada kecocokan yang cukup mirip
+		}
+	}
+
+	private function levenshtein_similarity($str1, $str2)
+	{
+		$distance = levenshtein($str1, $str2);
+		$max_len = max(strlen($str1), strlen($str2));
+		if ($max_len == 0) {
+			return 100; // Jika kedua string kosong
+		}
+		return ((1 - ($distance / $max_len)) * 100);
+	}
+
 	public function get_all_contact($filter = false)
 	{
 		if ($filter) {

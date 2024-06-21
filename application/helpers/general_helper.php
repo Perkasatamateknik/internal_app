@@ -2515,6 +2515,20 @@ if (!function_exists('count_tax')) {
 	}
 }
 
+if (!function_exists('get_tax_from_amount')) {
+	function get_tax_from_amount($amount, $rate, $is_flat = false)
+	{
+		// Menghitung pajak berdasarkan rate yang diberikan
+		if ($is_flat) {
+			$tax = $amount - $rate;
+		} else {
+			$tax = ($amount * $rate) / 100;
+		}
+		$remaining_amount = $amount - $tax;
+		return array('tax' => $tax, 'remaining_amount' => $remaining_amount);
+	}
+}
+
 if (!function_exists('count_tax_expenses')) {
 	function count_tax_expenses($records)
 	{
@@ -2680,6 +2694,19 @@ if (!function_exists('post_data')) {
 		$CI = &get_instance(); // Mendapatkan instance CodeIgniter
 		$value = $CI->input->post($field_name);
 		return $value === '' ? NULL : $value;
+	}
+}
+
+if (!function_exists('preprocess_string')) {
+	function preprocess_string($str)
+	{
+		// Menghapus titik dan spasi berlebih
+		$str = str_replace(['.', ',', '  '], ['', '', ' '], $str);
+		// Menghapus spasi di awal dan akhir
+		$str = trim($str);
+		// Konversi ke huruf kecil
+		$str = strtolower($str);
+		return $str;
 	}
 }
 

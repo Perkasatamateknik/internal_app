@@ -68,6 +68,17 @@ class Expense_model extends CI_Model
 		}
 	}
 
+	public function import_batch($insert)
+	{
+		$this->db->trans_start();
+		$this->db->insert_batch('ms_finance_expenses', $insert['data']);
+		$this->db->insert_batch('ms_finance_expense_trans', $insert['items']);
+		$this->db->insert_batch('ms_finance_account_transactions', $insert['trans']);
+		$this->db->trans_complete();
+		return $this->db->trans_status();
+	}
+
+
 	public function update_with_items_and_files($id, $data, $trans, array $items = null, array $files = null)
 	{
 		$this->db->trans_start();

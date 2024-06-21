@@ -1,9 +1,15 @@
 <?php
 if (!defined('BASEPATH')) exit('No direct script access allowed');
 
+require 'vendor/autoload.php';
+
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
 class Expenses extends MY_Controller
 {
-
 	public $redirect_uri;
 	public $redirect_access;
 
@@ -34,6 +40,392 @@ class Expenses extends MY_Controller
 		$this->redirect_uri = 'admin/finance/expense';
 		$this->redirect_access = 'admin/';
 	}
+
+
+	public function export_excell()
+	{
+		ob_start();
+		$spreadsheet = new Spreadsheet();
+		$sheet = $spreadsheet->getActiveSheet();
+		$sheet->setCellValue('A1', 'No');
+		$sheet->setCellValue('B1', 'Nama');
+		$sheet->setCellValue('C1', 'Kelas');
+		$sheet->setCellValue('D1', 'Jenis Kelamin');
+		$sheet->setCellValue('E1', 'Alamat');
+
+		$filename = 'laporan-siswa';
+
+		// header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+		// header('Content-Disposition: attachment;filename=halo.xls');
+		// header('Cache-Control: max-age=0');
+
+		// // If you're serving to IE over SSL, then the following may be needed
+		// header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+		// header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
+		// header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+		// header('Pragma: private'); // HTTP/1.0
+
+
+
+		// $writer = new Xlsx($spreadsheet);
+		// $sheet->setTitle("Laporan Data Siswa"); // Proses file excel
+		header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+		header('Content-Disposition: attachment; filename="Data Siswa.Xlsx"');
+		// Set nama file excel nya
+		header('Cache-Control: max-age=0');
+		ob_end_clean();
+		$writer = new Xlsx($spreadsheet);
+		$writer->save('php://output');
+		exit;
+	}
+
+	public function import_excell()
+	{
+		/* Define return | here result is used to return user data and error for error message */
+		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
+		$Return['csrf_hash'] = $this->security->get_csrf_hash();
+
+
+		$config['upload_path'] = './uploads/';
+		$config['allowed_types'] = 'xlsx|csv';
+		$config['max_size'] = 10000;
+
+		$this->load->library('upload', $config);
+
+		$this->upload->do_upload('file');
+		$data = $this->upload->data();
+		$filePath = $data['full_path'];
+
+		$reader = null;
+
+		// Menggunakan IOFactory untuk menentukan reader berdasarkan ekstensi file
+		$extension = pathinfo($filePath, PATHINFO_EXTENSION);
+		if ($extension == 'xlsx') {
+			$reader = IOFactory::createReader('Xlsx');
+		} elseif ($extension == 'csv') {
+			$reader = IOFactory::createReader('Csv');
+		} else {
+			die('File type not supported');
+		}
+
+		$spreadsheet = $reader->load($filePath);
+		$sheetData = $spreadsheet->getActiveSheet()->toArray();
+
+		// $this->output(['data' => $sheetData]);
+
+		$combinedData = $this->splitAndCombine($sheetData);
+
+		// $import_batch = $this->Expense_model->import_batch($combinedData);
+
+		// if ($import_batch) {
+		// 	$Return['result'] = $this->lang->line('ms_title_success_imported');
+		// 	$this->output($Return);
+		// } else {
+		// 	$Return['error'] = $this->lang->line('ms_title_error');
+		// 	$this->output($Return);
+		// }
+
+		// // $this->validate_import($combinedData);
+
+		echo "<pre>";
+		print_r($combinedData);
+		echo "</pre>";
+	}
+
+	function splitAndCombine($inputData)
+	{
+		/* Define return | here result is used to return user data and error for error message */
+		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
+		$Return['csrf_hash'] = $this->security->get_csrf_hash();
+
+		$user_id = $this->session->userdata()['username']['user_id'] ?? 0;
+
+		$tagihan = [];
+		$data = [];
+		$items = [];
+		$trans = [];
+
+		// Variabel untuk menampung error
+		$error = '';
+
+		$end_digit = rand(100000, 999999);
+
+		foreach ($inputData as $i => $row) {
+			// Skip Row Pertama
+			if ($i == 0) {
+				continue;
+			}
+
+			$contact_id = $row[0];
+			$trans_number = $row[2];
+			$date = $row[3];
+			$due_date = $row[4];
+			$ref = $row[5];
+
+			$account_item = $row[6];
+			$note = $row[7];
+			$ref_tax = $row[8];
+			$amount = (float) $row[9];
+			$is_billed = $row[10];
+			$account_id = $row[11];
+
+			$contact_name = '';
+
+			// Mengubah format "EXP/00001" menjadi "EXP-00001"
+			foreach ($row as &$value) {
+				if (is_string($value) && strpos($value, 'EXP/') !== false) {
+					$value = str_replace('EXP/', 'EXP-', $value);
+				}
+			}
+			unset($value);
+
+			// check data expense
+			$check = $this->Expense_model->get_by_number_doc($trans_number);
+			if ($check) {
+				$error .= "Duplikat " . $trans_number . "<br>";
+			}
+
+			$key = $trans_number; // Menggabungkan berdasarkan Nomor EXP
+			if (is_null($key)) {
+				// skipp if null data
+				continue;
+			}
+
+			$contact = $this->Contact_model->find_contact_by_id($contact_id);
+			if (!is_null($contact)) {
+				$contact_id = $contact->contact_id;
+				$contact_name = $contact->contact_name;
+			} else {
+				$error .= "Akun <b>" . $contact_id . "</b> tidak ditemukan<br>";
+				$contact_id = null;
+			}
+
+			// replace date
+			if (is_null($date)) {
+				// $date = date('Y-m-d');
+				$error .= "Tanggal pada akun <b>" . $key . "</b>  wajib di isi!<br>";
+			} else {
+				$date = date('Y-m-d', strtotime($date));
+			}
+
+			if (is_null($due_date)) {
+				// $due_date = date('Y-m-d');
+				$error .= "Tanggal jatuh tempo pada akun <b>" . $key . "</b>  wajib di isi!<br>";
+			} else {
+				$due_date = date('Y-m-d', strtotime($due_date));
+			}
+
+			// ref trans id
+			$ref_trans_id = $trans_number . "-" . $end_digit;
+
+			if (!isset($tagihan[$key])) {
+
+				// Inisialisasi tagihan jika belum ada
+				$tagihan[$key] = [
+					'amount_tax' => 0,
+					'amount_item' => 0,
+					'amount' => 0,
+				];
+
+				$account = $this->Accounts_model->get_account_by_account_code($account_id);
+				if (!is_null($account)) {
+					$account_id = $account->account_id;
+				} else {
+					$account_id = null;
+					$error .= "Akun <b>" . $account_id . "</b> tidak ditemukan<br>";
+				}
+
+				$data[] = [
+					'account_id' => $account_id,
+					'beneficiary' => $contact_id,
+					'trans_number' => $trans_number,
+					'date' => $date,
+					'due_date' => $due_date,
+					'term' => $ref,
+					'status' => 'unpaid'
+				];
+
+				// masukan semua total ke akun Trade Payble = credit
+				$trans[$key] = [
+					'account_id' => 34, // account_id trade payable
+					'user_id' => $user_id,
+					'account_trans_cat_id' => 4, // = expense
+					'amount' => 0,
+					'date' => $date,
+					'type' => 'credit',
+					'join_id' => $trans_number, // po number
+					'ref' => "Expense",
+					'note' => "Expense: " . $contact_name,
+					'attachment' => null,
+					'ref_trans_id' => $ref_trans_id,
+				];
+			}
+
+			// Menambahkan amount ke total amount berdasarkan $key
+			$amount = (int) $row[9];
+
+			$account_item = $this->Accounts_model->get_account_by_account_code($row[6]);
+			if (!is_null($account_item)) {
+				$account_id_item = $account_item->account_id;
+			} else {
+				$account_id_item = null;
+			}
+
+			$tax_data = $this->Tax_model->find_best_match($row[8]);
+			var_dump($row[8]);
+			if (!is_null($tax_data)) {
+
+				if ($tax_data->type == 'percentage') {
+					$calculate_tax = get_tax_from_amount($amount, $tax_data->rate);
+				} else {
+					$calculate_tax = get_tax_from_amount($amount, $tax_data->rate, true);
+				}
+
+				var_dump($calculate_tax);
+				$tax_rate = $calculate_tax['tax'];
+				$amount_item = $calculate_tax['remaining_amount'];
+
+				if ($tax_data->is_withholding) {
+					$trans[] = [
+						'account_id' => 14, // account_id
+						'user_id' => $user_id,
+						'account_trans_cat_id' => 4,
+						'amount' => $tax_rate,
+						'date' => $date,
+						'type' => 'debit',
+						'join_id' => $trans_number,
+						'ref' => "Expense",
+						'note' => "Expense Tax: " . $contact_name,
+						'attachment' => null,
+						'ref_trans_id' => $ref_trans_id,
+					];
+				} else {
+					$trans[] = [
+						'account_id' => 45, // account_id
+						'user_id' => $user_id,
+						'account_trans_cat_id' => 4,
+						'amount' => $tax_rate,
+						'date' => $date,
+						'type' => 'credit',
+						'join_id' => $trans_number,
+						'ref' => "Expense",
+						'note' => "Expense Tax: " . $contact_name,
+						'attachment' => null,
+						'ref_trans_id' => $ref_trans_id,
+					];
+				}
+			} else {
+				$tax_data = new stdClass();
+				$tax_data->tax_id = 0;
+				$tax_data->rate = 0;
+				$tax_data->type = 0;
+				$tax_data->tax_withholding = 0;
+
+				$tax_rate = 0;
+				$amount_item = $amount;
+			}
+
+			$tagihan[$key]['amount_item'] += $amount_item;
+			$tagihan[$key]['amount_tax'] += $tax_rate;
+			$tagihan[$key]['amount'] += $amount;
+
+			$trans[$key]['amount'] += $amount;
+
+			// $trans[$key]['amount'] += $amount; // Update total amount in data
+
+			$trans[] = [
+				'account_id' => $account_id_item, // account_id
+				'user_id' => $user_id,
+				'account_trans_cat_id' => 4,
+				'amount' => $amount_item,
+				'date' => $date,
+				'type' => 'debit',
+				'join_id' => $trans_number,
+				'ref' => "Expense",
+				'note' => "Expense Payment: " . $contact_name,
+				'attachment' => null,
+				'ref_trans_id' => $ref_trans_id,
+			];
+
+			$items[] = [
+				'trans_number' => $row[2],
+				'account_id' => $account_id_item,
+				'tax_id' => $tax_data->tax_id,
+				'amount' => $amount_item,
+				'note' => $row[7] ?? null,
+			];
+		}
+
+		// Reset array keys to be numerical
+		$trans = array_values($trans);
+
+		// return 
+		if ($error != '') {
+			return $error;
+		} else {
+			return [
+				'error' => $error,
+				'tagihan' => $tagihan,
+				'data' => $data,
+				'items' => $items,
+				'trans' => $trans
+			];
+		}
+	}
+
+
+
+
+	public function validate_import()
+	{
+
+		$batch = $this->data_dummy();
+		$data = [];
+		$items = [];
+
+
+		$sql_contacts = $this->Contact_model->get_all_contact();
+
+		foreach ($contacts as $contact) {
+
+			$match = $this->find_best_match($contact, $sql_contacts);
+			$accuracy = $match['accuracy'];
+			$match = $match['match'];
+
+			if ($match) {
+				echo "Match found for contact: " . $contact['contact_name'] . "\n";
+				echo "Details: \n";
+				echo "Contact Name: " . $match['contact_name'] . "\n";
+				echo "Email: " . $match['email'] . "\n";
+				echo "Phone Number: " . $match['phone_number'] . "\n";
+				echo "Accuracy: " . number_format($accuracy, 2) . "%\n";
+			} else {
+				echo "No match found for contact: " . $contact['contact_name'] . "\n";
+			}
+
+			// var_dump($value['data']);
+			// $data[] = $value['data'];
+			$contact = $this->Contact_model->match_data($value['data'][0], $value['data'][2], $value['data'][4]);
+			// if (is_null($contact)) {
+			// 	var_dump("NULL data");
+			// } else {
+			// 	var_dump($contact);
+			// }
+			var_dump($contact);
+			// foreach ($value['data'] as $r) {
+			// 	var_dump($r);
+			// }
+		}
+	}
+
+
+
+
+
+
+
+
+
 
 	public function index()
 	{
@@ -98,15 +490,16 @@ class Expenses extends MY_Controller
 				$delete = '';
 			}
 
-
 			$data[] = array(
+				'<input type="checkbox" class="select_id" name="select_id[]" value="' . $r->trans_number . '">',
 				$this->Xin_model->set_date_format($r->date),
 				expense_url($r->trans_number),
 				$r->reference ?? "--",
 				$from,
 				status_trans($r->status, true),
 				$to,
-				$this->Xin_model->currency_sign($sisa_tagihan),
+				"<span class='text-danger font-weight-bold'>" . $this->Xin_model->currency_sign($sisa_tagihan) . "</span>",
+				"<span class='text-success font-weight-bold'>" . $this->Xin_model->currency_sign(0) . "</span>",
 				'<div class="dropdown open">
 					<button class="btn btn-default btn-sm m-0" type="button" id="triggerId" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 						<i class="fa fa-ellipsis-v" aria-hidden="true"></i>
@@ -582,4 +975,235 @@ class Expenses extends MY_Controller
 		$this->output($output);
 		exit();
 	}
+
+	function data_dummy()
+	{
+
+		$jayParsedAry = [
+			[
+				"*Nama Kontak|*Nomor Biaya" => [
+					"data" => [
+						"account_id" => "Kode Akun Pembayaran",
+						"contact_name" => "*Nama Kontak",
+						"company_name" => "Nama Perusahaan",
+						"email" => "Email",
+						"address" => "Alamat",
+						"phone" => "Nomor Telepon",
+						"exp_number" => "*Nomor Biaya",
+						"date" => "*Tanggal Transaksi (dd/mm/yyyy)",
+						"due_date" => "Tanggal Jatuh Tempo (dd/mm/yyyy)",
+						"note" => "Catatan"
+					],
+					"item_expense" => [],
+					"items" => [
+						[
+							"trans_number" => "*Nomor Biaya",
+							"account_id" => "*Kode Akun Biaya",
+							"note" => "Deskripsi Biaya",
+							"tax_ref" => "Pajak Biaya",
+							"amount" => "Jumlah Biaya"
+						]
+					]
+				],
+				"Umay Dipa Kusumo|EXP-00001" => [
+					"data" => [
+						"account_id" => "1-10003",
+						"contact_name" => "Umay Dipa Kusumo",
+						"company_name" => "Perum Puspasari Riyanti",
+						"email" => "isetiawan@gmail.co.id",
+						"address" => null,
+						"phone" => "81776685646",
+						"exp_number" => "EXP-00001",
+						"date" => "08/06/2024",
+						"due_date" => "20/06/2024",
+						"note" => null
+					],
+					"item_expense" => [],
+					"items" => [
+						[
+							"trans_number" => "EXP-00001",
+							"account_id" => "5-50300",
+							"note" => null,
+							"tax_ref" => null,
+							"amount" => "5000"
+						]
+					]
+				],
+				"Maras Suwarno|EXP-00002" => [
+					"data" => [
+						"account_id" => "1-10003",
+						"contact_name" => "Maras Suwarno",
+						"company_name" => null,
+						"email" => "ajeng.putra@gmail.co.id",
+						"address" => null,
+						"phone" => null,
+						"exp_number" => "EXP-00002",
+						"date" => "08/06/2024",
+						"due_date" => null,
+						"note" => null
+					],
+					"item_expense" => [],
+					"items" => [
+						[
+							"trans_number" => "EXP-00002",
+							"account_id" => "5-50400",
+							"note" => null,
+							"tax_ref" => "PPH",
+							"amount" => "3000"
+						]
+					]
+				],
+				"Kayla Wahyuni|EXP-00003" => [
+					"data" => [
+						"account_id" => "1-10002",
+						"contact_name" => "Kayla Wahyuni",
+						"company_name" => "PJ Utama Usada",
+						"email" => null,
+						"address" => "Kpg. Bazuka Raya No. 514, Madiun 77403, Kaltara",
+						"phone" => "81094023560",
+						"exp_number" => "EXP-00003",
+						"date" => "08/06/2024",
+						"due_date" => "04/07/2024",
+						"note" => null
+					],
+					"item_expense" => [],
+					"items" => [
+						[
+							"trans_number" => "EXP-00003",
+							"account_id" => "5-50300",
+							"note" => null,
+							"tax_ref" => "PPH",
+							"amount" => "3000"
+						]
+					]
+				],
+				"Cawisadi Sihombing|EXP-10001" => [
+					"data" => [
+						"account_id" => "1-10002",
+						"contact_name" => "Cawisadi Sihombing",
+						"company_name" => "PD Wijayanti Waluyo (Persero) Tbk",
+						"email" => null,
+						"address" => "Gg. Basoka Raya No. 756, Makassar 13154, Sulsel",
+						"phone" => "81006692375",
+						"exp_number" => "EXP-10001",
+						"date" => "08/06/2024",
+						"due_date" => null,
+						"note" => null
+					],
+					"item_expense" => [],
+					"items" => [
+						[
+							"trans_number" => "EXP-10001",
+							"account_id" => "5-50000",
+							"note" => null,
+							"tax_ref" => null,
+							"amount" => "1000"
+						],
+						[
+							"trans_number" => "EXP-10001",
+							"account_id" => "5-50100",
+							"note" => null,
+							"tax_ref" => "PPN",
+							"amount" => "2500"
+						],
+						[
+							"trans_number" => "EXP-10001",
+							"account_id" => "5-50200",
+							"note" => null,
+							"tax_ref" => "PPN",
+							"amount" => "5000"
+						]
+					]
+				]
+			]
+		];
+
+
+
+		return $jayParsedAry;
+	}
 }
+
+
+// function splitAndCombine($inputData)
+// {
+// 	$result = [];
+
+// 	foreach ($inputData as $i => $row) {
+
+// 		if ($i == 0) {
+// 			continue;
+// 		}
+
+// 		// replace
+// 		$row[5] = str_replace('EXP/', 'EXP-', $row[5]);
+
+// 		$key = $row[5]; // Menggabungkan berdasarkan Nama dan Nomor EXP
+
+// 		if (!isset($result[$key])) {
+// 			$result[$key] = [
+// 				'data' => array_slice($row, 0, 10),
+// 				'items' => []
+// 			];
+// 		}
+
+// 		$result[$key]['items'][] = array_slice($row, 10);
+// 	}
+
+// 	return $result;
+// }
+
+
+// function splitAndCombine($inputData)
+// {
+// 	$result = [];
+
+// 	foreach ($inputData as $row) {
+// 		// Mengubah format "EXP/00001" menjadi "EXP-00001"
+// 		foreach ($row as &$value) {
+// 			if (is_string($value) && strpos($value, 'EXP/') !== false
+// 			) {
+// 				$value = str_replace('EXP/', 'EXP-', $value);
+// 			}
+// 		}
+// 		unset($value);
+
+// 		$key = $row[0] . '|' . $row[5]; // Menggabungkan berdasarkan Nama dan Nomor EXP
+
+// 		if (!isset($result[$key])) {
+// 			$result[$key] = [
+// 				'data' => [
+// 					'account_id' => $row[15],
+// 					'contact_name' => $row[0],
+// 					'company_name' => $row[1],
+// 					'email' => $row[2],
+// 					'address' => $row[3],
+// 					'phone' => $row[4],
+// 					'exp_number' => $row[5],
+// 					'date' => $row[6],
+// 					'due_date' => $row[7],
+// 					'note' => $row[8],
+// 				],
+// 				'item_expense' => []
+// 			];
+// 		}
+
+// 		$result[$key]['items'][] = [
+// 			'trans_number' => $row[5],
+// 			// 'with_tax' => $row[9],
+// 			'account_id' => $row[10],
+// 			'note' => $row[11],
+// 			'tax_ref' => $row[12],
+// 			// 'tax' => $row[13],
+// 			'amount' => $row[13],
+// 			// 'reimbursable' => $row[15],
+// 			// 'cost_center' => $row[16],
+// 			// 'department' => $row[17],
+// 			// 'tax_amount' => $row[18],
+// 			// 'total_amount' => $row[19],
+// 			// 'item_date' => $row[20],
+// 		];
+// 	}
+
+// 	return $result;
+// }

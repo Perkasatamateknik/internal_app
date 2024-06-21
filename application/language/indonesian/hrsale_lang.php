@@ -3279,7 +3279,8 @@ $lang['ms_title_select_department'] = "-- Pilih Departemen --";
 $lang['ms_title_paid_expenses'] = "Beban Dibayar";
 $lang['ms_title_success_edited'] = "Data berhasil diperbarui!";
 $lang['ms_title_success_updated'] = "Data berhasil diperbarui!";
-$lang['ms_title_success_added'] = "Data berhasil ditambahkan";
+$lang['ms_title_success_added'] = "Data berhasil ditambahkan!";
+$lang['ms_title_success_imported'] = "Data berhasil di-import!";
 $lang['ms_title_success_deleted'] = "Data berhasil dihapus!";
 $lang['ms_title_error_server'] = "Server Internal Error";
 $lang['ms_title_error'] = "oops, Terjadi Kesalahan!";
@@ -3408,6 +3409,8 @@ $lang['ms_title_equity_movement'] = "Equity Movement";
 $lang['ms_title_compare'] = "Compare";
 $lang['ms_title_period'] = "Periode";
 $lang['ms_title_month_year'] = "Month/Year";
+$lang['ms_title_import'] = "Import";
+$lang['ms_title_export'] = "Export";
 /////////////////////////////////////////////////// akhir hrsale v2.0.1
 
 /* End of file hrsale_lang.php */

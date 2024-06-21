@@ -27,6 +27,12 @@ class Accounts_model extends CI_Model
 		return $this->db->get("ms_finance_accounts")->row();
 	}
 
+	public function get_account_by_account_code($id)
+	{
+		$this->db->where('account_code', $id);
+		return $this->db->get("ms_finance_accounts")->row();
+	}
+
 	public function get_account_by_cat($id)
 	{
 		$this->db->where('category_id', $id);

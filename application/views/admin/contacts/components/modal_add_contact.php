@@ -8,7 +8,7 @@
 					<span aria-hidden="true">&times;</span>
 				</button>
 			</div>
-			<?php $attributes = array('name' => 'contacts', 'id' => 'contacts_form', 'autocomplete' => 'off', 'class' => 'm-b-1 add'); ?>
+			<?php $attributes = array('name' => 'contacts', 'id' => 'contacts_forsm', 'autocomplete' => 'off', 'class' => 'm-b-1 add'); ?>
 			<?php $hidden = array('contacts' => 'UPDATE'); ?>
 			<?php echo form_open('admin/contacts/store', $attributes, $hidden); ?>
 			<div class="form-body">
