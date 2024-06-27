@@ -109,7 +109,7 @@ class Purchase_orders extends Purchasing
 		exit();
 	}
 
-	
+
 	public function insert()
 	{
 		// Get the input data
@@ -767,5 +767,10 @@ class Purchase_orders extends Purchasing
 			}
 			$this->output($Return);
 		}
+	}
+
+	public function migrate_contact()
+	{
+		$this->Purchase_model->update_beneficiary_format();
 	}
 }

@@ -131,56 +131,6 @@ $(function () {
 		});
 	});
 
-	$("#import_form").submit(function (e) {
-		/*Form Submit*/
-		e.preventDefault();
-		var obj = $(this),
-			action = obj.attr("name");
-		var formData = new FormData(obj[0]);
-		formData.append("form", action);
-		jQuery(".save").prop("disabled", true);
-		$(".icon-spinner3").show();
-		jQuery.ajax({
-			type: "POST",
-			enctype: "multipart/form-data",
-			url: e.target.action,
-			data: formData,
-			cache: false,
-			processData: false, // Important for FormData
-			contentType: false, // Important for FormData
-			success: function (JSON) {
-				console.log(JSON.data);
-				if (JSON.error != "") {
-					toastr.error(JSON.error);
-					$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
-					$(".save").prop("disabled", false);
-					$(".icon-spinner3").hide();
-					Ladda.stopAll();
-				} else {
-					toastr.options = {
-						timeOut: 500,
-						onHidden: function () {
-							window.location.reload();
-						},
-					};
-					toastr.success(JSON.result);
-
-					$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
-					$(".icon-spinner3").hide();
-					$(".save").prop("disabled", false);
-					Ladda.stopAll();
-				}
-			},
-			error: function (xhr, status, error) {
-				toastr.error("Error: " + status + " | " + error);
-				$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
-				$(".icon-spinner3").hide();
-				$(".save").prop("disabled", false);
-				Ladda.stopAll();
-			},
-		});
-	});
-
 	$("#selectAll").click(function (e) {
 		if ($(this).is(":checked")) {
 			$(".select_id").prop("checked", true);
@@ -208,6 +158,117 @@ $(function () {
 		$("#select_due_date").val(0).trigger();
 	});
 });
+
+function modalImport() {
+	$.ajax({
+		type: "GET",
+		url: site_url + "/finance/expenses/ajax_modal_import",
+		dataType: "json",
+		success: function (response) {
+			$("#modal-view").html(response.data);
+			$("#modal-import").modal({
+				backdrop: "static",
+				keyboard: false,
+			});
+
+			$("#modal-import").modal("show");
+		},
+	});
+}
+
+function modalBulkPayment(id) {
+	console.log(id);
+	$.ajax({
+		type: "GET",
+		url: site_url + "/finance/expenses/ajax_modal_bulk_payment",
+		data: {
+			id: id,
+		},
+		dataType: "json",
+		success: function (response) {
+			$("#modal-view").html(response.data);
+			$("#modal-import").modal({
+				backdrop: "static",
+				keyboard: false,
+			});
+
+			$("#modal-import").modal("show");
+		},
+	});
+}
+
+// $(document).ready(function () {
+// 	$("#table_form").submit(function (event) {
+// 		event.preventDefault();
+// 		var selected = [];
+// 		$(".select_id:checked").each(function () {
+// 			selected.push($(this).val());
+// 		});
+
+// 		if (selected.length > 0) {
+// 			$.ajax({
+// 				url: site_url + "/finance/expenses/ajax_modal_bulk_payment",
+// 				type: "GET",
+// 				data: { expense_ids: selected },
+// 				success: function (data) {},
+// 			});
+// 		} else {
+// 			alert("Please select at least one expense.");
+// 		}
+// 	});
+// });
+
+$("#bulk_payment").click(function () {
+	var selected = [];
+	$(".select_id:checked").each(function () {
+		selected.push($(this).val());
+	});
+
+	if (selected.length > 0) {
+		$.ajax({
+			url: site_url + "/finance/expenses/ajax_modal_bulk_payment",
+			type: "get",
+			dataType: "json",
+			data: { select_id: selected },
+			success: function (response) {
+				$("#modal-view").html(response.data);
+				$("#modal-bulk").modal({
+					backdrop: "static",
+					keyboard: false,
+				});
+
+				$("#modal-bulk").modal("show");
+				$("#selectAll").prop("checked", false);
+			},
+		});
+	} else {
+		toastr.error("Please select at least one expense.");
+	}
+});
+
+function handleBulkAction(actionUrl) {
+	var selected = [];
+	$(".selected_id:checked").each(function () {
+		selected.push($(this).val());
+	});
+
+	if (selected.length > 0) {
+		$.ajax({
+			url: actionUrl,
+			type: "GET",
+			data: { expense_ids: selected },
+			success: function (data) {
+				var response = JSON.parse(data);
+				if (response.status === "success") {
+					alert("Action completed successfully.");
+					location.reload(); // Reload the page to reflect changes
+				}
+			},
+		});
+	} else {
+		alert("Please select at least one expense.");
+	}
+}
 
 function calculateDueDate(startDate, duration, durationType) {
 	var dueDate = new Date(startDate);
@@ -270,7 +331,7 @@ $(document).ready(function () {
 					Ladda.stopAll();
 				} else {
 					$(".delete-modal").modal("toggle");
-					otable.api().ajax.reload(function () {
+					otable.ajax.reload(function () {
 						toastr.success(JSON.result);
 					}, true);
 					$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
@@ -463,11 +524,6 @@ function select_tax(x) {
 		},
 	});
 }
-
-// Fungsi edit otomatic kaluasi saat load
-$(document).on("load", function () {
-	// update_total();
-});
 
 // Calculate subtotal whenever row_qty or row_item_price is changed
 $(document).on(

@@ -3,12 +3,6 @@
 		<h4 class="font-weight-bold mt-3"><?php echo $breadcrumbs; ?></h4>
 	</div>
 </div> -->
-<?php
-
-if (!is_numeric($this->input->get('back_id'))) {
-	redirect('admin/contacts');
-}
-?>
 
 <?php $attributes = array('name' => 'liabilities_form', 'id' => 'liabilities_form', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
 <?php $hidden = array('type' => 'liabilities', '_token' => $record->trans_number); ?>
@@ -17,7 +11,7 @@ if (!is_numeric($this->input->get('back_id'))) {
 	<div class="col-md-12">
 		<div class="card mb-3">
 			<div class="card-header">
-				<a href="<?= base_url('admin/contacts/view/' . $this->input->get('back_id')) ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
+				<a href="javascript:history.back()" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
 			</div>
 			<div class="card-body">
 				<div class="row">

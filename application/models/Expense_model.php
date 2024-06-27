@@ -43,6 +43,12 @@ class Expense_model extends CI_Model
 		return $this->db->get("ms_finance_expenses");
 	}
 
+	public function get_in_trans_number($id)
+	{
+		$this->db->where_in('trans_number', $id);
+		return $this->db->get("ms_finance_expenses");
+	}
+
 	public function get_last_spend()
 	{
 		return $this->db->select('*')
@@ -70,6 +76,11 @@ class Expense_model extends CI_Model
 
 	public function import_batch($insert)
 	{
+
+		// if (count($insert['data']) == 0 || count($insert['items']) == 0 || count($insert['trans'])) {
+		// 	return false;
+		// }
+
 		$this->db->trans_start();
 		$this->db->insert_batch('ms_finance_expenses', $insert['data']);
 		$this->db->insert_batch('ms_finance_expense_trans', $insert['items']);
@@ -180,5 +191,53 @@ class Expense_model extends CI_Model
 
 		$this->db->trans_complete();
 		return $this->db->trans_status();
+	}
+
+	public function bulk_paymnet($ids)
+	{
+
+		// $exp = $this->db->select('trans_number')->get('ms_finance_expenses')->result_array();
+		// $ids = [];
+		// foreach ($exp as $e) {
+		// 	$ids[] = $e['trans_number'];
+		// }
+
+		$tagihan = [];
+		$can_pay = [];
+		$cant_pay = [];
+
+		$amount = [
+			'can_pay' => 0,
+			'cant_pay' => 0
+		];
+
+		foreach ($this->get_in_trans_number($ids)->result() as $row) {
+			$tagihan = $this->get_payment(4, $row->trans_number);
+
+			$contact = $this->db->where('contact_id', $row->beneficiary)->get('ms_contacts')->row();
+			if ($tagihan->sisa_tagihan > 0) {
+				$can_pay[] = [
+					'sisa_tagihan' => $tagihan->sisa_tagihan,
+					'trans_number' => $row->trans_number,
+					'account_id' => $row->account_id,
+					'contact' => $contact->contact_name,
+				];
+
+				$amount['can_pay'] += $tagihan->sisa_tagihan;
+			} else {
+				$cant_pay[] = [
+					'sisa_tagihan' => $tagihan->sisa_tagihan,
+					'trans_number' => $row->trans_number,
+					'account_id' => $row->account_id,
+					'contact' => $contact->contact_name,
+				];
+				$amount['cant_pay'] += $tagihan->jumlah_tagihan;
+			}
+		}
+		return [
+			'cant_pay' => $cant_pay,
+			'can_pay' => $can_pay,
+			'amount' => $amount
+		];
 	}
 }

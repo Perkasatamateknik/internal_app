@@ -4,15 +4,6 @@
 	</div>
 </div>
 
-<?php
-
-if (!is_null($this->input->get('back_id'))) {
-	$back = "view/" . $this->input->get('back_id');
-} else {
-	$back = "liabilities";
-} ?>
-
-
 <?php $attributes = array('name' => 'liabilities_form', 'id' => 'liabilities_form', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
 <?php $hidden = array('liabilities' => 'UPDATE', '_token' => $record->trans_number); ?>
 <?php echo form_open('admin/contacts/liability_store', $attributes, $hidden); ?>
@@ -20,7 +11,7 @@ if (!is_null($this->input->get('back_id'))) {
 	<div class="col-md-12">
 		<div class="card mb-3">
 			<div class="card-header">
-				<a href="<?= base_url('admin/contacts/' . $back) ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
+				<a href="javascript:history.back()" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
 			</div>
 			<div class="card-body">
 				<div class="row">

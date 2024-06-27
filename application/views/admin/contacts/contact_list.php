@@ -95,6 +95,7 @@ $reports_to = get_reports_team_data($session['user_id']); ?>
 						<thead>
 							<tr>
 								<th><?= $this->lang->line('xin_action'); ?></th>
+								<th><?= $this->lang->line('ms_title_contact_id'); ?></th>
 								<th><?= $this->lang->line('ms_title_name_and_type'); ?></th>
 								<th><?= $this->lang->line('ms_title_company'); ?></th>
 								<th><?= $this->lang->line('ms_title_contact'); ?></th>

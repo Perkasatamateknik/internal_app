@@ -81,55 +81,199 @@ class Expenses extends MY_Controller
 
 	public function import_excell()
 	{
+
 		/* Define return | here result is used to return user data and error for error message */
-		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
+		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '', 'validate_error' => '');
 		$Return['csrf_hash'] = $this->security->get_csrf_hash();
 
 
-		$config['upload_path'] = './uploads/';
-		$config['allowed_types'] = 'xlsx|csv';
+		$config['upload_path'] = './uploads/temp';
+		$config['allowed_types'] = 'xls|xlsx';
 		$config['max_size'] = 10000;
 
 		$this->load->library('upload', $config);
 
-		$this->upload->do_upload('file');
-		$data = $this->upload->data();
-		$filePath = $data['full_path'];
-
-		$reader = null;
-
-		// Menggunakan IOFactory untuk menentukan reader berdasarkan ekstensi file
-		$extension = pathinfo($filePath, PATHINFO_EXTENSION);
-		if ($extension == 'xlsx') {
-			$reader = IOFactory::createReader('Xlsx');
-		} elseif ($extension == 'csv') {
-			$reader = IOFactory::createReader('Csv');
-		} else {
-			die('File type not supported');
+		if (!$this->upload->do_upload('file')) {
+			$Return['validate_error'] = $this->upload->display_errors();
+			$this->output($Return);
 		}
 
-		$spreadsheet = $reader->load($filePath);
+		$data = $this->upload->data();
+		$file_path = $data['full_path'];
+
+		// Menggunakan IOFactory untuk menentukan reader berdasarkan ekstensi file
+		$extension = pathinfo($file_path, PATHINFO_EXTENSION);
+
+		// $reader = IOFactory::createReader('Xlsx');
+		// $spreadsheet = $reader->load($file_path);
+		$spreadsheet = IOFactory::load($file_path);
 		$sheetData = $spreadsheet->getActiveSheet()->toArray();
 
-		// $this->output(['data' => $sheetData]);
+		$is_validate = $this->validate_import($sheetData);
 
-		$combinedData = $this->splitAndCombine($sheetData);
+		// Hapus file yang diunggah
+		unlink($file_path);
+		$split_combine = $this->splitAndCombine($sheetData);
 
-		// $import_batch = $this->Expense_model->import_batch($combinedData);
+		// dd($split_combine);
+		if ($is_validate == true) {
+			$split_combine = $this->splitAndCombine($sheetData);
+			$import_batch = $this->Expense_model->import_batch($split_combine);
 
-		// if ($import_batch) {
-		// 	$Return['result'] = $this->lang->line('ms_title_success_imported');
-		// 	$this->output($Return);
-		// } else {
-		// 	$Return['error'] = $this->lang->line('ms_title_error');
-		// 	$this->output($Return);
-		// }
+			if ($import_batch) {
+				$Return['result'] = $this->lang->line('ms_title_success_imported');
+				$this->output($Return);
+			}
+		}
 
-		// // $this->validate_import($combinedData);
+		$Return['error'] = $this->lang->line('ms_title_error');
+		$this->output($Return);
+	}
 
-		echo "<pre>";
-		print_r($combinedData);
-		echo "</pre>";
+	function validate_import($inputData)
+	{
+		/* Define return | here result is used to return user data and error for error message */
+		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '', 'validate_error' => '');
+		$Return['csrf_hash'] = $this->security->get_csrf_hash();
+
+		$rowIndex = 2;
+
+		// Variabel untuk menampung error
+		$error = [];
+		if (count($inputData) == 0) {
+			$error[] = "Data is empty!";
+		}
+
+		foreach ($inputData as $i => $row) {
+			// Skip Row Pertama
+			if ($i == 0) {
+				continue;
+			}
+
+			$contact_id = $row[0];
+			$trans_number = str_replace('/', '-', $row[2]);
+			$date = $row[3];
+			$due_date = $row[4];
+			$ref = $row[5];
+
+			$account_item = $row[6];
+			$note = $row[7];
+			$ref_tax = $row[8];
+			$amount = (float) $row[9];
+			$is_billed = $row[10];
+			$account_id = $row[11];
+
+
+			$contact = $this->Contact_model->find_contact_by_id($contact_id);
+			if (is_null($contact)) {
+				$error[] =  "A" . $rowIndex . " | " . "Kontak <b>" . $contact_id . "</b> tidak ditemukan";
+			}
+
+			if (is_null($trans_number)) {
+				$error[] =  "C" . $rowIndex . " | " . "Nomor Dokumen wajib di isi!<br>";
+			}
+
+			$check_format = validate_expense_format($trans_number);
+			if ($check_format) {
+				$error[] =  "C" . $rowIndex . " | " .  "Format Nomor Biaya " . $row[2] . " tidak sesuai!";
+			}
+
+			$check = $this->Expense_model->get_by_number_doc($trans_number);
+			if ($check) {
+				$error[] =  "C" . $rowIndex . " | " .  "Duplikat " . $trans_number;
+			}
+
+			if (is_null($date)) {
+				$error[] =  "D" . $rowIndex . " | " . "Tanggal wajib di isi!";
+			}
+
+			if (is_null($due_date)) {
+				$error[] =  "E" . $rowIndex . " | " . "Tanggal jatuh tempo wajib di isi!";
+			}
+
+			$data_account_item = $this->Accounts_model->get_account_by_account_code($account_item);
+			if (is_null($data_account_item)) {
+				$error[] = "G" . $rowIndex . " | " .  "Akun <b>" . $account_item . "</b> tidak ditemukan!";
+			}
+
+			if (!is_null($ref_tax)) {
+				$tax_data = $this->Tax_model->find_best_match($ref_tax);
+				if (is_null($tax_data)) {
+					$error[] =  "I" . $rowIndex . " | " .  "Pajak <b>" . $ref_tax . "</b> tidak ditemukan!";
+				} else {
+					if ($tax_data->type == 'fixed' && $tax_data->rate > $amount) {
+						$error[] =  "I" . $rowIndex . " | " .  "Nilai pajak <b>" . $ref_tax . "</b> lebih besar dari total!";
+					}
+				}
+			}
+
+			if (is_null($amount)) {
+				$error[] = "J" . $rowIndex . " | " .   "Amount wajib di isi!";
+			}
+
+			if ($amount < 0) {
+				$error[] =  "J" . $rowIndex . " | " .  "Amount tidak boleh kurang dari 0!";
+			}
+
+			if (!in_array($is_billed, ['Ya', 'Tidak'])) {
+				$error[] =  "K" . $rowIndex . " | " .  "Status dibayar tidak sesuai format!";
+			}
+
+			$account = $this->Accounts_model->get_account_by_account_code($account_id);
+			if (is_null($account)) {
+				$error[] =  "L" . $rowIndex . " | " . "Akun <b>" . $account_id . "</b> tidak ditemukan!";
+			}
+
+			$rowIndex++;
+		}
+
+		// return 
+		if (count($error) != 0) {
+			$view_error = $this->error_validate($error);
+			$Return['validate_error'] = $view_error;
+			$this->output($Return);
+			exit;
+		} else {
+			return true;
+		}
+	}
+
+	public function error_validate($data)
+	{
+
+		$html = '';
+		$html .=  "<table class='table table-sm table-borderless'>";
+		$html .= "<tr><td colspan='3'><h4>Terjadi kesalahan import pada :</h4></td></tr>";
+		foreach ($data as $r) {
+			$split = explode("|", $r);
+			$html .= "<tr>";
+			// $html .= "<td> &bull; </td>";
+			$html .= "<td><strong>$split[0]</strong></td>";
+			$html .= "<td> : </td>";
+			$html .= "<td class='text-danger'>" . $split[1] . "</td>";
+			$html .= "</tr>";
+		}
+		$html .= "</table>";
+
+		return $html;
+	}
+
+	public function error_upload($data)
+	{
+		$html = '';
+		$html .=  "<table class='table table-sm table-borderless'>";
+		$html .= "<tr><td colspan='3'><h4>Oops. Terjadi kesalahan!</h4></td></tr>";
+		foreach ($data as $key => $val) {
+			$html .= "<tr>";
+			// $html .= "<td> &bull; </td>";
+			$html .= "<td><strong>$key</strong></td>";
+			$html .= "<td> : </td>";
+			$html .= "<td class='text-danger'>" . $val . "</td>";
+			$html .= "</tr>";
+		}
+		$html .= "</table>";
+
+		return $html;
 	}
 
 	function splitAndCombine($inputData)
@@ -145,9 +289,6 @@ class Expenses extends MY_Controller
 		$items = [];
 		$trans = [];
 
-		// Variabel untuk menampung error
-		$error = '';
-
 		$end_digit = rand(100000, 999999);
 
 		foreach ($inputData as $i => $row) {
@@ -157,9 +298,11 @@ class Expenses extends MY_Controller
 			}
 
 			$contact_id = $row[0];
-			$trans_number = $row[2];
-			$date = $row[3];
-			$due_date = $row[4];
+			$trans_number = str_replace('/', '-', $row[2]);
+			// replace date
+
+			$date = date('Y-m-d', strtotime(str_replace('/', '-', $row[3])));
+			$due_date = date('Y-m-d', strtotime(str_replace('/', '-', $row[4])));
 			$ref = $row[5];
 
 			$account_item = $row[6];
@@ -171,20 +314,6 @@ class Expenses extends MY_Controller
 
 			$contact_name = '';
 
-			// Mengubah format "EXP/00001" menjadi "EXP-00001"
-			foreach ($row as &$value) {
-				if (is_string($value) && strpos($value, 'EXP/') !== false) {
-					$value = str_replace('EXP/', 'EXP-', $value);
-				}
-			}
-			unset($value);
-
-			// check data expense
-			$check = $this->Expense_model->get_by_number_doc($trans_number);
-			if ($check) {
-				$error .= "Duplikat " . $trans_number . "<br>";
-			}
-
 			$key = $trans_number; // Menggabungkan berdasarkan Nomor EXP
 			if (is_null($key)) {
 				// skipp if null data
@@ -192,28 +321,10 @@ class Expenses extends MY_Controller
 			}
 
 			$contact = $this->Contact_model->find_contact_by_id($contact_id);
-			if (!is_null($contact)) {
-				$contact_id = $contact->contact_id;
-				$contact_name = $contact->contact_name;
-			} else {
-				$error .= "Akun <b>" . $contact_id . "</b> tidak ditemukan<br>";
-				$contact_id = null;
-			}
+			$contact_id = $contact->contact_id;
+			$contact_name = $contact->contact_name;
 
-			// replace date
-			if (is_null($date)) {
-				// $date = date('Y-m-d');
-				$error .= "Tanggal pada akun <b>" . $key . "</b>  wajib di isi!<br>";
-			} else {
-				$date = date('Y-m-d', strtotime($date));
-			}
 
-			if (is_null($due_date)) {
-				// $due_date = date('Y-m-d');
-				$error .= "Tanggal jatuh tempo pada akun <b>" . $key . "</b>  wajib di isi!<br>";
-			} else {
-				$due_date = date('Y-m-d', strtotime($due_date));
-			}
 
 			// ref trans id
 			$ref_trans_id = $trans_number . "-" . $end_digit;
@@ -228,12 +339,7 @@ class Expenses extends MY_Controller
 				];
 
 				$account = $this->Accounts_model->get_account_by_account_code($account_id);
-				if (!is_null($account)) {
-					$account_id = $account->account_id;
-				} else {
-					$account_id = null;
-					$error .= "Akun <b>" . $account_id . "</b> tidak ditemukan<br>";
-				}
+				$account_id = $account->account_id;
 
 				$data[] = [
 					'account_id' => $account_id,
@@ -241,7 +347,7 @@ class Expenses extends MY_Controller
 					'trans_number' => $trans_number,
 					'date' => $date,
 					'due_date' => $due_date,
-					'term' => $ref,
+					'reference' => $ref,
 					'status' => 'unpaid'
 				];
 
@@ -259,29 +365,49 @@ class Expenses extends MY_Controller
 					'attachment' => null,
 					'ref_trans_id' => $ref_trans_id,
 				];
+
+				// if ($is_billed == "Ya") {
+				// 	$trans[] = [
+				// 		'account_id' => $account_id, // account_id
+				// 		'user_id' => $user_id,
+				// 		'account_trans_cat_id' => 4,
+				// 		'amount' => 0,
+				// 		'date' => $date,
+				// 		'type' => 'credit',
+				// 		'join_id' => $trans_number,
+				// 		'ref' => "Expense",
+				// 		'note' => "Expense Payment: " . $contact_name,
+				// 		'attachment' => null,
+				// 		'ref_trans_id' => $ref_trans_id,
+				// 	];
+
+				// 	$trans[$key] = [
+				// 		'account_id' => 34, // account_id trade payable
+				// 		'user_id' => $user_id,
+				// 		'account_trans_cat_id' => 4, // = expense
+				// 		'amount' => 0,
+				// 		'date' => $date,
+				// 		'type' => 'credit',
+				// 		'join_id' => $trans_number, // po number
+				// 		'ref' => "Expense",
+				// 		'note' => "Expense: " . $contact_name,
+				// 		'attachment' => null,
+				// 		'ref_trans_id' => $ref_trans_id,
+				// 	];
+				// }
 			}
 
-			// Menambahkan amount ke total amount berdasarkan $key
-			$amount = (int) $row[9];
+			$data_account_item = $this->Accounts_model->get_account_by_account_code($account_item);
+			$account_id_item = $data_account_item->account_id;
+			if (!is_null($ref_tax)) {
 
-			$account_item = $this->Accounts_model->get_account_by_account_code($row[6]);
-			if (!is_null($account_item)) {
-				$account_id_item = $account_item->account_id;
-			} else {
-				$account_id_item = null;
-			}
-
-			$tax_data = $this->Tax_model->find_best_match($row[8]);
-			var_dump($row[8]);
-			if (!is_null($tax_data)) {
-
+				$tax_data = $this->Tax_model->find_best_match($ref_tax);
 				if ($tax_data->type == 'percentage') {
 					$calculate_tax = get_tax_from_amount($amount, $tax_data->rate);
 				} else {
 					$calculate_tax = get_tax_from_amount($amount, $tax_data->rate, true);
 				}
 
-				var_dump($calculate_tax);
 				$tax_rate = $calculate_tax['tax'];
 				$amount_item = $calculate_tax['remaining_amount'];
 
@@ -314,15 +440,31 @@ class Expenses extends MY_Controller
 						'ref_trans_id' => $ref_trans_id,
 					];
 				}
-			} else {
-				$tax_data = new stdClass();
-				$tax_data->tax_id = 0;
-				$tax_data->rate = 0;
-				$tax_data->type = 0;
-				$tax_data->tax_withholding = 0;
 
+				$items[] = [
+					'trans_number' => $trans_number,
+					'account_id' => $account_id_item,
+					'tax_id' => $tax_data->tax_id,
+					'tax_rate' => $tax_rate,
+					'tax_type' => $tax_data->type,
+					'tax_withholding' => $tax_data->is_withholding,
+					'amount' => $amount_item,
+					'note' => $note ?? null,
+				];
+			} else {
 				$tax_rate = 0;
 				$amount_item = $amount;
+
+				$items[] = [
+					'trans_number' => $trans_number,
+					'account_id' => $account_id_item,
+					'tax_id' => 0,
+					'tax_rate' => 0,
+					'tax_type' => 0,
+					'tax_withholding' => 0,
+					'amount' => $amount_item,
+					'note' => $note ?? null,
+				];
 			}
 
 			$tagihan[$key]['amount_item'] += $amount_item;
@@ -346,37 +488,21 @@ class Expenses extends MY_Controller
 				'attachment' => null,
 				'ref_trans_id' => $ref_trans_id,
 			];
-
-			$items[] = [
-				'trans_number' => $row[2],
-				'account_id' => $account_id_item,
-				'tax_id' => $tax_data->tax_id,
-				'amount' => $amount_item,
-				'note' => $row[7] ?? null,
-			];
 		}
 
 		// Reset array keys to be numerical
 		$trans = array_values($trans);
 
-		// return 
-		if ($error != '') {
-			return $error;
-		} else {
-			return [
-				'error' => $error,
-				'tagihan' => $tagihan,
-				'data' => $data,
-				'items' => $items,
-				'trans' => $trans
-			];
-		}
+		return [
+			'tagihan' => $tagihan,
+			'data' => $data,
+			'items' => $items,
+			'trans' => $trans
+		];
 	}
 
 
-
-
-	public function validate_import()
+	public function validate_import1()
 	{
 
 		$batch = $this->data_dummy();
@@ -418,7 +544,29 @@ class Expenses extends MY_Controller
 		}
 	}
 
+	public function ajax_modal_import()
+	{
+		$data['all_contact_type'] = $this->Contact_model->get_all_contact()->result();
+		$html = $this->load->view("admin/finance/expense/components/modal_import", $data, TRUE);
 
+		return $this->output([
+			'data' => $html
+		]);
+	}
+
+	public function ajax_modal_bulk_payment()
+	{
+		$ids = $this->input->get('select_id');
+		$records = $this->Expense_model->bulk_paymnet($ids);
+
+		// dd($records);
+		$html = $this->load->view("admin/finance/expense/components/modal_bulk_payment", $records, TRUE);
+
+		return $this->output([
+			'data' => $html,
+
+		]);
+	}
 
 
 
@@ -490,6 +638,9 @@ class Expenses extends MY_Controller
 				$delete = '';
 			}
 
+			// get_payment
+			$payment_data = $this->Expense_model->get_payment(4, $r->trans_number);
+
 			$data[] = array(
 				'<input type="checkbox" class="select_id" name="select_id[]" value="' . $r->trans_number . '">',
 				$this->Xin_model->set_date_format($r->date),
@@ -498,8 +649,8 @@ class Expenses extends MY_Controller
 				$from,
 				status_trans($r->status, true),
 				$to,
-				"<span class='text-danger font-weight-bold'>" . $this->Xin_model->currency_sign($sisa_tagihan) . "</span>",
-				"<span class='text-success font-weight-bold'>" . $this->Xin_model->currency_sign(0) . "</span>",
+				"<span class='text-danger font-weight-bold'>" . $this->Xin_model->currency_sign($payment_data->sisa_tagihan) . "</span>",
+				"<span class='text-success font-weight-bold'>" . $this->Xin_model->currency_sign($payment_data->jumlah_tagihan) . "</span>",
 				'<div class="dropdown open">
 					<button class="btn btn-default btn-sm m-0" type="button" id="triggerId" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 						<i class="fa fa-ellipsis-v" aria-hidden="true"></i>
@@ -915,7 +1066,7 @@ class Expenses extends MY_Controller
 
 		$insert = $this->Account_trans_model->insert_payment($trans);
 
-		// // check if all tagihan is paid or partially paid
+		// check if all tagihan is paid or partially paid
 		$check_tagihan = $this->Expense_model->get_payment(4, $trans_number);
 
 		if ($check_tagihan->sisa_tagihan == 0) {
@@ -934,6 +1085,80 @@ class Expenses extends MY_Controller
 			$this->output($Return);
 		}
 	}
+
+	public function bulk_store_payment()
+	{
+		/* Define return | here result is used to return user data and error for error message */
+		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
+		$Return['csrf_hash'] = $this->security->get_csrf_hash();
+
+		$trans = [];
+		$update_log = [];
+
+		$date = $this->input->post('date');
+		$payment_ref = $this->input->post('payment_ref');
+
+		// get user id
+		$user_id = $this->session->userdata('username')['user_id'];
+
+		for ($i = 0; $i < count($trans_number = $this->input->post('_token')); $i++) {
+			$trans_number = $this->input->post('_token')[$i];
+			$source_payment_account = $this->input->post('source_payment_account')[$i];
+			$contact = $this->input->post('contact')[$i];
+
+			// tagihan
+			$tagihan = $this->input->post('amount_due')[$i];
+
+			// uang yang dibayar
+			$amount_paid = $this->input->post('amount_paid')[$i];
+
+			// kredit pengirim
+			$trans[] =
+				[
+					'account_id' => $source_payment_account,
+					'user_id' => $user_id,
+					'account_trans_cat_id' => 4, // 2= expense
+					'amount' => $amount_paid,
+					'date' => $date,
+					'type' => 'credit',
+					'join_id' => $trans_number,
+					'ref' => $payment_ref,
+					'note' => "Pembayaran Expense: " . $contact,
+					'attachment' => null,
+				];
+
+			// debit trade payable
+			$trans[] =
+				[
+					'account_id' => 34,
+					'user_id' => $user_id,
+					'account_trans_cat_id' => 4, // 2= spend
+					'amount' => $amount_paid,
+					'date' => $date,
+					'type' => 'debit',
+					'join_id' => $trans_number,
+					'ref' => $payment_ref,
+					'note' => "Pembayaran Expense: " . $contact,
+					'attachment' => null,
+				];
+
+			if ($tagihan == $amount_paid) {
+				$update_log[] = ['trans_number' => $trans_number, 'status' => 'paid'];
+			} else {
+				$update_log[] = ['trans_number' => $trans_number, 'status' => 'partially_paid'];
+			}
+		}
+
+		$insert = $this->Account_trans_model->bulk_payment_expense($trans, $update_log);
+		if ($insert) {
+			$Return['result'] = $this->lang->line('ms_title_payment_success');
+			$this->output($Return);
+		} else {
+			$Return['error'] = $this->lang->line('ms_title_peyment_error');
+			$this->output($Return);
+		}
+	}
+
 
 	public function delete()
 	{

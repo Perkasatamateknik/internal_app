@@ -84,7 +84,7 @@ class Contacts extends MY_Controller
 			}
 
 			if (in_array('534', $role_resources_ids)) { //edit
-				$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" onclick="modalEdit(' . $r->contact_id  . ')"><span class="fas fa-pencil-alt"></span></a></span>';
+				$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" onclick="modalEdit(\'' . $r->contact_id  . '\')"><span class="fas fa-pencil-alt"></span></a></span>';
 			} else {
 				$edit = '';
 			}
@@ -115,6 +115,7 @@ class Contacts extends MY_Controller
 			$email_address = $r->email_address ?? "--";
 			$data[] = array(
 				$combhr,
+				$r->contact_id,
 				"<a href='" . site_url() . 'admin/contacts/view/' . $r->contact_id  . "' class='text-md font-weight-bold'>$r->contact_name</a><br><span>$contact_type</span>",
 				"<b class='text-md'>$r->company_name</b><br><span>$country</span>",
 				"<b class='text-md'>$r->phone_number</b><br><span>$email_address</span>",
@@ -178,10 +179,9 @@ class Contacts extends MY_Controller
 		foreach ($records as $r) {
 			$data[] = array(
 				$r->date,
-				$r->trans_type,
+				trans_doc_url($r->account_trans_cat_id, $r->join_id) . "<br />" . $r->trans_type,
 				$r->note,
 				$this->Xin_model->currency_sign($r->amount),
-
 			);
 		}
 
@@ -227,6 +227,8 @@ class Contacts extends MY_Controller
 
 		// filter jika data kosong
 		$contact = $this->Contact_model->get_contact($id);
+
+		// dd($contact);
 		if (is_null($contact)) {
 			redirect('admin/contacts');
 		}
@@ -573,10 +575,12 @@ class Contacts extends MY_Controller
 		$ref_trans_id = $trans_number . "-" . rand(100000, 999999);
 		#
 		#
+
+		$date = $this->input->post('date');
 		$data = [
 			'contact_id' => $this->input->post('contact_id'),
 			'trans_number' => $this->input->post('trans_number'),
-			'date' => $this->input->post('date'),
+			'date' => $date,
 			'due_date' => $this->input->post('due_date'),
 			'reference' => $this->input->post('reference'),
 			'status' => 'unpaid',
@@ -592,7 +596,7 @@ class Contacts extends MY_Controller
 				'user_id' => $user_id,
 				'account_trans_cat_id' => 7,
 				'amount' => $this->input->post('row_amount')[$i],
-				'date' => date('Y-m-d'),
+				'date' => $date,
 				'type' => 'debit',
 				'join_id' => $trans_number,
 				'ref' => "Dokumen Utang",
@@ -617,7 +621,7 @@ class Contacts extends MY_Controller
 				'user_id' => $user_id,
 				'account_trans_cat_id' => 7,
 				'amount' => $this->input->post('amount'),
-				'date' => date('Y-m-d'),
+				'date' => $date,
 				'type' => 'credit',
 				'join_id' => $trans_number, // po number
 				'ref' => "Dokumen Utang",
@@ -743,6 +747,8 @@ class Contacts extends MY_Controller
 
 	public function liability_view($id)
 	{
+
+		// dd($id);
 		$data['title'] = $this->Xin_model->site_title();
 		$session = $this->session->userdata('username');
 		if (empty($session)) {
@@ -753,7 +759,7 @@ class Contacts extends MY_Controller
 		$data['breadcrumbs'] = $this->lang->line('ms_title_liabilities');
 		$role_resources_ids = $this->Xin_model->user_role_resource();
 		$record = $this->Liabilities_model->get_by_number_doc($id);
-
+		// dd($record);
 		if (!is_null($record)) {
 
 			// get payment
@@ -985,10 +991,11 @@ class Contacts extends MY_Controller
 		$ref_trans_id = $trans_number . "-" . rand(100000, 999999);
 		#
 		#
+		$date = $this->input->post('date');
 		$data = [
 			'contact_id' => $this->input->post('contact_id'),
 			'trans_number' => $this->input->post('trans_number'),
-			'date' => $this->input->post('date'),
+			'date' => $date,
 			'due_date' => $this->input->post('due_date'),
 			'reference' => $this->input->post('reference'),
 			'status' => 'unpaid',
@@ -1004,7 +1011,7 @@ class Contacts extends MY_Controller
 				'user_id' => $user_id,
 				'account_trans_cat_id' => 8,
 				'amount' => $this->input->post('row_amount')[$i],
-				'date' => date('Y-m-d'),
+				'date' => $date,
 				'type' => 'credit',
 				'join_id' => $trans_number,
 				'ref' => "Dokumen Piutang",
@@ -1029,7 +1036,7 @@ class Contacts extends MY_Controller
 				'user_id' => $user_id,
 				'account_trans_cat_id' => 8, // = 
 				'amount' => $this->input->post('amount'),
-				'date' => date('Y-m-d'),
+				'date' => $date,
 				'type' => 'debit',
 				'join_id' => $trans_number, // po number
 				'ref' => "Dokumen Piutang",

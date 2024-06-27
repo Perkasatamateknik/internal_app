@@ -3356,6 +3356,10 @@ $lang['ms_title_ago'] = "Yang lalu";
 
 $lang['ms_title_trans_overview'] = "Overview Transaksi";
 
+$lang['ms_title_delete'] = "Hapus";
+$lang['ms_title_bulk_payment'] = "Bulk Payment";
+$lang['ms_title_payment_amount'] = "Detail Payment";
+$lang['ms_title_trans_number'] = "Trans Number";
 
 
 $lang['ms_title_budget_name'] = "Nama Anggaran";
@@ -3369,6 +3373,7 @@ $lang['ms_title_name_and_type'] = "Nama dan Tipe";
 $lang['ms_title_company'] = "Perusahaan";
 $lang['ms_title_select_contact'] = "Pilih Kontak";
 $lang['ms_title_contact'] = "Kontak";
+$lang['ms_title_contact_id'] = "ID Kontak";
 $lang['ms_title_contacts'] = "Semua Kontak";
 $lang['ms_title_contact_name'] = "Nama Kontak";
 $lang['ms_title_contact_type'] = "Tipe Kontak";

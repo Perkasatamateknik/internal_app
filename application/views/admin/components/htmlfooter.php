@@ -14,7 +14,7 @@
 <script src="<?php echo base_url(); ?>skin/hrsale_vendor/assets/vendor/js/bootstrap.js"></script>
 <script src="<?php echo base_url(); ?>skin/hrsale_vendor/assets/vendor/js/sidenav.js"></script>
 <script src="<?php echo base_url(); ?>skin/hrsale_vendor/assets/vendor/js/money_format.js"></script>
-<script src="<?php echo base_url(); ?>skin/hrsale_vendor/assets/vendor/js/number-separator.js"></script>
+<!-- <script src="<?php echo base_url(); ?>skin/hrsale_vendor/assets/vendor/js/number-separator.js"></script> -->
 <!-- <script src="<?php echo base_url(); ?>skin/hrsale_vendor/assets/vendor/js/autocomplete.js"></script> -->
 
 <script src="<?php echo base_url(); ?>skin/hrsale_vendor/assets/vendor/js/dropdown-hover.js"></script>

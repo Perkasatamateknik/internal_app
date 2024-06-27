@@ -78,10 +78,11 @@ class Contact_model extends CI_Model
 	}
 	public function get_contact($id)
 	{
-		return $this->db->select(["ms_contacts.*", "xin_countries.country_id", "xin_countries.country_name", "ms_contact_types.type_id", "ms_contact_types.contact_type"])
+		// return $this->db->select(["ms_contacts.*", "xin_countries.country_id", "xin_countries.country_name", "ms_contact_types.type_id", "ms_contact_types.contact_type"])
+		return $this->db->select("*")
 			->from('ms_contacts')
-			->join('ms_contact_types', 'ms_contacts.contact_type_id=ms_contact_types.type_id', 'LEFT')
-			->join('xin_countries', 'ms_contacts.country=xin_countries.country_id', 'LEFT')
+			// ->join('ms_contact_types', 'ms_contacts.contact_type_id=ms_contact_types.type_id', 'RIGHT')
+			// ->join('xin_countries', 'ms_contacts.country=xin_countries.country_id', 'RIGHT')
 			->where('ms_contacts.contact_id', $id)
 			->get()->row();
 	}

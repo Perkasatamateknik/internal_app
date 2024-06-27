@@ -2941,8 +2941,6 @@ class Settings extends MY_Controller
 		}
 	}
 
-	// // update feature 9-5-2023
-	// // Validate and add info in database
 	public function measurement_unit_info()
 	{
 

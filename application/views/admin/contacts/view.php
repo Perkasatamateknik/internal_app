@@ -37,7 +37,7 @@
 			<div class="card-header mb-0 pb-0">
 				<h4><?= $this->lang->line('ms_title_contact_detail'); ?>
 					<?php if (in_array('534', $role_resources_ids)) { ?>
-						<button onclick="modalEdit(<?= $record->contact_id; ?>)" id="" class="btn btn-default border-0 px-1 py-0 pb-1" role="button"><i class="fa fa-pencil" aria-hidden="true"></i></button>
+						<button onclick="modalEdit('<?= $record->contact_id; ?>')" id="" class="btn btn-default border-0 px-1 py-0 pb-1" role="button"><i class="fa fa-pencil" aria-hidden="true"></i></button>
 					<?php }; ?>
 				</h4>
 			</div>

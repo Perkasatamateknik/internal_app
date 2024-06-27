@@ -253,4 +253,18 @@ class Account_trans_model extends CI_Model
 			->where('type', 'credit')
 			->get()->row()->amount;
 	}
+
+	public function bulk_payment_expense($trans, $log)
+	{
+		$this->db->trans_start();
+
+		// insert transaction
+		$this->db->insert_batch('ms_finance_account_transactions', $trans);
+
+		// update status expense 
+		$this->db->update_batch('ms_finance_expenses', $log, 'trans_number');
+
+		$this->db->trans_complete();
+		return $this->db->trans_status();
+	}
 }

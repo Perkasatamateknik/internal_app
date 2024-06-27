@@ -153,38 +153,9 @@
 	</div>
 	<div class="col-md-auto mx-0 px-1">
 		<!-- Button trigger modal -->
-		<button type="button" class="btn btn-info" data-toggle="modal" data-target="#modelId">
-			<i class="fas fa-file-import fa-fw"></i> <?= $this->lang->line('ms_title_import'); ?>
+		<button type="button" class="btn btn-info" onclick="modalImport()">
+			<i class=" fas fa-file-import fa-fw"></i> <?= $this->lang->line('ms_title_import'); ?>
 		</button>
-
-		<!-- Modal -->
-		<div class="modal fade" id="modelId" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
-			<div class="modal-dialog" role="document">
-				<div class="modal-content">
-					<div class="modal-header">
-						<h5 class="modal-title">Import Excell</h5>
-						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-							<span aria-hidden="true">&times;</span>
-						</button>
-					</div>
-					<?php $attributes = array('name' => 'import_form', 'id' => 'import_formz', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
-					<?php $hidden = array('type' => 'import'); ?>
-					<?php echo form_open('admin/finance/expenses/import_excell', $attributes, $hidden); ?>
-					<div class="modal-body">
-						<div class="form-group">
-							<label for="">Import Data</label>
-							<input type="file" class="form-control-file" name="file" id="" placeholder="" aria-describedby="fileHelpId">
-							<small id="fileHelpId" class="form-text text-muted">Format Xlsx</small>
-						</div>
-					</div>
-					<div class="modal-footer">
-						<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-						<button type="submit" class="btn btn-primary">Save</button>
-					</div>
-					<?php echo form_close(); ?>
-				</div>
-			</div>
-		</div>
 	</div>
 	<div class="col-md-auto mx-0 px-1">
 		<!-- Button trigger modal -->
@@ -199,11 +170,16 @@
 		<div class="card">
 			<div class="card-body">
 
-				<div class="table-responsive">
-					<button type="submit" class="btn btn-success btn-sm pay_all mb-3">
-						<i class="fa fa-money-alt text-light"></i> Bayar yang diceklist
-					</button>
-					<table class="table table-hover table-striped" id="ms_table">
+				<?php $attributes = array('name' => 'table_form', 'id' => 'table_forms', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
+				<?php echo form_open('admin/finance/expenses/ajax_modal_bulk_payment', $attributes); ?>
+				<table class="table table-hover table-striped" id="ms_table">
+					<div class="table-responsive">
+						<button type="button" class="btn btn-success btn-sm mb-3" id="bulk_payment">
+							<i class="fa fa-money-alt text-light"></i> <?= $this->lang->line('ms_title_bulk_payment'); ?>
+						</button>
+						<button type="button" class="btn btn-danger btn-sm mb-3" id="bulk_delete">
+							<i class="fa fa-trash" aria-hidden="true"></i><?= $this->lang->line('ms_title_delete'); ?>
+						</button>
 						<thead>
 							<tr>
 								<th class="align-middle">
@@ -223,26 +199,8 @@
 						<tbody>
 
 						</tbody>
-					</table>
-				</div>
-			</div>
-		</div>
-	</div>
-</div>
-
-<div class="modal fade" id="modalError" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
-	<div class="modal-dialog" role="document">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h5 class="modal-title">Error</h5>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-					<span aria-hidden="true">&times;</span>
-				</button>
-			</div>
-			<div class="modal-body">
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+				</table>
+				<?php echo form_close(); ?>
 			</div>
 		</div>
 	</div>

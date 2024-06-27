@@ -532,4 +532,66 @@ class Purchase_model extends CI_Model
 	{
 		return $this->db->insert_batch('ms_finance_account_transactions', $trans);
 	}
+
+	public function update_beneficiary_format()
+	{
+		$contacts = $this->db->get('ms_contacts')->result();
+
+		$orders = $this->get_all_po();
+		foreach ($orders->result() as $order) {
+
+			foreach ($contacts as $c) {
+
+				$po_contact = str_pad($order->contact_id, 2, '0', STR_PAD_LEFT);
+				$contact_id = substr($c->contact_id, -2);
+
+				if ($contact_id == $po_contact) {
+					// var_dump([$order->contact_id, $c->contact_id]);
+
+					$cat = $this->db->where('type_id', $c->contact_type_id)->get('ms_contact_types')->row();
+					$new_contact_id_1 = $cat->prefix . str_pad($order->contact_id, 5, '0', STR_PAD_LEFT);
+					var_dump([$order->contact_id, $c->contact_id, $new_contact_id_1]);
+					$this->db->where('po_id', $order->po_id);
+					$this->db->update('ms_purchase_orders', array('contact_id' => $new_contact_id_1));
+				}
+			}
+		}
+
+		$deliveries = $this->get_all_pd()->result();
+		foreach ($deliveries as $del) {
+
+			foreach ($contacts as $c) {
+
+				$pd_contact = str_pad($del->contact_id, 2, '0', STR_PAD_LEFT);
+				$contact_id = substr($c->contact_id, -2);
+
+				if ($contact_id == $pd_contact) {
+
+					$cat = $this->db->where('type_id', $c->contact_type_id)->get('ms_contact_types')->row();
+					$new_contact_id_2 = $cat->prefix . str_pad($del->contact_id, 5, '0', STR_PAD_LEFT);
+					var_dump([$del->contact_id, $c->contact_id, $new_contact_id_2]);
+					$this->db->where('pd_id', $del->pd_id);
+					$this->db->update('ms_purchase_deliveries', array('contact_id' => $new_contact_id_2));
+				}
+			}
+		}
+
+		$invoices = $this->get_all_pi()->result();
+		foreach ($invoices as $inv) {
+			foreach ($contacts as $c) {
+
+				$pi_contact = str_pad($inv->contact_id, 2, '0', STR_PAD_LEFT);
+				$contact_id = substr($c->contact_id, -2);
+
+				if ($contact_id == $pi_contact) {
+
+					$cat = $this->db->where('type_id', $c->contact_type_id)->get('ms_contact_types')->row();
+					$new_contact_id_3 = $cat->prefix . str_pad($inv->contact_id, 5, '0', STR_PAD_LEFT);
+					var_dump([$inv->contact_id, $c->contact_id, $new_contact_id_3]);
+					$this->db->where('pi_id', $inv->pi_id);
+					$this->db->update('ms_purchase_invoices', array('contact_id' => $new_contact_id_3));
+				}
+			}
+		}
+	}
 }

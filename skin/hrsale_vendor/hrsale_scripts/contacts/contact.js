@@ -29,6 +29,9 @@ $(document).ready(function () {
 		fnDrawCallback: function (settings) {
 			$('[data-toggle="tooltip"]').tooltip();
 		},
+		createdRow: function (row, data, dataIndex) {
+			$("td", row).addClass("align-middle");
+		},
 	});
 
 	$("#ms_table_filter").hide();

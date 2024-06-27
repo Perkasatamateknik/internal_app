@@ -1,11 +1,3 @@
-<?php
-
-if (!is_null($this->input->get('back_id'))) {
-	$back = "view/" . $this->input->get('back_id');
-} else {
-	$back = "receivables";
-} ?>
-
 <div class="row">
 	<div class="col-12">
 		<h4 class="font-weight-bold mt-3"><?php echo $breadcrumbs; ?></h4>
@@ -17,7 +9,7 @@ if (!is_null($this->input->get('back_id'))) {
 			<div class="card-body">
 				<div class="row justify-content-between">
 					<div class="col-md-auto">
-						<a href="<?= base_url('/admin/contacts/' . $back) ?>" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
+						<a href="javascript:history.back()" target="" class="btn btn-tranparent"><i class="fa fa-caret-left" aria-hidden="true"></i> <?= $this->lang->line('ms_title_back'); ?></a>
 					</div>
 					<div class="col-md-auto">
 						<div class="row">

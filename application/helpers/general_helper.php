@@ -2516,16 +2516,58 @@ if (!function_exists('count_tax')) {
 }
 
 if (!function_exists('get_tax_from_amount')) {
-	function get_tax_from_amount($amount, $rate, $is_flat = false)
+	function get_tax_from_amount($total, $rate, $is_flat = false)
 	{
-		// Menghitung pajak berdasarkan rate yang diberikan
 		if ($is_flat) {
-			$tax = $amount - $rate;
+			// Jika pajak flat (tetap), langsung kurangi jumlah pajak dari total
+			$remaining_amount = $total - $rate;
+			$tax = $rate;
 		} else {
-			$tax = ($amount * $rate) / 100;
+			// Menghitung jumlah sebelum pajak berdasarkan rate yang diberikan
+			$remaining_amount = $total / (1 + $rate / 100);
+			$tax = $total - $remaining_amount;
 		}
-		$remaining_amount = $amount - $tax;
+
 		return array('tax' => $tax, 'remaining_amount' => $remaining_amount);
+	}
+}
+if (!function_exists('validate_expense_format')) {
+	function validate_expense_format($input_string)
+	{
+		$input_string = trim($input_string);
+		$pattern = '/^EXP-\d{4}$/';
+		if (preg_match($pattern, $input_string) == 1) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+}
+if (!function_exists('unlinkAllFilesInDir')) {
+	function unlinkAllFilesInDir($dir)
+	{
+		// Cek apakah direktori ada
+		if (is_dir($dir)) {
+			// Buka direktori
+			if ($dh = opendir($dir)) {
+				// Loop melalui semua file dalam direktori
+				while (($file = readdir($dh)) !== false) {
+					// Lewati '.' dan '..'
+					if ($file != '.' && $file != '..') {
+						// Path lengkap ke file
+						$filePath = $dir . DIRECTORY_SEPARATOR . $file;
+						// Hapus file jika itu adalah file biasa
+						if (is_file($filePath)) {
+							unlink($filePath);
+						}
+					}
+				}
+				// Tutup direktori
+				closedir($dh);
+			}
+		} else {
+			echo "Direktori tidak ditemukan.";
+		}
 	}
 }
 
