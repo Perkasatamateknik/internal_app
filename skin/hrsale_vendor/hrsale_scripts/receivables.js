@@ -322,16 +322,15 @@ $(document).on("click", ".delete", function () {
 
 // edit data
 $(window).on("load", function () {
-	let type = $("input[name='liabilities']").val() ?? "";
+	let type = $("input[name='type']").val() ?? "";
 	if (type == "UPDATE") {
 		let token = $("input[name='_token']").val();
 		$.ajax({
 			type: "GET",
-			url: site_url + "/finance/liabilities/get_ajax_items_liabilities",
+			url: site_url + "/contacts/get_ajax_items_receivables",
 			data: "_token=" + token,
 			dataType: "JSON",
 			success: function (response) {
-				console.table(response.items);
 				if (response) {
 					$.each(response.items, function (key, value) {
 						addRow();
@@ -350,37 +349,12 @@ $(window).on("load", function () {
 							.append(option)
 							.trigger("change");
 
-						if (value.tax_name != null) {
-							$("#row_tax_id_" + key).append(
-								new Option(value.tax_name, value.tax_id, true, true)
-							);
-
-							row.find(".row_tax_rate").val(value.tax_rate);
-							row
-								.find(".row_tax_rate_show")
-								.text(formatCurrency(value.tax_rate));
-						}
 						row.find(".row_note").val(value.note);
 						row.find(".row_amount").val(value.amount);
 						row.find(".row_amount_show").text(formatCurrency(value.amount));
-
-						// set tombol delete to ajax
-						row.find(".remove-item").attr("data-ajax", "true");
-						row
-							.find(".remove-item")
-							.attr("data-id", value.liabilities_trans_id); // set id item liabilities
-
-						row.find(".fa").removeClass("fa-minus"); // remove class btn danger
-						row.find(".fa").addClass("fa-trash"); // remove class btn danger
-
-						row.find(".row_type").val("UPDATE"); // set the type of item (UPDATE)
 					});
 
-					// // set another
-					// $("#ref_delivery_fee").val(response.data.ref_delivery_fee);
-					// $("#amount").val(response.data.amount);
-					// $("#amount_show").text(formatCurrency(response.data.amount));
-					// update_total();
+					update_total();
 				}
 			},
 		});

@@ -227,8 +227,6 @@ class Contacts extends MY_Controller
 
 		// filter jika data kosong
 		$contact = $this->Contact_model->get_contact($id);
-
-		// dd($contact);
 		if (is_null($contact)) {
 			redirect('admin/contacts');
 		}
@@ -524,7 +522,11 @@ class Contacts extends MY_Controller
 			$trans_number = '<a href="' . base_url('/admin/contacts/liability_view/' . $r->trans_number) . '" class="font-weight-bold">' . $r->trans_number . '</a>';
 
 			if (in_array('544', $role_resources_ids)) { //edit
-				$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" href="' . site_url() . 'admin/contacts/liability_edit/' . $r->trans_number  . '"><span class="fas fa-pencil-alt"></span></a></span>';
+				if (!in_array($r->status, ['partially_paid', 'paid'])) {
+					$edit = '<span data-toggle="tooltip" data-placement="top" title="' . $this->lang->line('xin_edit') . '"><a class="btn icon-btn btn-sm btn-outline-secondary waves-effect waves-light" href="' . site_url() . 'admin/contacts/liability_edit/' . $r->trans_number  . '"><span class="fas fa-pencil-alt"></span></a></span>';
+				} else {
+					$edit = '';
+				}
 			} else {
 				$edit = '';
 			}
@@ -562,6 +564,7 @@ class Contacts extends MY_Controller
 		exit();
 	}
 
+	// Store and update
 	public function liability_store()
 	{
 		/* Define return | here result is used to return user data and error for error message */
@@ -575,6 +578,12 @@ class Contacts extends MY_Controller
 		$ref_trans_id = $trans_number . "-" . rand(100000, 999999);
 		#
 		#
+		$contact = $this->Contact_model->get_contact($this->input->post('contact_id'));
+		if (!is_null($contact)) {
+			$contact_name = $contact->contact_name;
+		} else {
+			$contact_name = "";
+		}
 
 		$date = $this->input->post('date');
 		$data = [
@@ -599,8 +608,8 @@ class Contacts extends MY_Controller
 				'date' => $date,
 				'type' => 'debit',
 				'join_id' => $trans_number,
-				'ref' => "Dokumen Utang",
-				'note' => "Begin Dokumen Utang",
+				'ref' => "Utang",
+				'note' => "Utang: " . $contact_name,
 				'attachment' => null,
 				'ref_trans_id' => $ref_trans_id
 			];
@@ -624,8 +633,8 @@ class Contacts extends MY_Controller
 				'date' => $date,
 				'type' => 'credit',
 				'join_id' => $trans_number, // po number
-				'ref' => "Dokumen Utang",
-				'note' => "Begin Dokumen Utang",
+				'ref' => "Utang",
+				'note' => "Utang: " . $contact_name,
 				'attachment' => null,
 				'ref_trans_id' => $ref_trans_id
 
@@ -678,65 +687,16 @@ class Contacts extends MY_Controller
 			$file_attachments = null;
 		}
 
-		$query = $this->Liabilities_model->update_with_items_and_files($trans_number, $data, $trans, $items, $file_attachments);
-
-		if ($query) {
-			$Return['result'] = $this->lang->line('ms_title_success_added');
-			$Return['path'] = "";
-			$this->output($Return);
+		if ($this->input->post('type') == "UPDATE") {
+			$query = $this->Liabilities_model->reset_and_update_with_items_and_files($trans_number, $data, $trans, $items, $file_attachments);
+			$message = $this->lang->line('ms_title_success_edited');
 		} else {
-			$Return['error'] = $this->lang->line('ms_title_error');
-			$this->output($Return);
+			$query = $this->Liabilities_model->update_with_items_and_files($trans_number, $data, $trans, $items, $file_attachments);
+			$message = $this->lang->line('ms_title_success_added');
 		}
-	}
-
-	public function liability_store_item()
-	{
-		/* Define return | here result is used to return user data and error for error message */
-		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
-		$Return['csrf_hash'] = $this->security->get_csrf_hash();
-
-		$trans_number = $this->input->post('_token');
-		$user_id = $this->session->userdata()['username']['user_id'] ?? 0;
-
-
-		// get old tagihan
-		$tagihan = $this->Liabilities_model->get_tagihan($trans_number);
-
-		// tampung ref_trans_id
-		$ref_trans_id = $tagihan->ref_trans_id;
-
-		$items = [];
-		$trans = [];
-
-		for ($i = 0; $i < count($this->input->post('row_amount')); $i++) {
-
-			$trans[] = [
-				'account_id' => $this->input->post('row_target_id')[$i], // account_id
-				'user_id' => $user_id,
-				'account_trans_cat_id' => 7,
-				'amount' => $this->input->post('row_amount')[$i],
-				'date' => date('Y-m-d'),
-				'type' => 'debit',
-				'join_id' => $trans_number,
-				'ref' => "Dokumen Utang",
-				'note' => "Begin Dokumen Utang",
-				'attachment' => null,
-				'ref_trans_id' => $ref_trans_id
-			];
-
-			$items[] = [
-				'trans_number' 		=> $trans_number,
-				'account_id' 		=> $this->input->post('row_target_id')[$i],
-				'amount' 			=> $this->input->post('row_amount')[$i],
-				'note' 				=> $this->input->post('row_note')[$i] ?? null,
-			];
-		}
-
-		$query = $this->Liabilities_model->insert_items($trans_number, $items, $trans);
 
 		if ($query) {
-			$Return['result'] = $this->lang->line('ms_title_success_added');
+			$Return['result'] = $message;
 			$Return['path'] = "";
 			$this->output($Return);
 		} else {
@@ -748,7 +708,6 @@ class Contacts extends MY_Controller
 	public function liability_view($id)
 	{
 
-		// dd($id);
 		$data['title'] = $this->Xin_model->site_title();
 		$session = $this->session->userdata('username');
 		if (empty($session)) {
@@ -759,7 +718,7 @@ class Contacts extends MY_Controller
 		$data['breadcrumbs'] = $this->lang->line('ms_title_liabilities');
 		$role_resources_ids = $this->Xin_model->user_role_resource();
 		$record = $this->Liabilities_model->get_by_number_doc($id);
-		// dd($record);
+
 		if (!is_null($record)) {
 
 			// get payment
@@ -777,7 +736,6 @@ class Contacts extends MY_Controller
 			redirect('admin/contacts');
 		}
 
-		// dd($data['payment']);
 		$data['record'] = $record;
 		if (in_array('543', $role_resources_ids)) { // view
 			$data['subview'] = $this->load->view("admin/contacts/liabilities/view", $data, TRUE);
@@ -804,14 +762,6 @@ class Contacts extends MY_Controller
 		if (!is_null($record)) {
 
 			$data['contact'] = $this->Contact_model->get_contact($record->contact_id);
-
-			// // get payment
-			// $data['payment'] = $this->Liabilities_model->get_payment(7, $record->trans_number);
-
-			// // 4 => roles expense
-			// $attachments = $this->Files_ms_model->get_by_access_id(7, $record->trans_number)->result();
-			// $data['attachments'] = $attachments;
-
 			//add expense items model
 			$items = $this->Liabilities_model->get_items_by_trans_number($record->trans_number);
 
@@ -826,6 +776,140 @@ class Contacts extends MY_Controller
 			$this->load->view('admin/layout/layout_main', $data); //page load
 		} else {
 			redirect('admin/dashboard');
+		}
+	}
+
+	public function liability_update()
+	{
+		/* Define return | here result is used to return user data and error for error message */
+		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
+		$Return['csrf_hash'] = $this->security->get_csrf_hash();
+
+		$trans_number = $this->input->post('_token');
+		$user_id = $this->session->userdata()['username']['user_id'] ?? 0;
+
+
+		$ref_trans_id = $trans_number . "-" . rand(100000, 999999);
+		#
+		#
+
+		$contact = $this->Contact_model->get_contact($this->input->post('contact_id'));
+		if (!is_null($contact)) {
+			$contact_name = $contact->contact_name;
+		} else {
+			$contact_name = "";
+		}
+
+		$date = $this->input->post('date');
+		$data = [
+			'contact_id' => $this->input->post('contact_id'),
+			'trans_number' => $this->input->post('trans_number'),
+			'date' => $date,
+			'due_date' => $this->input->post('due_date'),
+			'reference' => $this->input->post('reference'),
+			'status' => 'unpaid',
+		];
+
+		$items = [];
+		$trans = [];
+
+		for ($i = 0; $i < count($this->input->post('row_amount')); $i++) {
+
+			$trans[] = [
+				'account_id' => $this->input->post('row_target_id')[$i], // account_id
+				'user_id' => $user_id,
+				'account_trans_cat_id' => 7,
+				'amount' => $this->input->post('row_amount')[$i],
+				'date' => $date,
+				'type' => 'debit',
+				'join_id' => $trans_number,
+				'ref' => "Utang",
+				'note' => "Utang: " . $contact_name,
+				'attachment' => null,
+				'ref_trans_id' => $ref_trans_id
+			];
+
+			$items[] = [
+				'trans_number' 		=> $trans_number,
+				'account_id' 		=> $this->input->post('row_target_id')[$i],
+				'amount' 			=> $this->input->post('row_amount')[$i],
+				'note' 				=> $this->input->post('row_note')[$i] ?? null,
+			];
+		}
+
+
+		// masukan semua total ke akun hutang usaha trade payable
+		$trans[] =
+			[
+				'account_id' => 34, // account_id 
+				'user_id' => $user_id,
+				'account_trans_cat_id' => 7,
+				'amount' => $this->input->post('amount'),
+				'date' => $date,
+				'type' => 'credit',
+				'join_id' => $trans_number, // po number
+				'ref' => "Utang",
+				'note' => "Utang: " . $contact_name,
+				'attachment' => null,
+				'ref_trans_id' => $ref_trans_id
+
+			];
+
+		if (!empty($_FILES["attachments"]["name"][0])) {
+			// upload file
+			$config['allowed_types'] = 'gif|jpg|png|pdf';
+			$config['max_size'] = '10240'; // max_size in kb
+
+			$config['upload_path'] = './uploads/contact/liabilities/';
+
+			//load upload class library
+			$this->load->library('upload', $config);
+
+			$files = $_FILES['attachments'];
+			$file_attachments = array();
+
+			foreach ($files['name'] as $key => $filename) {
+
+				// Get the file extension
+				$extension = pathinfo($filename, PATHINFO_EXTENSION);
+				$newName = $this->input->post('trans_number') . "_" . time() . "_" . $key . "." . $extension;
+
+				$_FILES['attachments'] = array(
+					'name'     => $newName,
+					'type'     => $files['type'][$key],
+					'tmp_name' => $files['tmp_name'][$key],
+					'error'    => $files['error'][$key],
+					'size'     => $files['size'][$key]
+				);
+
+				if ($this->upload->do_upload('attachments')) {
+					$this->upload->data();
+
+					$file_attachments[] = array(
+						'file_name' => $newName,
+						'file_size' => $files['size'][$key],
+						'file_type' => $files['type'][$key],
+						'file_ext' => $extension,
+						'file_access' => 7, // expense
+						'access_id' => $trans_number
+					);
+				} else {
+					$Return['error'] = $this->upload->display_errors();
+					$this->output($Return);
+				}
+			}
+		} else {
+			$file_attachments = null;
+		}
+
+
+		if ($query) {
+			$Return['result'] = $this->lang->line('ms_title_success_edited');
+			$Return['path'] = "";
+			$this->output($Return);
+		} else {
+			$Return['error'] = $this->lang->line('ms_title_error');
+			$this->output($Return);
 		}
 	}
 
@@ -845,13 +929,13 @@ class Contacts extends MY_Controller
 		$start = intval($this->input->get("start"));
 		$length = intval($this->input->get("length"));
 
-		$record = $this->Liabilities_model->get_items_by_trans_number($id);
+		$records = $this->Liabilities_model->get_items_by_trans_number($id);
 
 		$output = array(
 			"draw" => $draw,
-			"recordsTotal" => count($record),
-			"recordsFiltered" => count($record),
-			"items" => $record
+			"recordsTotal" => count($records),
+			"recordsFiltered" => count($records),
+			"items" => $records
 		);
 		echo json_encode($output);
 		exit();
@@ -880,90 +964,6 @@ class Contacts extends MY_Controller
 		}
 	}
 
-	public function liability_update()
-	{
-
-		$session = $this->session->userdata('username');
-		if (empty($session)) {
-			redirect('admin/');
-		}
-		die();
-		/* Define return | here result is used to return user data and error for error message */
-		$Return = array('result' => '', 'error' => '', 'csrf_hash' => '');
-		$Return['csrf_hash'] = $this->security->get_csrf_hash();
-
-		$trans_number = $this->input->post('_token');
-
-		// data liability
-		$data = [
-			'date' => $this->input->post('date'),
-			'due_date' => $this->input->post('due_date'),
-			'reference' => $this->input->post('reference')
-		];
-
-		// masukan semua total ke akun hutang usaha trade payable
-		$trans[] =
-			[
-				'account_id' => 34, // account_id
-				'account_trans_cat_id' => 7,
-				'amount' => $this->input->post('amount'),
-				'attachment' => null,
-				'ref_trans_id' => $ref_trans_id
-
-			];
-
-		for ($i = 0; $i < count($this->input->post('row_amount')); $i++) {
-
-			$trans[] = [
-				'account_id' => $this->input->post('row_target_id')[$i],
-				'amount' => $this->input->post('row_amount')[$i],
-				'note' => $this->input->post('row_note')[$i],
-			];
-		}
-
-
-
-		$desc = "Transfer Doc";
-		$amount = $this->input->post('amount');
-
-		if ($this->input->post('target_account') == $this->input->post('old_target_account')) {
-			$data = [
-				'account_id' => $this->input->post('account_id'),
-				'target_account_id' => $this->input->post('old_target_account'),
-				'trans_number' => $trans_number,
-				'date' => $this->input->post('date'),
-				'amount' => $amount,
-				'ref' => $this->input->post('ref'),
-				'note' => $this->input->post('note'),
-				'description' => $desc,
-			];
-
-			$new_target_account = false;
-		} else {
-			$new_target_account = $this->input->post('target_account');
-			$data = [
-				'account_id' => $this->input->post('account_id'),
-				'target_account_id' => $this->input->post('target_account'),
-				'trans_number' => $trans_number,
-				'date' => $this->input->post('date'),
-				'amount' => $amount,
-				'ref' => $this->input->post('ref'),
-				'note' => $this->input->post('note'),
-				'description' => $desc,
-			];
-		}
-
-		$query = $this->Account_transfer_model->update_by_trans_number($trans_number, $data, $new_target_account);
-
-		if ($query) {
-			$Return['result'] = $this->lang->line('ms_title_success_updated');
-			$this->output($Return);
-		} else {
-			$Return['error'] = $this->lang->line('ms_title_error');
-			$this->output($Return);
-		}
-	}
-
 	public function ajax_modal_liability_item()
 	{
 
@@ -978,6 +978,8 @@ class Contacts extends MY_Controller
 	/* terakhir sampai edit, tapi blm save data */
 
 
+
+	// Store and update
 	public function receivable_store()
 	{
 		/* Define return | here result is used to return user data and error for error message */
@@ -991,6 +993,14 @@ class Contacts extends MY_Controller
 		$ref_trans_id = $trans_number . "-" . rand(100000, 999999);
 		#
 		#
+
+		$contact = $this->Contact_model->get_contact($this->input->post('contact_id'));
+		if (!is_null($contact)) {
+			$contact_name = $contact->contact_name;
+		} else {
+			$contact_name = "";
+		}
+
 		$date = $this->input->post('date');
 		$data = [
 			'contact_id' => $this->input->post('contact_id'),
@@ -1014,8 +1024,8 @@ class Contacts extends MY_Controller
 				'date' => $date,
 				'type' => 'credit',
 				'join_id' => $trans_number,
-				'ref' => "Dokumen Piutang",
-				'note' => "Begin Dokumen Piutang",
+				'ref' => "Piutang",
+				'note' => "Piutang: " . $contact_name,
 				'attachment' => null,
 				'ref_trans_id' => $ref_trans_id
 			];
@@ -1039,8 +1049,8 @@ class Contacts extends MY_Controller
 				'date' => $date,
 				'type' => 'debit',
 				'join_id' => $trans_number, // po number
-				'ref' => "Dokumen Piutang",
-				'note' => "Begin Dokumen Piutang",
+				'ref' => "Piutang",
+				'note' => "Piutang: " . $contact_name,
 				'attachment' => null,
 				'ref_trans_id' => $ref_trans_id
 
@@ -1093,10 +1103,18 @@ class Contacts extends MY_Controller
 			$file_attachments = null;
 		}
 
-		$query = $this->Receivables_model->update_with_items_and_files($trans_number, $data, $trans, $items, $file_attachments);
+		if ($this->input->post('type') == "UPDATE") {
+			$query = $this->Receivables_model->reset_and_update_with_items_and_files($trans_number, $data, $trans, $items, $file_attachments);
+			$message = $this->lang->line('ms_title_success_edited');
+		} else {
+
+			// Insert
+			$query = $this->Receivables_model->update_with_items_and_files($trans_number, $data, $trans, $items, $file_attachments);
+			$message = $this->lang->line('ms_title_success_added');
+		}
 
 		if ($query) {
-			$Return['result'] = $this->lang->line('ms_title_success_added');
+			$Return['result'] = $message;
 			$Return['path'] = "";
 			$this->output($Return);
 		} else {
@@ -1146,6 +1164,35 @@ class Contacts extends MY_Controller
 		$data['record'] = $record;
 		if (in_array('548', $role_resources_ids)) {
 			$data['subview'] = $this->load->view("admin/contacts/receivables/view", $data, TRUE);
+			$this->load->view('admin/layout/layout_main', $data); //page load
+		} else {
+			redirect('admin/dashboard');
+		}
+	}
+
+	public function receivable_edit($id)
+	{
+		$data['title'] = $this->Xin_model->site_title();
+		$session = $this->session->userdata('username');
+		$data['breadcrumbs'] = $this->lang->line('ms_title_receivables');
+		$data['path_url'] = 'receivables';
+		if (empty($session)) {
+			redirect('admin/');
+		}
+
+		$role_resources_ids = $this->Xin_model->user_role_resource();
+		$record = $this->Receivables_model->get_by_number_doc($id);
+
+		if (!is_null($record)) {
+			$data['contact'] = $this->Contact_model->get_contact($record->contact_id);
+		} else {
+			redirect('admin/');
+		}
+
+
+		$data['record'] = $record;
+		if (in_array('548', $role_resources_ids)) {
+			$data['subview'] = $this->load->view("admin/contacts/receivables/edit", $data, TRUE);
 			$this->load->view('admin/layout/layout_main', $data); //page load
 		} else {
 			redirect('admin/dashboard');
@@ -1265,6 +1312,35 @@ class Contacts extends MY_Controller
 			$this->output($Return);
 		}
 	}
+
+	public function get_ajax_items_receivables()
+	{
+		$role_resources_ids = $this->Xin_model->user_role_resource();
+		$data['title'] = $this->Xin_model->site_title();
+		$session = $this->session->userdata('username');
+		if (empty($session)) {
+			redirect('admin/contacts');
+		}
+
+		$id = $this->input->get('_token');
+
+		// Datatables Variables
+		$draw = intval($this->input->get("draw"));
+		$start = intval($this->input->get("start"));
+		$length = intval($this->input->get("length"));
+
+		$records = $this->Receivables_model->get_items_by_trans_number($id);
+
+		$output = array(
+			"draw" => $draw,
+			"recordsTotal" => count($records),
+			"recordsFiltered" => count($records),
+			"items" => $records
+		);
+		echo json_encode($output);
+		exit();
+	}
+
 
 
 	// Type of contacts //
@@ -1395,6 +1471,13 @@ class Contacts extends MY_Controller
 
 		$ref_trans_id = $trans_number . "-" . rand(100000, 999999);
 
+		$contact = $this->Contact_model->get_contact($this->input->post('contact_id'));
+		if (!is_null($contact)) {
+			$contact_name = $contact->contact_name;
+		} else {
+			$contact_name = "";
+		}
+
 		// uang yang dibayar
 		$amount_paid = $this->input->post('amount_paid');
 		$trans = [];
@@ -1410,7 +1493,7 @@ class Contacts extends MY_Controller
 				'type' => 'credit',
 				'join_id' => $trans_number,
 				'ref' => $payment_ref,
-				'note' => "Pembayaran Utang",
+				'note' => "Payment Utang: " . $contact_name,
 				'attachment' => $file_attachment,
 				'ref_trans_id' => $ref_trans_id
 			];
@@ -1426,7 +1509,7 @@ class Contacts extends MY_Controller
 				'type' => 'debit',
 				'join_id' => $trans_number,
 				'ref' => $payment_ref,
-				'note' => "Pembayaran Utang",
+				'note' => "Payment Utang: " . $contact_name,
 				'attachment' => $file_attachment,
 				'ref_trans_id' => $ref_trans_id
 			];

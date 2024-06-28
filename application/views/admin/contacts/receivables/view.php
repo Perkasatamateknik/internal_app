@@ -23,7 +23,9 @@
 									</button>
 									<div class="dropdown-menu" aria-labelledby="triggerId">
 										<a class="dropdown-item" href="<?= base_url('/admin/finance/accounts/spend_print?type=export&id=' . $record->trans_number) ?>" target="_blank">Export PDF</a>
-										<a class="dropdown-item" href="#">Export Excell</a>
+										<?php if (!in_array($record->status, ['partially_paid', 'paid'])) { ?>
+											<a class="dropdown-item" href="<?= base_url('/admin/contacts/receivable_edit/' . $record->trans_number) ?>"><?= $this->lang->line('xin_edit'); ?></a>
+										<?php	}; ?>
 									</div>
 								</div>
 							</div>
@@ -97,7 +99,7 @@
 										$amount += $r->amount;
 								?>
 										<tr>
-											<td><?= $r->account_name; ?></td>
+											<td><?= account_url($r->account_id, $r->account_name, $r->account_code) ?></td>
 											<td><?= $r->note; ?></td>
 											<td><?= $this->Xin_model->currency_sign($r->amount); ?></td>
 										</tr>

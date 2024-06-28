@@ -627,7 +627,11 @@ class Expenses extends MY_Controller
 			$sisa_tagihan = 0;
 
 			if (true) { //edit
-				$edit = '<a class="dropdown-item delete waves-effect waves-light" href="' . site_url() . 'admin/finance/expenses/edit?id=' . $r->trans_number  . '" type="button">' . $this->lang->line('xin_edit') . '</a>';
+				if (!in_array($r->status, ['partially_paid', 'paid'])) {
+					$edit = '<a class="dropdown-item delete waves-effect waves-light" href="' . site_url() . 'admin/finance/expenses/edit?id=' . $r->trans_number  . '" type="button">' . $this->lang->line('xin_edit') . '</a>';
+				} else {
+					$edit = '';
+				}
 			} else {
 				$edit = '';
 			}
@@ -970,36 +974,37 @@ class Expenses extends MY_Controller
 
 		if (!is_null($record)) {
 			$from = $this->Accounts_model->get($record->account_id)->row();
-			$to = $this->Employees_model->read_employee_information($record->beneficiary);
+			$to = $this->Contact_model->get($record->beneficiary)->row();;
+
 			$record->source_account = $from->account_name . " " . $from->account_code;
-			$record->beneficiary_name = $to[0]->first_name . " " . $to[0]->last_name;
+			$record->beneficiary_name = $to->contact_name;
 
-			// get payment
-			$data['payment'] = $this->Expense_model->get_payment(4, $record->trans_number);
+			// // get payment
+			// $data['payment'] = $this->Expense_model->get_payment(4, $record->trans_number);
 
-			// 4 => roles expense
-			$attachments = $this->Files_ms_model->get_by_access_id(4, $record->trans_number)->result();
-			$data['attachments'] = $attachments;
+			// // 4 => roles expense
+			// $attachments = $this->Files_ms_model->get_by_access_id(4, $record->trans_number)->result();
+			// $data['attachments'] = $attachments;
 
-			//add expense items model
-			$items = $this->Expense_items_model->get_by_trans_number($record->trans_number);
-			// dd($items);
-			if (!is_null($items)) {
-				foreach ($items as $item) {
-					$item->account_name = $this->Accounts_model->get($item->account_id)->row()->account_name;
-					$tax = $this->Tax_model->read_tax_information($item->tax_id); // return bool
+			// //add expense items model
+			// $items = $this->Expense_items_model->get_by_trans_number($record->trans_number);
+			// // dd($items);
+			// if (!is_null($items)) {
+			// 	foreach ($items as $item) {
+			// 		$item->account_name = $this->Accounts_model->get($item->account_id)->row()->account_name;
+			// 		$tax = $this->Tax_model->read_tax_information($item->tax_id); // return bool
 
-					if ($tax) {
-						$item->tax_name = $tax[0]->name;
-						$item->tax_rate = $item->tax_rate;;
-					} else {
-						$item->tax_name = "--";
-						$item->tax_rate = 0;
-					}
-				}
-			}
+			// 		if ($tax) {
+			// 			$item->tax_name = $tax[0]->name;
+			// 			$item->tax_rate = $item->tax_rate;;
+			// 		} else {
+			// 			$item->tax_name = "--";
+			// 			$item->tax_rate = 0;
+			// 		}
+			// 	}
+			// }
 
-			$data['items'] = $items;
+			// $data['items'] = $items;
 		} else {
 			redirect('admin/finance/expense');
 		}
@@ -1021,6 +1026,7 @@ class Expenses extends MY_Controller
 		$Return['csrf_hash'] = $this->security->get_csrf_hash();
 
 		$trans_number = $this->input->post('_token');
+		$contact_id = $this->input->post('contact_id');
 		$date = $this->input->post('date');
 		$payment_ref = $this->input->post('payment_ref');
 		$source_payment_account = $this->input->post('source_payment_account');

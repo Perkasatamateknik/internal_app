@@ -20,7 +20,8 @@
 							<label for="account_id"><?= $this->lang->line('ms_title_customer'); ?></label>
 							<br>
 							<input type="hidden" name="contact_id" value="<?= $contact->contact_id; ?>">
-							<a href="<?= base_url('/admin/contacts/view/' . $contact->contact_id) ?>" type="button" class="text-link font-weight-bold"><?= $contact->contact_name; ?></a>
+							<?= contact_url($contact->contact_id, $contact->contact_name); ?>
+
 						</div>
 					</div>
 

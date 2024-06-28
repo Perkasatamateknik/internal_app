@@ -139,7 +139,7 @@ $(function () {
 		}
 	});
 });
-9;
+
 $(function () {
 	$("#select_due_date").on("change", function () {
 		var duration = parseInt($("#select_due_date").val());
@@ -386,9 +386,9 @@ function addRow() {
 			<select class="form-control row_tax_id" id="row_tax_id_${rowCount}" data-plugin="select_tax" name="row_tax_id[]" onchange="select_tax(this)">
 				<option value="">${ms_select_tax}</option>
 			</select>
-			<input type="hidden" class="row_tax_rate" name="row_tax_rate[]" id="row_tax_rate_${rowCount}" value="0">
-			<input type="hidden" class="data_tax_rate" value="0">
-			<input type="hidden" class="data_tax_type" value="fixed" name="data_tax_type[]"><br>
+			<input type="text" class="row_tax_rate" name="row_tax_rate[]" id="row_tax_rate_${rowCount}" value="0">
+			<input type="text" class="data_tax_rate" value="0">
+			<input type="text" class="data_tax_type" value="fixed" name="data_tax_type[]"><br>
 			<strong class="row_tax_rate_show currency" style="font-size:10px"></strong>
 		</td>
 
@@ -396,7 +396,7 @@ function addRow() {
 			<input type="number" min="0" class="row_amount form-control" name="row_amount[]" id="row_amount_${rowCount}" value="0">
 		</td>
 		<td style="text-align:center">
-			<input type="hidden" class="row_type" name="row_type[]" value="INSERT">
+			<input type="text" class="row_type" name="row_type[]" value="INSERT">
 			<button type="button" class="btn icon-btn btn-danger waves-effect waves-light remove-item"> <span class="fa fa-minus"></span></button>
 		</td>
 		</tr>`;
@@ -482,19 +482,6 @@ function addRow() {
 	// update_total();
 }
 
-// remove item
-// $(document).on("click", ".remove-item", function () {
-// 	$(this)
-// 		.closest(".item-row")
-// 		.fadeOut(300, function () {
-// 			$(this).remove();
-// 			update_total();
-// 		});
-// });
-
-// Fungsi edit otomatic kaluasi saat load
-// addRow();
-
 function select_tax(x) {
 	var selectedRow = $("#" + x.id).closest("tr");
 	var query = x.value;
@@ -554,8 +541,6 @@ function update_row_amount(id) {
 		row_tax_rate = (data_tax_rate / 100) * amount; // get nilai tax
 	}
 
-	// var subtotal_1 = parseFloat(row_tax_rate) + parseFloat(am
-
 	row.find(".row_tax_rate").val(row_tax_rate);
 	row.find(".row_tax_rate_show").text(formatCurrency(row_tax_rate));
 }
@@ -612,28 +597,6 @@ $(document).ready(function () {
 	});
 });
 
-// delete expense all
-$(document).on("click", ".delete", function () {
-	$("input[name=_token]").val($(this).data("record-id"));
-	$("#data-message").addClass("pt-3 font-weight-bold");
-
-	let del_file = $(this).data("record-id");
-	// let del_file =
-	// 	$(this).data("record-id") +
-	// 	`<br><br>
-	// 	<div class="alert alert-primary" role="alert">
-	// 		<div class="form-check">
-	// 			<label class="form-check-label">
-	// 				<input type="checkbox" class="form-check-input" name="delete_file" value="1">
-	// 				Hapus File
-	// 			</label>
-	// 		</div>
-	// 	</div>`;
-	$("#data-message").html(del_file);
-
-	$("#delete_record").attr("action", site_url + "finance/expenses/delete/");
-});
-
 // edit data
 $(window).on("load", function () {
 	let type = $("input[name='expense']").val() ?? "";
@@ -677,21 +640,12 @@ $(window).on("load", function () {
 						row.find(".row_note").val(value.note);
 						row.find(".row_amount").val(value.amount);
 						row.find(".row_amount_show").text(formatCurrency(value.amount));
-
-						// set tombol delete to ajax
-						row.find(".remove-item").attr("data-ajax", "true");
-						row.find(".remove-item").attr("data-id", value.expense_trans_id); // set id item expense
-
-						row.find(".fa").removeClass("fa-minus"); // remove class btn danger
-						row.find(".fa").addClass("fa-trash"); // remove class btn danger
-
-						row.find(".row_type").val("UPDATE"); // set the type of item (UPDATE)
 					});
 
 					// // set another
-					// $("#ref_delivery_fee").val(response.data.ref_delivery_fee);
-					// $("#amount").val(response.data.amount);
-					// $("#amount_show").text(formatCurrency(response.data.amount));
+					$("#ref_delivery_fee").val(response.data.ref_delivery_fee);
+					$("#amount").val(response.data.amount);
+					$("#amount_show").text(formatCurrency(response.data.amount));
 					// update_total();
 				}
 			},
@@ -703,44 +657,9 @@ $(window).on("load", function () {
 
 // remove item
 $(document).on("click", ".remove-item", function () {
-	if ($(this).data("ajax")) {
-		var conf = confirm("Are you sure you want to delete this item?");
-		if (conf == true) {
-			var id = $(this).data("id");
-			var row = $(this).closest("tr");
-			$.ajax({
-				url: site_url + "ajax_request/delete_item_expense",
-				type: "POST",
-				data: {
-					csrf_hrsale: $('input[name="csrf_hrsale"]').val(),
-					id: id,
-				},
-				success: function (JSON) {
-					// jika ada error
-					if (JSON.error != "") {
-						toastr.error(JSON.error);
-						$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
-					} else {
-						row.fadeOut(300, function () {
-							$(this).remove();
-							// update_total();
-						});
-						toastr.success(JSON.result);
-						$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
-					}
-				},
-				error: function (jqXHR, textStatus, errorThrown) {
-					toastr.error("Error: " + textStatus + " | " + jqXHR);
-					$('input[name="csrf_hrsale"]').val(JSON.csrf_hash);
-				},
-			});
-		}
-	} else {
-		$(this)
-			.closest(".item-row")
-			.fadeOut(300, function () {
-				$(this).remove();
-				update_total();
-			});
-	}
+	$(this)
+		.closest(".item-row")
+		.fadeOut(300, function () {
+			$(this).remove();
+		});
 });

@@ -1,12 +1,11 @@
-<div class="row">
+<!-- <div class="row">
 	<div class="col-12">
 		<h4 class="font-weight-bold mt-3"><?php echo $breadcrumbs; ?></h4>
 	</div>
-</div>
-
-<?php $attributes = array('name' => 'liabilities_form', 'id' => 'liabilities_form', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
+</div> -->
+<?php $attributes = array('name' => 'receivables_form', 'id' => 'receivables_form', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
 <?php $hidden = array('type' => 'UPDATE', '_token' => $record->trans_number); ?>
-<?php echo form_open('admin/contacts/liability_store', $attributes, $hidden); ?>
+<?php echo form_open('admin/contacts/receivable_store', $attributes, $hidden); ?>
 <div class="row">
 	<div class="col-md-12">
 		<div class="card mb-3">
@@ -17,8 +16,7 @@
 				<div class="row">
 					<div class="col-md-12">
 						<div class="form-group">
-							<label for="account_id"><?= $this->lang->line('ms_title_customer'); ?></label>
-							<br>
+							<label for="account_id"><?= $this->lang->line('ms_title_customer'); ?></label><br>
 							<input type="hidden" name="contact_id" value="<?= $contact->contact_id; ?>">
 							<?= contact_url($contact->contact_id, $contact->contact_name); ?>
 						</div>
@@ -27,13 +25,13 @@
 					<div class="col-md-4">
 						<div class="form-group">
 							<label for="date"><?= $this->lang->line('ms_title_date'); ?></label>
-							<input type="date" name="date" id="date" class="form-control" value="<?= $record->date ?>" required>
+							<input type="date" name="date" id="date" class="form-control" value="<?= $record->date; ?>" required>
 						</div>
 					</div>
 					<div class="col-md-4">
 						<div class="form-group">
 							<label for="due_date"><?= $this->lang->line('ms_title_due_date'); ?></label>
-							<input type="date" name="due_date" id="due_date" class="form-control" value="<?= $record->due_date ?>" required>
+							<input type="date" name="due_date" id="due_date" class="form-control" value="<?= $record->due_date; ?>" required>
 						</div>
 					</div>
 					<div class="col-md-4">
@@ -46,7 +44,7 @@
 					<div class="col-md-6">
 						<div class="form-group">
 							<label for="reference"><?= $this->lang->line('ms_title_ref'); ?></label>
-							<input type="text" name="reference" id="reference" class="form-control" value="<?= $record->reference ?>">
+							<input type="text" name="reference" id="reference" class="form-control" value="<?= $record->reference; ?>">
 						</div>
 					</div>
 				</div>
@@ -115,10 +113,8 @@
 				</div>
 			</div>
 		</div>
-		<div id="modal-view"></div>
 	</div>
 </div>
-
 <div class="row pb-3">
 	<div class="col-12">
 		<div class="card">

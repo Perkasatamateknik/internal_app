@@ -18,7 +18,7 @@
 						<div class="form-group">
 							<label for="account_id"><?= $this->lang->line('ms_title_customer'); ?></label><br>
 							<input type="hidden" name="contact_id" value="<?= $contact->contact_id; ?>">
-							<strong><?= $contact->contact_name; ?></strong>
+							<?= contact_url($contact->contact_id, $contact->contact_name); ?>
 						</div>
 					</div>
 

@@ -23,7 +23,9 @@
 									</button>
 									<div class="dropdown-menu" aria-labelledby="triggerId">
 										<a class="dropdown-item" href="<?= base_url('/admin/finance/accounts/spend_print?type=export&id=' . $record->trans_number) ?>" target="_blank">Export PDF</a>
-										<a class="dropdown-item" href="#">Export Excell</a>
+										<?php if (!in_array($record->status, ['partially_paid', 'paid'])) { ?>
+											<a class="dropdown-item" href="<?= base_url('/admin/contacts/liability_edit/' . $record->trans_number) ?>"><?= $this->lang->line('xin_edit'); ?></a>
+										<?php	}; ?>
 									</div>
 								</div>
 							</div>
@@ -97,7 +99,7 @@
 										$amount += $r->amount;
 								?>
 										<tr>
-											<td><?= $r->account_name; ?></td>
+											<td><?= account_url($r->account_id, $r->account_name, $r->account_code) ?></td>
 											<td><?= $r->note; ?></td>
 											<td><?= $this->Xin_model->currency_sign($r->amount); ?></td>
 										</tr>
@@ -185,7 +187,7 @@
 				</div>
 				<div class="card-body">
 					<?php $attributes = array('name' => 'payment_form', 'id' => 'payment_form', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
-					<?php $hidden = array('type' => 'spend', '_token' => $record->trans_number); ?>
+					<?php $hidden = array('type' => 'spend', '_token' => $record->trans_number, 'contact_id' => $record->contact_id); ?>
 					<?php echo form_open('admin/contacts/liability_store_payment', $attributes, $hidden); ?>
 					<div class="row">
 						<div class="col-md-4">
@@ -266,7 +268,7 @@
 												<td><?= $this->Xin_model->set_date_format($value->date); ?></td>
 												<td><?= $pic; ?></td>
 												<td><?= $value->note; ?></td>
-												<td><a href="<?= base_url('admin/finance/accounts/transactions?id=' . $value->account_id) ?>" class="text-dark"><?= "<strong>$value->account_name</strong>" . "  " . $value->account_code; ?></a></td>
+												<td><?= account_url($value->account_id, $value->account_name, $value->account_code); ?></td>
 												<td><?= $this->Xin_model->currency_sign($value->amount); ?></td>
 											</tr>
 										<?php } ?>

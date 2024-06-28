@@ -269,17 +269,6 @@ $(document).on("click", ".delete", function () {
 	$("#data-message").addClass("pt-3 font-weight-bold");
 
 	let del_file = $(this).data("record-id");
-	// let del_file =
-	// 	$(this).data("record-id") +
-	// 	`<br><br>
-	// 	<div class="alert alert-primary" role="alert">
-	// 		<div class="form-check">
-	// 			<label class="form-check-label">
-	// 				<input type="checkbox" class="form-check-input" name="delete_file" value="1">
-	// 				Hapus File
-	// 			</label>
-	// 		</div>
-	// 	</div>`;
 	$("#data-message").html(del_file);
 
 	$("#delete_record").attr("action", site_url + "contacts/liabilities_delete/");
@@ -287,10 +276,9 @@ $(document).on("click", ".delete", function () {
 
 // edit data
 $(window).on("load", function () {
-	let type = $("input[name='liabilities']").val() ?? "";
+	let type = $("input[name='type']").val() ?? "";
 	if (type == "UPDATE") {
 		let token = $("input[name='_token']").val();
-		console.log(token);
 		$.ajax({
 			type: "GET",
 			url: site_url + "/contacts/get_ajax_items_liability",
@@ -319,15 +307,6 @@ $(window).on("load", function () {
 						row.find(".row_note").val(value.note);
 						row.find(".row_amount").val(value.amount);
 						row.find(".row_amount_show").text(formatCurrency(value.amount));
-
-						// set tombol delete to ajax
-						row.find(".remove-item").attr("data-ajax", "true");
-						row.find(".remove-item").attr("data-id", value.liability_trans_id); // set id item liabilities
-
-						row.find(".fa").removeClass("fa-minus"); // remove class btn danger
-						row.find(".fa").addClass("fa-trash"); // remove class btn danger
-
-						row.find(".row_type").val("UPDATE"); // set the type of item (UPDATE)
 					});
 
 					update_total();

@@ -85,6 +85,31 @@ class Receivables_model extends CI_Model
 		return $this->db->trans_status();
 	}
 
+	public function reset_and_update_with_items_and_files($id, $data, $trans, array $items = null, array $files = null)
+	{
+
+		$this->delete($id);
+
+		$this->db->trans_start();
+		$this->db->insert('ms_receivables', $data);
+		$this->db->insert_batch('ms_finance_account_transactions', $trans);
+
+		if (!is_null($items)) {
+			if (count($items) > 0) {
+				$this->db->insert_batch('ms_receivable_trans', $items);
+			}
+		}
+
+		if (!is_null($files)) {
+			if (count($files) > 0) {
+				$this->db->insert_batch('ms_files', $files);
+			}
+		}
+
+		$this->db->trans_complete();
+		return $this->db->trans_status();
+	}
+
 	public function get_by_number_doc($id)
 	{
 		$this->db->where("trans_number", $id);

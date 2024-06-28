@@ -85,6 +85,36 @@ class Liabilities_model extends CI_Model
 		return $this->db->trans_status();
 	}
 
+	public function reset_Expense($trans_number)
+	{
+		$this->db->trans_start();
+	}
+
+	public function reset_and_update_with_items_and_files($id, $data, $trans, array $items = null, array $files = null)
+	{
+
+		$this->delete($id);
+
+		$this->db->trans_start();
+		$this->db->insert('ms_liabilities', $data);
+		$this->db->insert_batch('ms_finance_account_transactions', $trans);
+
+		if (!is_null($items)) {
+			if (count($items) > 0) {
+				$this->db->insert_batch('ms_liability_trans', $items);
+			}
+		}
+
+		if (!is_null($files)) {
+			if (count($files) > 0) {
+				$this->db->insert_batch('ms_files', $files);
+			}
+		}
+
+		$this->db->trans_complete();
+		return $this->db->trans_status();
+	}
+
 	public function insert_items($trans_number, $items, $trans)
 	{
 		$this->db->trans_start();
@@ -202,7 +232,7 @@ class Liabilities_model extends CI_Model
 	public function get_items_by_trans_number($id)
 	{
 		$this->db->where("trans_number", $id);
-		$res = $this->db->select(['ms_liability_trans.*', 'COALESCE(ms_finance_accounts.account_code, "--") as account_code', 'COALESCE(ms_finance_accounts.account_name, "--") as account_name'])
+		$res = $this->db->select(['ms_liability_trans.*', 'COALESCE(ms_finance_accounts.account_code, "--") as account_code', 'COALESCE(ms_finance_accounts.account_name, "--") as account_name', 'ms_finance_accounts.account_id'])
 			->from('ms_liability_trans')
 			->join('ms_finance_accounts', 'ms_liability_trans.account_id=ms_finance_accounts.account_id', 'INNER')
 			->get();

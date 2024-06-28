@@ -224,6 +224,7 @@ if ($id == '') {
 								<label for="account_source"><?php echo $this->lang->line('ms_payment_account_source'); ?></label>
 								<input type="text" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_account_source'); ?>" readonly value="<?= $record->source_account_name; ?>">
 								<input type="hidden" name="source_payment_account" value="<?= $record->account_id; ?>">
+								<input type="hidden" name="contact_id" value="<?= $record->contact_id; ?>">
 							</div>
 						</div>
 						<div class="col-md-4">
