@@ -175,10 +175,10 @@
 				<table class="table table-hover table-striped" id="ms_table">
 					<div class="table-responsive">
 						<button type="button" class="btn btn-success btn-sm mb-3" id="bulk_payment">
-							<i class="fa fa-money-alt text-light"></i> <?= $this->lang->line('ms_title_bulk_payment'); ?>
+							<i class="fas fa-money-bill  fa-fw  "></i> <?= $this->lang->line('ms_title_bulk_payment'); ?>
 						</button>
 						<button type="button" class="btn btn-danger btn-sm mb-3" id="bulk_delete">
-							<i class="fa fa-trash" aria-hidden="true"></i><?= $this->lang->line('ms_title_delete'); ?>
+							<i class="fa fa-trash fa-fw" aria-hidden="true"></i> <?= $this->lang->line('ms_title_delete'); ?>
 						</button>
 						<thead>
 							<tr>

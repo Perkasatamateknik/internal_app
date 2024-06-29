@@ -30,7 +30,9 @@ if ($id == '') {
 									</button>
 									<div class="dropdown-menu" aria-labelledby="triggerId">
 										<a class="dropdown-item" href="<?= base_url('/admin/finance/accounts/spend_print?type=export&id=' . $record->trans_number) ?>" target="_blank">Export PDF</a>
-										<a class="dropdown-item" href="#">Export Excell</a>
+										<?php if (!in_array($record->status, ['partially_paid', 'paid'])) { ?>
+											<a class="dropdown-item" href="<?= base_url('/admin/finance/expenses/edit?id=' . $record->trans_number) ?>"><?= $this->lang->line('xin_edit'); ?></a>
+										<?php	}; ?>
 									</div>
 								</div>
 							</div>
@@ -54,7 +56,7 @@ if ($id == '') {
 							<tr>
 								<td>
 									<span><?= $this->lang->line('ms_title_target_contact'); ?></span><br>
-									<strong><?= $record->beneficiary; ?></strong>
+									<?= contact_url($record->beneficiary); ?>
 								</td>
 								<td>
 									<span><?= $this->lang->line('ms_title_ref'); ?></span><br>
@@ -224,7 +226,7 @@ if ($id == '') {
 								<label for="account_source"><?php echo $this->lang->line('ms_payment_account_source'); ?></label>
 								<input type="text" class="form-control" placeholder="<?php echo $this->lang->line('ms_payment_account_source'); ?>" readonly value="<?= $record->source_account_name; ?>">
 								<input type="hidden" name="source_payment_account" value="<?= $record->account_id; ?>">
-								<input type="hidden" name="contact_id" value="<?= $record->contact_id; ?>">
+								<input type="hidden" name="contact_id" value="<?= $record->beneficiary; ?>">
 							</div>
 						</div>
 						<div class="col-md-4">

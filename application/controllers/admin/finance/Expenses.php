@@ -653,8 +653,8 @@ class Expenses extends MY_Controller
 				$from,
 				status_trans($r->status, true),
 				$to,
-				"<span class='text-danger font-weight-bold'>" . $this->Xin_model->currency_sign($payment_data->sisa_tagihan) . "</span>",
-				"<span class='text-success font-weight-bold'>" . $this->Xin_model->currency_sign($payment_data->jumlah_tagihan) . "</span>",
+				"<span class='text-danger font-weight-bold'>" . $this->Xin_model->currency_sign($payment_data->sisa_tagihan ?? 0) . "</span>",
+				"<span class='text-success font-weight-bold'>" . $this->Xin_model->currency_sign($payment_data->jumlah_tagihan ?? 0) . "</span>",
 				'<div class="dropdown open">
 					<button class="btn btn-default btn-sm m-0" type="button" id="triggerId" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 						<i class="fa fa-ellipsis-v" aria-hidden="true"></i>
@@ -713,7 +713,6 @@ class Expenses extends MY_Controller
 		#
 		#
 		$date = $this->input->post('date');
-		$trans_number = $this->input->post('trans_number');
 
 		$data = [
 			'account_id' 	=> $this->input->post('account_id'),
@@ -776,6 +775,7 @@ class Expenses extends MY_Controller
 				'trans_number' 		=> $trans_number,
 				'account_id' 		=> $this->input->post('row_target_id')[$i],
 				'tax_id' 			=> $this->input->post('row_tax_id')[$i],
+				'tax_name' 			=> $this->input->post('data_tax_name')[$i],
 				'tax_rate' 			=> $this->input->post('row_tax_rate')[$i],
 				'tax_type' 			=> $this->input->post('data_tax_type')[$i],
 				'tax_withholding' 	=> $set_withholding ?? 0,
@@ -884,10 +884,16 @@ class Expenses extends MY_Controller
 			$file_attachments = null;
 		}
 
-		$query = $this->Expense_model->update_with_items_and_files($trans_number, $data, $trans, $items, $file_attachments);
+		if ($this->input->post('type') == "UPDATE") {
+			$query = $this->Expense_model->reset_and_update_with_items_and_files($trans_number, $data, $trans, $items, $file_attachments);
+			$message = $this->lang->line('ms_title_success_updated');
+		} else {
+			$query = $this->Expense_model->update_with_items_and_files($trans_number, $data, $trans, $items, $file_attachments);
+			$message = $this->lang->line('ms_title_success_added');
+		}
 
 		if ($query) {
-			$Return['result'] = $this->lang->line('ms_title_success_added');
+			$Return['result'] = $message;
 			$this->output($Return);
 		} else {
 			$Return['error'] = $this->lang->line('ms_title_error');
@@ -913,8 +919,6 @@ class Expenses extends MY_Controller
 		if (!is_null($record)) {
 			$record->source_account = account_url($record->account_id, $record->account_name, $record->account_code);
 			$record->source_account_name = $record->account_name . " | " . $record->account_code;
-
-			$record->beneficiary = contact_url($record->beneficiary);
 
 			// get payment
 			$data['payment'] = $this->Expense_model->get_payment(4, $record->trans_number);
@@ -944,7 +948,7 @@ class Expenses extends MY_Controller
 
 			$data['items'] = $items;
 		} else {
-			redirect('admin/finance/expense');
+			redirect('admin/');
 		}
 
 
@@ -972,42 +976,20 @@ class Expenses extends MY_Controller
 		$role_resources_ids = $this->Xin_model->user_role_resource();
 		$record = $this->Expense_model->get_by_number_doc($id);
 
-		if (!is_null($record)) {
-			$from = $this->Accounts_model->get($record->account_id)->row();
-			$to = $this->Contact_model->get($record->beneficiary)->row();;
-
-			$record->source_account = $from->account_name . " " . $from->account_code;
-			$record->beneficiary_name = $to->contact_name;
-
-			// // get payment
-			// $data['payment'] = $this->Expense_model->get_payment(4, $record->trans_number);
-
-			// // 4 => roles expense
-			// $attachments = $this->Files_ms_model->get_by_access_id(4, $record->trans_number)->result();
-			// $data['attachments'] = $attachments;
-
-			// //add expense items model
-			// $items = $this->Expense_items_model->get_by_trans_number($record->trans_number);
-			// // dd($items);
-			// if (!is_null($items)) {
-			// 	foreach ($items as $item) {
-			// 		$item->account_name = $this->Accounts_model->get($item->account_id)->row()->account_name;
-			// 		$tax = $this->Tax_model->read_tax_information($item->tax_id); // return bool
-
-			// 		if ($tax) {
-			// 			$item->tax_name = $tax[0]->name;
-			// 			$item->tax_rate = $item->tax_rate;;
-			// 		} else {
-			// 			$item->tax_name = "--";
-			// 			$item->tax_rate = 0;
-			// 		}
-			// 	}
-			// }
-
-			// $data['items'] = $items;
-		} else {
-			redirect('admin/finance/expense');
+		// jika data null
+		if (is_null($record)) {
+			redirect('admin/');
 		}
+
+		if (in_array($record->status, ['partially_paid', 'paid'])) {
+			redirect('admin/');
+		}
+
+
+		$from = $this->Accounts_model->get($record->account_id)->row();
+		$to = $this->Contact_model->get($record->beneficiary)->row();;
+		$record->source_account = $from->account_name . " " . $from->account_code;
+		$record->beneficiary_name = $to->contact_name;
 
 		$data['record'] = $record;
 		if (in_array('503', $role_resources_ids)) {
@@ -1040,6 +1022,16 @@ class Expenses extends MY_Controller
 		$amount_paid = $this->input->post('amount_paid');
 		$trans = [];
 
+		$contact = $this->Contact_model->get_contact($contact_id);
+		if (!is_null($contact)) {
+			$contact_name = $contact->contact_name;
+		} else {
+			$contact_name = "";
+		}
+
+		// ref trans id
+		$ref_trans_id = $trans_number . "-" . rand(100000, 999999);
+
 		// kredit pengirim
 		$trans[] =
 			[
@@ -1051,8 +1043,9 @@ class Expenses extends MY_Controller
 				'type' => 'credit',
 				'join_id' => $trans_number,
 				'ref' => $payment_ref,
-				'note' => "Pembayaran Expense",
+				'note' => "Payment Expense: " . $contact_name,
 				'attachment' => $file_attachment,
+				'ref_trans_id'	=> $ref_trans_id
 			];
 
 		// debit trade payable
@@ -1066,8 +1059,10 @@ class Expenses extends MY_Controller
 				'type' => 'debit',
 				'join_id' => $trans_number,
 				'ref' => $payment_ref,
-				'note' => "Debit Expense",
+				'note' => "Payment Expense: " . $contact_name,
 				'attachment' => $file_attachment,
+				'ref_trans_id'	=> $ref_trans_id
+
 			];
 
 		$insert = $this->Account_trans_model->insert_payment($trans);
@@ -1129,7 +1124,7 @@ class Expenses extends MY_Controller
 					'type' => 'credit',
 					'join_id' => $trans_number,
 					'ref' => $payment_ref,
-					'note' => "Pembayaran Expense: " . $contact,
+					'note' => "Payment Expense: " . $contact,
 					'attachment' => null,
 				];
 
@@ -1144,7 +1139,7 @@ class Expenses extends MY_Controller
 					'type' => 'debit',
 					'join_id' => $trans_number,
 					'ref' => $payment_ref,
-					'note' => "Pembayaran Expense: " . $contact,
+					'note' => "Payment Expense: " . $contact,
 					'attachment' => null,
 				];
 

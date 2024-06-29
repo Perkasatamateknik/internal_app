@@ -351,9 +351,8 @@ $(window).on("load", function () {
 
 						row.find(".row_note").val(value.note);
 						row.find(".row_amount").val(value.amount);
-						row.find(".row_amount_show").text(formatCurrency(value.amount));
 					});
-
+					console.log(response);
 					update_total();
 				}
 			},

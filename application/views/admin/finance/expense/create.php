@@ -4,7 +4,7 @@
 	</div>
 </div>
 
-<?php $attributes = array('name' => 'expense_form', 'id' => 'expense_forms', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
+<?php $attributes = array('name' => 'expense_form', 'id' => 'expense_form', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
 <?php $hidden = array('type' => 'expense', '_token' => $record->trans_number); ?>
 <?php echo form_open('admin/finance/expenses/store', $attributes, $hidden); ?>
 <div class="row">
@@ -115,17 +115,34 @@
 						<div id="fileUpload" class="file-container">
 						</div>
 					</div>
-					<div class="col-md-6">
+					<div class="col-md-6 align-content-end">
 						<div class="row justify-content-end">
-							<div class="col-auto">
-								<button class="btn btn-secondary" type="submit" name="act_type" value="save"><?= $this->lang->line('ms_title_save_draft'); ?></button>
-								<button class="btn btn-primary" type="submit" name="act_type" value="submit"><?= $this->lang->line('ms_title_process'); ?></button>
-							</div>
-							<div class="col-auto">
+							<div class="col-md-8 align-content-end">
+								<table class="table table-borderless">
+									<tr>
+										<td class="text-right">
+											<div class="row justify-content-between">
+												<div class="col-auto">
+													<strong class="pr-3"><?php echo $this->lang->line('xin_amount'); ?></strong>
+												</div>
+												<div class="col-auto">
+													<input type="hidden" name="amount" value="0" id="amount">
+													<strong id="amount_show" class="currency">0</strong>
+												</div>
+											</div>
+										</td>
+									</tr>
+								</table>
+								<div class="row">
+									<div class="col-6 pr-1">
+										<button class="btn btn-secondary btn-block" type="submit" name="act_type" value="save"><?= $this->lang->line('ms_title_save_draft'); ?></button>
+									</div>
+									<div class="col-6 pl-1">
+										<button class="btn btn-primary btn-block" type="submit" name="act_type" value="submit"><?= $this->lang->line('ms_title_process'); ?></button>
+									</div>
+								</div>
 							</div>
 						</div>
-						<!-- <div class="d-flex bottom-right">
-						</div> -->
 					</div>
 				</div>
 			</div>

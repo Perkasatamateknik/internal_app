@@ -5,7 +5,7 @@
 </div>
 
 <?php $attributes = array('name' => 'expense_form', 'id' => 'expense_form', 'autocomplete' => 'off', 'class' => 'm-b-1 add', 'enctype' => 'multipart/form-data'); ?>
-<?php $hidden = array('expense'  => 'UPDATE', '_token' => $record->trans_number); ?>
+<?php $hidden = array('type'  => 'UPDATE', '_token' => $record->trans_number, 'account_id' => $record->account_id); ?>
 <?php echo form_open('admin/finance/expenses/store', $attributes, $hidden); ?>
 <div class="row">
 	<div class="col-md-12">
@@ -19,8 +19,6 @@
 						<div class="form-group">
 							<label for="account_id"><?= $this->lang->line('ms_title_source_account'); ?></label>
 							<input type="text" class="form-control" value="<?= $record->source_account; ?>" readonly>
-							<input type="hidden" name="account_id" value="<?= $record->source_account; ?>">
-							<input type="hidden" name="trans_number" id="trans_number" value="<?= $record->trans_number; ?>">
 						</div>
 					</div>
 					<div class="col-md-6">
@@ -120,16 +118,27 @@
 						<div id="fileUpload" class="file-container">
 						</div>
 					</div>
-					<div class="col-md-6">
+					<div class="col-md-6 align-content-end">
 						<div class="row justify-content-end">
-							<div class="col-auto">
-								<button class="btn btn-primary" type="submit" name="act_type" value="submit"><?= $this->lang->line('xin_save'); ?></button>
-							</div>
-							<div class="col-auto">
+							<div class="col-md-8 align-content-end">
+								<table class="table table-borderless">
+									<tr>
+										<td class="text-right">
+											<div class="row justify-content-between">
+												<div class="col-auto">
+													<strong class="pr-3"><?php echo $this->lang->line('xin_amount'); ?></strong>
+												</div>
+												<div class="col-auto">
+													<input type="hidden" name="amount" value="0" id="amount">
+													<strong id="amount_show" class="currency">0</strong>
+												</div>
+											</div>
+										</td>
+									</tr>
+								</table>
+								<button type="submit" class="btn btn-primary btn-block"> <?php echo $this->lang->line('xin_save'); ?> </button>
 							</div>
 						</div>
-						<!-- <div class="d-flex bottom-right">
-						</div> -->
 					</div>
 				</div>
 			</div>
@@ -160,41 +169,3 @@
 </div>
 
 <?php echo form_close(); ?>
-
-
-<!-- Button trigger modal -->
-<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modelId">
-	Launch
-</button>
-
-<!-- Modal -->
-<div class="modal fade" id="modelId" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
-	<div class="modal-dialog" role="document">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h5 class="modal-title">Modal title</h5>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-					<span aria-hidden="true">&times;</span>
-				</button>
-			</div>
-			<div class="modal-body">
-				<div class="container-fluid">
-					Add rows here
-				</div>
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-				<button type="button" class="btn btn-primary">Save</button>
-			</div>
-		</div>
-	</div>
-</div>
-
-<script>
-	$('#exampleModal').on('show.bs.modal', event => {
-		var button = $(event.relatedTarget);
-		var modal = $(this);
-		// Use above variables to manipulate the DOM
-
-	});
-</script>

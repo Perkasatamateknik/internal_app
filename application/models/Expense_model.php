@@ -90,6 +90,30 @@ class Expense_model extends CI_Model
 	}
 
 
+	public function reset_and_update_with_items_and_files($id, $data, $trans, array $items = null, array $files = null)
+	{
+		$this->delete($id);
+
+		$this->db->trans_start();
+		$this->db->insert('ms_finance_expenses', $data);
+		$this->db->insert_batch('ms_finance_account_transactions', $trans);
+
+		if (!is_null($items)) {
+			if (count($items) > 0) {
+				$this->db->insert_batch('ms_finance_expense_trans', $items);
+			}
+		}
+
+		if (!is_null($files)) {
+			if (count($files) > 0) {
+				$this->db->insert_batch('ms_files', $files);
+			}
+		}
+
+		$this->db->trans_complete();
+		return $this->db->trans_status();
+	}
+
 	public function update_with_items_and_files($id, $data, $trans, array $items = null, array $files = null)
 	{
 		$this->db->trans_start();
@@ -131,6 +155,10 @@ class Expense_model extends CI_Model
 		// cari data tagihan di akun 34 trade payable
 		$record_tagihan = $this->db->where('account_id', 34)->where('account_trans_cat_id', $account_trans_cat_id)->where('join_id', $join_id)->where('type', 'credit')->get('ms_finance_account_transactions')->row();
 		$records_pembayaran = $this->db->select_sum('amount')->where('account_id', 34)->where('account_trans_cat_id', $account_trans_cat_id)->where('join_id', $join_id)->where('type', 'debit')->get('ms_finance_account_transactions')->row()->amount;
+
+		if (is_null($record_tagihan)) {
+			return null;
+		}
 
 		// log pembayaran dari akun
 		$log = $this->db->select(['ms_finance_account_transactions.*', 'COALESCE(ms_finance_accounts.account_code, "--") as account_code', 'COALESCE(ms_finance_accounts.account_name, "--") as account_name', 'ms_finance_accounts.category_id', 'xin_employees.first_name', 'xin_employees.last_name'])

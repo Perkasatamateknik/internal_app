@@ -110,7 +110,7 @@ $(function () {
 							window.location.href =
 								site_url +
 								"finance/expenses/view?id=" +
-								$("input[name='trans_number']").val();
+								$("input[name='_token']").val();
 						},
 					};
 					toastr.success(JSON.result);
@@ -196,27 +196,6 @@ function modalBulkPayment(id) {
 		},
 	});
 }
-
-// $(document).ready(function () {
-// 	$("#table_form").submit(function (event) {
-// 		event.preventDefault();
-// 		var selected = [];
-// 		$(".select_id:checked").each(function () {
-// 			selected.push($(this).val());
-// 		});
-
-// 		if (selected.length > 0) {
-// 			$.ajax({
-// 				url: site_url + "/finance/expenses/ajax_modal_bulk_payment",
-// 				type: "GET",
-// 				data: { expense_ids: selected },
-// 				success: function (data) {},
-// 			});
-// 		} else {
-// 			alert("Please select at least one expense.");
-// 		}
-// 	});
-// });
 
 $("#bulk_payment").click(function () {
 	var selected = [];
@@ -388,12 +367,14 @@ function addRow() {
 			</select>
 			<input type="text" class="row_tax_rate" name="row_tax_rate[]" id="row_tax_rate_${rowCount}" value="0">
 			<input type="text" class="data_tax_rate" value="0">
+			<input type="text" class="data_tax_name" value="" name="data_tax_name[]">
 			<input type="text" class="data_tax_type" value="fixed" name="data_tax_type[]"><br>
 			<strong class="row_tax_rate_show currency" style="font-size:10px"></strong>
 		</td>
 
 		<td>
 			<input type="number" min="0" class="row_amount form-control" name="row_amount[]" id="row_amount_${rowCount}" value="0">
+			<input type="number" min="0" class="row_amount_total" name="row_amount_total[]" id="row_amount_total_${rowCount}" value="0">
 		</td>
 		<td style="text-align:center">
 			<input type="text" class="row_type" name="row_type[]" value="INSERT">
@@ -490,8 +471,10 @@ function select_tax(x) {
 		url: site_url + "ajax_request/find_tax_by_id",
 		data: { query: query },
 		success: function (result) {
+			console.log(result);
 			data_tax_rate = result.rate;
 			data_tax_type = result.type;
+			data_tax_name = result.name;
 			var amount = parseFloat(selectedRow.find(".row_amount").val());
 
 			if (data_tax_type == "fixed") {
@@ -500,6 +483,7 @@ function select_tax(x) {
 				var tax = (data_tax_rate / 100) * amount; // get nilai tax
 			}
 
+			selectedRow.find(".data_tax_name").val(data_tax_name);
 			selectedRow.find(".data_tax_rate").val(data_tax_rate);
 			selectedRow.find(".data_tax_type").val(data_tax_type);
 
@@ -508,6 +492,7 @@ function select_tax(x) {
 
 			//update
 			update_row_amount(rowId);
+			update_total();
 		},
 	});
 }
@@ -515,13 +500,26 @@ function select_tax(x) {
 // Calculate subtotal whenever row_qty or row_item_price is changed
 $(document).on(
 	"change click keyup load",
-	".row_tax_id, .row_amount",
+	".row_tax_id, .row_amount, .row_amount_total",
 	function () {
 		var row = $(this).closest("tr");
 		var id = row.attr("data-id");
 		update_row_amount(id);
+		update_total();
 	}
 );
+
+function update_total() {
+	var total = 0;
+	$(".row_amount_total").each(function () {
+		var sub_total = $(this).val();
+		sub_total = parseFloat(sub_total);
+		total = parseFloat(total) + parseFloat(sub_total);
+	});
+
+	$("#amount").val(total);
+	$("#amount_show").text(formatCurrency(total));
+}
 
 function update_row_amount(id) {
 	var row = $("#item-row-" + id).closest("tr");
@@ -543,6 +541,9 @@ function update_row_amount(id) {
 
 	row.find(".row_tax_rate").val(row_tax_rate);
 	row.find(".row_tax_rate_show").text(formatCurrency(row_tax_rate));
+
+	var amount_total = amount + row_tax_rate;
+	row.find(".row_amount_total").val(amount_total);
 }
 
 $(document).ready(function () {
@@ -599,7 +600,7 @@ $(document).ready(function () {
 
 // edit data
 $(window).on("load", function () {
-	let type = $("input[name='expense']").val() ?? "";
+	let type = $("input[name='type']").val() ?? "";
 	if (type == "UPDATE") {
 		let token = $("input[name='_token']").val();
 		$.ajax({
@@ -613,6 +614,7 @@ $(window).on("load", function () {
 					$.each(response.items, function (key, value) {
 						addRow();
 						var row = $("#item-row-" + key).closest("tr");
+
 						var selectedOptionId = value.account_id;
 						var selectedOptionText =
 							value.account_code + " | " + value.account_name;
@@ -637,16 +639,30 @@ $(window).on("load", function () {
 								.find(".row_tax_rate_show")
 								.text(formatCurrency(value.tax_rate));
 						}
+
+						if (value.tax_type != "fixed") {
+							var tax_data = calculateTaxPercentage(
+								value.amount,
+								value.tax_rate
+							);
+							row.find(".row_tax_rate").val(tax_data);
+							row.find(".data_tax_rate").val(tax_data);
+						} else {
+							row.find(".data_tax_rate").val(value.tax_rate);
+							row.find(".row_tax_rate").val(value.tax_rate);
+						}
+
+						row.find(".data_tax_name").val(value.tax_name);
+						row.find(".data_tax_type").val(value.tax_type);
+
 						row.find(".row_note").val(value.note);
 						row.find(".row_amount").val(value.amount);
 						row.find(".row_amount_show").text(formatCurrency(value.amount));
-					});
 
-					// // set another
-					$("#ref_delivery_fee").val(response.data.ref_delivery_fee);
-					$("#amount").val(response.data.amount);
-					$("#amount_show").text(formatCurrency(response.data.amount));
-					// update_total();
+						// update row
+						update_row_amount(key);
+					});
+					update_total();
 				}
 			},
 		});
@@ -661,5 +677,14 @@ $(document).on("click", ".remove-item", function () {
 		.closest(".item-row")
 		.fadeOut(300, function () {
 			$(this).remove();
+			update_total();
 		});
 });
+
+function calculateTaxPercentage(amount, tax) {
+	if (amount > 0) {
+		return (tax / amount) * 100;
+	} else {
+		return 0;
+	}
+}
